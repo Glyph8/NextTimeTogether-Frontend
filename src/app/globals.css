@@ -1,2 +1,63 @@
 @import "tailwindcss";
+@import "tailwindcss/preflight";
+
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
+
+@layer base{
+    /* 추가적인 전역 스타일은 여기 */
+     /* body {
+    @apply bg-zinc-900 text-white;
+  }
+
+  a {
+    @apply text-cyan-400 hover:text-cyan-300;
+    text-decoration: none;
+  } */
+}
+
+@theme {
+  /* 메인 컬러 */
+  --color-main: #731AEF;
+  --color-normal: #A26AF0;
+  --color-sub: #FFC553;
+
+  /* 흑백 컬러 */
+  --color-black: #111111;
+  --color-gray-1: #656565;
+  --color-gray-2: #5E5E5E;
+  --color-gray-3: #e4e4e4;
+  --color-background: #8E98A8;
+
+  /* 캘린더 컬러 */
+  --color-calendar-pink: #FDBAAB;
+  --color-calendar-orange: #FEA666;
+  --color-calendar-yellow: #FFC553;
+  --color-calendar-purple1: #731AEF;
+  --color-calendar-purple2: #A26AF0;
+  --color-calendar-blue: #3B4FFF;
+
+
+  /* 브랜드 컬러 - highlight */
+  --color-highlight-1: #FF1B0D;
+  --color-highlight-2: #32BF47;
+
+  /* 브랜드 gradient 정의 */
+  --gradient-highlight: linear-gradient(180deg, #a855f7 0%, #6d28d9 100%);
+  --gradient-highlight-2: linear-gradient(180deg, #60a5fa, #86efac);
+
+  /* Pretendard 폰트 정의 */
+  --font-pretendard: "Pretendard", system-ui, sans-serif;
+}
+
+/* 커스텀 gradient 클래스 */
+.bg-gradient-highlight {
+  background: var(--gradient-highlight);
+}
+
+.bg-gradient-highlight-2 {
+  background: var(--gradient-highlight-2);
+}
+
 
