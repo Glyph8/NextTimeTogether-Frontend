@@ -3,25 +3,19 @@ import FullLogo from "@/assets/images/logo-full.svg"
 import Link from "next/link";
 export default function Home() {
 
-  const handleIdLogin = () => {
-  }
-
-  function handleRegister(): void {
-    throw new Error("Function not implemented.");
-  }
-
   return (
     <main className="min-h-screen bg-white flex flex-col items-center justify-center">
       <div className="flex flex-col items-center w-full text-center p-4">
 
         <div className="h-fit mb-24">
-            <Image
+            {/* <Image
               src={FullLogo}
               alt="앱 로고"
               width={120}
               height={120}
               className="mx-auto"
-            />
+            /> */}
+            <FullLogo/>
           <div className="text-purple-500 text-3xl font-normal font-['KCC-Hanbit'] leading-tight">
             Time Together
           </div>
