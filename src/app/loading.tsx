@@ -1,5 +1,4 @@
-import Image from "next/image"
-import WhiteLogo from "@/assets/images/logo-white.svg"
+import WhiteLogo from "@/assets/svgs/images/logo-white.svg"
 
 export default function Splash() {
   return (

@@ -1,5 +1,4 @@
-import Image from "next/image"
-import FullLogo from "@/assets/images/logo-full.svg"
+import FullLogo from "@/assets/svgs/images/logo-full.svg"
 import Link from "next/link";
 export default function Home() {
 

@@ -1,5 +1,5 @@
 import Header from "@/components/ui/header/Header";
-import ArrowLeft from "@/assets/icons/arrow-left-black.svg";
+import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg";
 
 export default function LoginLayout({
     children,
