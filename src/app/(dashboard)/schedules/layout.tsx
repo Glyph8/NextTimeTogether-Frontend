@@ -1,6 +1,6 @@
 import BottomNav from "@/components/shared/BottomNav/BottomNav";
 
-export default function CalendarPageLayout({
+export default function SchedulePageLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;

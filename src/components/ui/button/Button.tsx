@@ -11,12 +11,12 @@ export const Button = ({ text, disabled, onClick }: ButtonProps) => {
         <>
             {
                 disabled ? (
-                    <button className="w-full flex justify-center items-center text-center text-white
+                    <button className="w-full max-w-200 flex justify-center items-center text-center text-white
                     bg-[#999999] text-base font-medium font-['Pretendard'] leading-tight py-[15px] rounded-[8px]" disabled>
                         {text}
                     </button>
                 ) : (
-                    <button className="w-full flex justify-center items-center text-center text-white
+                    <button className="w-full max-w-200 flex justify-center items-center text-center text-white
                     bg-main text-base font-medium font-['Pretendard'] leading-tight py-[15px] rounded-[8px]"
                     onClick={onClick}>
                         {text}

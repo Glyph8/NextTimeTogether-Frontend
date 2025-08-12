@@ -7,14 +7,7 @@ export default function Home() {
       <div className="flex flex-col items-center w-full text-center p-4">
 
         <div className="h-fit mb-24">
-            {/* <Image
-              src={FullLogo}
-              alt="앱 로고"
-              width={120}
-              height={120}
-              className="mx-auto"
-            /> */}
-            <FullLogo/>
+            <FullLogo className="mx-auto"/>
           <div className="text-purple-500 text-3xl font-normal font-['KCC-Hanbit'] leading-tight">
             Time Together
           </div>
@@ -24,7 +17,7 @@ export default function Home() {
         </div>
 
 
-        <div className="flex justify-center items-center w-full h-12 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-neutral-200 
+        <div className="flex justify-center items-center w-full max-w-200 h-12 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-neutral-200 
       text-center text-stone-500 text-base font-medium font-['Pretendard'] leading-tight"
       >
         <Link href="/login">
