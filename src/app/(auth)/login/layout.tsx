@@ -12,17 +12,17 @@ export default function LoginLayout({
     const router = useRouter();
     const handleBackClick = () => router.push("/")
     return (
-        <div>
+        <div className="flex flex-col min-h-screen bg-white">
             <Header
                 leftChild={
                     <ArrowLeft onClick={handleBackClick}/>
                 }
                 title={
-                    <h1 className="text-center justify-start text-neutral-900 text-lg font-medium font-['Pretendard'] leading-tight">
+                    <h1 className="text-center text-lg font-medium leading-tight">
                         아이디로 로그인
                     </h1>
                 } />
-            <main>
+            <main className="flex-1 overflow-y-auto px-4">
                 {children}
             </main>
         </div>

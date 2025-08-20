@@ -5,9 +5,35 @@
 }
 
 @layer base{
+   :root {
+    /* --- 전반적인 색상 --- */
+    --fc-border-color: theme(colors.white);
+    --fc-today-bg-color: theme(colors.blue.50);
+    --fc-list-event-dot-width: 10px;
+    --fc-event-border-color: theme(colors.blue.600);
+    
+    /* --- 헤더 툴바 --- */
+    --fc-button-bg-color: theme(colors.blue.500);
+    --fc-button-active-bg-color: theme(colors.blue.700);
+    --fc-button-text-color: theme(colors.white);
+    --fc-button-border-color: theme(colors.blue.500);
+    --fc-button-hover-bg-color: theme(colors.blue.600);
+
+    /* --- 이벤트 색상 (기본값) --- */
+    --fc-event-bg-color: theme(colors.blue.500);
+    --fc-event-text-color: theme(colors.white);
+    
+    /* --- 팝오버 (more link) --- */
+    --fc-popover-bg-color: theme(colors.white);
+    --fc-popover-border-color: theme(colors.gray.200);
+  }
   body{
     font-family: var(--font-pretendard), system-ui, sans-serif;
   }
+  input:focus {
+  	outline: none;
+  }
+
 }
 
 @theme {
@@ -52,6 +78,47 @@
   background: var(--gradient-highlight-2);
 }
 
+
+
+
+/* ▼▼▼ FullCalendar 커스텀 스타일 ▼▼▼ */
+
+/* --- 2. 캘린더 셀 스타일링 --- */
+.custom-calendar-container{
+  @apply border-none;
+}
+
+/* 모든 셀의 border 색상 */
+.custom-calendar-container .fc-theme-standard th, 
+.custom-calendar-container .fc-theme-standard td {
+  @apply border-white;
+}
+
+/* 요일 헤더 (일, 월, 화...) */
+.custom-calendar-container .fc-col-header-cell-cushion {
+  @apply text-sm font-medium text-gray-500;
+}
+
+.custom-calendar-container .fc-daygrid-day-top {
+  @apply text-center flex justify-center items-center h-5
+}
+
+/* 일요일(sun) 날짜 숫자 색상 */
+.custom-calendar-container .fc-day-sun .fc-day-number {
+  @apply text-red-500;
+}
+
+/* 토요일(sat) 날짜 숫자 색상 */
+.custom-calendar-container .fc-day-sat .fc-day-number {
+  @apply text-blue-500;
+}
+/* FullCalendar의 기본 배경색과 테두리를 제거하여 착시 현상 방지(왼쪽, 위쪽 border처럼 보이는 문제) */
+/* .custom-calendar-container .fc {
+  @apply bg-white border-none;
+} */
+.fc-theme-standard .fc-scrollgrid {
+    border: none;
+}
 /* 
 @font-face {
 	font-family: 'Pretendard Variable';

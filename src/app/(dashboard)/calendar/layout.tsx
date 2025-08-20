@@ -8,8 +8,8 @@ export default function CalendarPageLayout({
 
 
     return (
-        <div className="w-full h-screen flex flex-col justify-between">
-            <main>
+        <div className="flex flex-col h-dvh bg-white">
+            <main className="flex-1 overflow-y-auto">
                 {children}
             </main>
             <BottomNav/>
