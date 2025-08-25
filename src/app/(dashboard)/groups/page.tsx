@@ -1,8 +1,12 @@
+"use client"
+
 import Header from "@/components/ui/header/Header";
 import { GroupItem } from "./GroupItem";
+import { ExitGroupDialog } from "./ExitGroupDialog";
+import { useState } from "react";
 
 export default function GroupsPage() {
-
+     const [isOpenDialog, setIsOpenDialog] = useState(false);
     return (
         <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
             <Header title={
@@ -18,11 +22,16 @@ export default function GroupsPage() {
             </div>
 
             <div className="w-full flex flex-col gap-2 px-4">
-                <GroupItem />
-                <GroupItem />
-                <GroupItem />
+                <GroupItem image={"https://placehold.co/64x64"} title={"팀1"} description={"2024-2학기 소프트웨어공학 팀플"} 
+                members={"김OO, 김OO, 박OO, 이OO"} setIsOpen={setIsOpenDialog} />
+                <GroupItem image={"https://placehold.co/64x64"} title={"팀1"} description={"2024-2학기 소프트웨어공학 팀플"} 
+                members={"김OO, 김OO, 박OO, 이OO"} setIsOpen={setIsOpenDialog} />
+                <GroupItem image={"https://placehold.co/64x64"} title={"팀1"} description={"2024-2학기 소프트웨어공학 팀플"} 
+                members={"김OO, 김OO, 박OO, 이OO"} setIsOpen={setIsOpenDialog} />
+                <GroupItem image={"https://placehold.co/64x64"} title={"팀1"} description={"2024-2학기 소프트웨어공학 팀플"} 
+                members={"김OO, 김OO, 박OO, 이OO"} setIsOpen={setIsOpenDialog} />
             </div>
-
+            <ExitGroupDialog isOpen={isOpenDialog} setIsOpen={setIsOpenDialog} />
         </div>
     )
 }
