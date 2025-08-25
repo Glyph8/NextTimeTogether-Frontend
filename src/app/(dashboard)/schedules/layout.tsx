@@ -11,7 +11,7 @@ export default function SchedulePageLayout({
     return (
         <div className="flex flex-col min-h-screen bg-white">
             <Header title={<h1 className="text-center text-lg font-medium leading-tight">
-                그룹 관리
+                약속 일정
             </h1>} />
             <main className="flex-1 flex flex-col overflow-y-auto">
                 {children}

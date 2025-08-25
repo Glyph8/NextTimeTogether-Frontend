@@ -9,7 +9,7 @@ export default function GroupsPageLayout({
 
     return (
         <div className="flex flex-col min-h-screen bg-white">
-            <main className="flex-1 overflow-y-auto px-4">
+            <main className="flex-1 overflow-y-auto">
                 {children}
             </main>
             <BottomNav/>
