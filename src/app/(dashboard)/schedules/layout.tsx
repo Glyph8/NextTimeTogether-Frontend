@@ -1,4 +1,5 @@
 import BottomNav from "@/components/shared/BottomNav/BottomNav";
+import Header from "@/components/ui/header/Header";
 
 export default function SchedulePageLayout({
     children,
@@ -9,10 +10,13 @@ export default function SchedulePageLayout({
 
     return (
         <div className="flex flex-col min-h-screen bg-white">
-            <main className="flex-1 overflow-y-auto px-4">
+            <Header title={<h1 className="text-center text-lg font-medium leading-tight">
+                그룹 관리
+            </h1>} />
+            <main className="flex-1 flex flex-col overflow-y-auto">
                 {children}
             </main>
-            <BottomNav/>
+            <BottomNav />
         </div>
     )
 }

@@ -2,6 +2,19 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+   images: {
+    // 1. Next.js 13+ 권장 방식
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        //pathname: '/600x400', // 특정 경로만 허용하고 싶다면 추가
+      },
+    ],
+    // 2. 구 버전 방식 (여전히 작동함)
+    // domains: ['placehold.co'],
+  },
+
   // TurboPack 설정
   experimental: {
     turbo: {
