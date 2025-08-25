@@ -7,6 +7,7 @@ import XWhite from "@/assets/svgs/icons/x-white.svg"
 import Plus from "@/assets/svgs/icons/plus-white.svg"
 import { Button } from "@/components/ui/button/Button";
 import { useState } from "react";
+import Link from "next/link";
 export default function CreateGroupPage() {
 
     const [groupName, setGroupName] = useState("");
@@ -19,7 +20,9 @@ export default function CreateGroupPage() {
         <div className="flex flex-col w-full flex-1 bg-white pb-5">
             <Header
                 leftChild={
-                    <X />
+                    <Link href={"/groups"}>
+                        <X />
+                    </Link>
                 }
                 title={
                     <h1 className="text-center text-lg font-medium leading-tight">

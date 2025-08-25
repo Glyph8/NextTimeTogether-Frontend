@@ -25,7 +25,7 @@ export const ExitGroupDialog = ({ isOpen, setIsOpen }: ExitGroupDialogProps) => 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTitle hidden>
-                상세 일정
+                그룹에서 나가기
             </DialogTitle>
             <DialogContent showCloseButton={false}
                 className="w-full p-5 bg-white">
