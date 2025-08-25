@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Trashcan from "@/assets/svgs/icons/trashcan.svg";
+import { useRouter } from "next/navigation";
 
 interface GroupItemProps {
     image: string;
@@ -10,12 +11,21 @@ interface GroupItemProps {
 }
 
 export const GroupItem = ({ image, title, description, members, setIsOpen }: GroupItemProps) => {
-    const handleExit = () =>{
+    const router = useRouter();
+    
+    const handleToDetail = () =>{
+        setIsOpen(false);
+        router.push("/groups/detail");
+    }
+    
+    const handleExit = (e :React.MouseEvent<HTMLButtonElement>) =>{
+        e.stopPropagation();
         setIsOpen(true);
     }
 
     return (
-        <div className="w-full flex flex-row bg-white gap-3 px-4 py-3 border-gray-3 border-1 rounded-[8px]">
+        <div className="w-full flex flex-row bg-white gap-3 px-4 py-3 border-gray-3 border-1 rounded-[8px]"
+        onClick={handleToDetail}>
             <Image src={image} alt="image" width={64} height={64}
                 className="border-gray-1 rounded-[8px]" />
             <div className="w-full flex flex-col gap-1.5">

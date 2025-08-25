@@ -79,7 +79,6 @@ export const EnterGroupDialog = ({ isOpen, setIsOpen }: EnterGroupDialogProps) =
                     )
                 }
 
-
             </DialogContent>
         </Dialog>
     )
