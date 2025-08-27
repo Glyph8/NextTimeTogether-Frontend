@@ -1,6 +1,6 @@
 import { DialogFooter } from "@/components/ui/dialog"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // import Image from "next/image";
 
 interface EnterGroupDialogProps {
@@ -13,13 +13,18 @@ export const EnterGroupDialog = ({ isOpen, setIsOpen }: EnterGroupDialogProps) =
     const [isEntered, setIsEntered] = useState(false);
 
     const handleEnterGroup = () => {
-        // 나가기 요청 추가
         setIsEntered(true);
     }
 
     const handleReject = () => {
         setIsOpen(false);
     }
+
+    useEffect(() => {
+        if (!isOpen) {
+            setIsEntered(false);
+        }
+    }, [isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

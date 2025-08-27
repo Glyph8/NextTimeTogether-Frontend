@@ -14,7 +14,6 @@ export const GroupItem = ({ image, title, description, members, setIsOpen }: Gro
     const router = useRouter();
     
     const handleToDetail = () =>{
-        setIsOpen(false);
         router.push("/groups/detail");
     }
     

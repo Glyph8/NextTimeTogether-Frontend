@@ -45,39 +45,46 @@ export default function DetailGroupPage() {
                     </button>
                 </div>
                 <div>
-                    <div className="flex justify start items-center text-gray-1 text-sm font-medium leading-none px-1">
-                        약속 정하는 중
-                        <button onClick={()=>setOpenOngoing(!openOngoing)}>
+                    <div className="flex justify-start items-center text-gray-1 text-sm font-medium leading-none px-1">                        <button onClick={()=>setOpenOngoing(!openOngoing)}>
                             <ArrowDown />
                         </button>
                     </div>
 
                     {openOngoing && (
                         <div className="flex flex-col gap-2">
-                            <GroupScheduleItem type={"스터디"} title={"주제 정하기"} place="학교" />
-                            <GroupScheduleItem type={"스터디"} title={"내용 정하기"} time="10/12 (토)  09:00~12:00" faced="온라인" />
-                            <GroupScheduleItem type={"식사"} title={"하기"} time="10/12 (토)  09:00~12:00" faced="오프라인" place="카페온더플랜" />
+                            <GroupScheduleItem category={"스터디"} title={"주제 정하기"} place="학교" />
+                            <GroupScheduleItem category={"스터디"} title={"내용 정하기"} time="10/12 (토)  09:00~12:00" attendees="온라인" />
+                            <GroupScheduleItem category={"식사"} title={"하기"} time="10/12 (토)  09:00~12:00" attendees="오프라인" place="카페온더플랜" />
                         </div>
                     )}
 
                 </div>
 
                 <div>
-                    <div className="flex justify start items-center text-gray-1 text-sm font-medium leading-none px-1">
+                    <div className="flex justify-start items-center text-gray-1 text-sm font-medium leading-none px-1">
                         약속 확정 완료
                         <button onClick={()=>setOpenFixed(!openFixed)}>
                             <ArrowDown />
                         </button>
                     </div>
                     {openFixed && (
-                            <div className="flex flex-col gap-2">
-                                <GroupScheduleItem type={"스터디"} title={"주제 정하기"} place="학교" />
-                                <GroupScheduleItem type={"스터디"} title={"내용 정하기"} time="10/12 (토)  09:00~12:00" faced="온라인" />
-                                <GroupScheduleItem type={"식사"} title={"하기"} time="10/12 (토)  09:00~12:00" faced="오프라인" place="카페온더플랜" />
-                            </div>
-                        )
-                    }
-
+                        <div className="flex flex-col gap-2">
+                            <GroupScheduleItem category={"스터디"} title={"주제 정하기"} place="학교" />
+                            <GroupScheduleItem
+                                category={"스터디"}
+                                title={"내용 정하기"}
+                                time="10/12 (토) 09:00~12:00"
+                                attendees="온라인"
+                            />
+                            <GroupScheduleItem
+                                category={"식사"}
+                                title={"하기"}
+                                time="10/12 (토) 09:00~12:00"
+                                attendees="오프라인"
+                                place="카페온더플랜"
+                            />
+                        </div>
+                    )}                
                 </div>
             </div>
 

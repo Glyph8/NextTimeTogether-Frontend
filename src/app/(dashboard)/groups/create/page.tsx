@@ -30,10 +30,10 @@ export default function CreateGroupPage() {
                     </h1>
                 } />
 
-            <div className="w-full flex justify-center items-center px-40 pt-5 pb-3.5 relative">
-                <div className="w-16 h-16 rounded-[8px] border-[#E4E4E4] bg-gray-3 relative">
+            <div className="w-full flex justify-center items-center px-4 md:px-40 pt-5 pb-3.5 relative">
+                <div className="w-16 h-16 rounded-[8px] border border-[#E4E4E4] bg-gray-3 relative">
                     <Image src={"https://placehold.co/64x64"} alt="프로필" width={64} height={64} />
-                    <button className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center
+                    <button type="button" className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center
                 absolute top-11 left-11">
                         <Plus />
                     </button>

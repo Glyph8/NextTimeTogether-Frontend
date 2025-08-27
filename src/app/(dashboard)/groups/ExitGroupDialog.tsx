@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button/Button"
 import { DialogFooter } from "@/components/ui/dialog"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { useState } from "react";
-
 
 interface ExitGroupDialogProps {
     isOpen: boolean;
@@ -24,7 +22,7 @@ export const ExitGroupDialog = ({ isOpen, setIsOpen }: ExitGroupDialogProps) => 
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTitle hidden>
+            <DialogTitle className="sr-only">
                 그룹에서 나가기
             </DialogTitle>
             <DialogContent showCloseButton={false}
