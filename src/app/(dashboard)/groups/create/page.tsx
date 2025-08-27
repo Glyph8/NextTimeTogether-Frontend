@@ -50,13 +50,13 @@ export default function CreateGroupPage() {
                         <div className="w-full flex justify-between relative">
                             <input placeholder="그룹명을 입력해주세요."
                                 className="w-full py-2.5 text-black-1 text-base font-medium leading-tight border-b-1 focus:border-b-main"
-                                onChange={(e) => setGroupName(e.target.value)} value={groupName}/>
+                                onChange={(e) => setGroupName(e.target.value)} value={groupName} />
 
-                            {groupName !== "" && 
-                            <button className="absolute right-1 top-3 w-5 h-5 bg-gray-3 rounded-full flex justify-center items-center"
-                            onClick={()=>setGroupName("")}>
-                                <XWhite />
-                            </button>}
+                            {groupName !== "" &&
+                                <button className="absolute right-1 top-3 w-5 h-5 bg-gray-3 rounded-full flex justify-center items-center"
+                                    onClick={() => setGroupName("")}>
+                                    <XWhite />
+                                </button>}
                         </div>
                     </div>
 
@@ -68,16 +68,17 @@ export default function CreateGroupPage() {
                             <input placeholder="그룹 설명을 입력해주세요."
                                 className="w-full py-2.5 text-black-1 text-base font-medium leading-tight border-b-1 focus:border-b-main"
                                 onChange={(e) => setGroupDescription(e.target.value)} value={groupDescription} />
-                            {groupDescription !== "" && 
-                            <button className="absolute right-1 top-3 w-5 h-5 bg-gray-3 rounded-full flex justify-center items-center"
-                            onClick={()=>setGroupDescription("")}>
-                                <XWhite />
-                            </button>}
+                            {groupDescription !== "" &&
+                                <button className="absolute right-1 top-3 w-5 h-5 bg-gray-3 rounded-full flex justify-center items-center"
+                                    onClick={() => setGroupDescription("")}>
+                                    <XWhite />
+                                </button>}
                         </div>
                     </div>
                 </div>
-
-                <Button text={"그룹 만들기"} disabled={false} onClick={handleCreateGroup} />
+                <div className="w-full flex justify-center">
+                    <Button text={"그룹 만들기"} disabled={false} onClick={handleCreateGroup} />
+                </div>
             </div>
         </div>
     )

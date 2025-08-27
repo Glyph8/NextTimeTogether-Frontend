@@ -1,9 +1,18 @@
+"use client"
+
 import Header from "@/components/ui/header/Header";
 import Link from "next/link";
 import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg"
+import ArrowDown from "@/assets/svgs/icons/arrow-down-gray.svg"
+import Plus from "@/assets/svgs/icons/plus-gray.svg"
+import { GroupScheduleItem } from "./GroupScheduleItem";
+import { GroupMemberItem } from "./GroupMemberItem";
+import { useState } from "react";
+
 
 export default function DetailGroupPage() {
-
+    const [openOngoing, setOpenOngoing] = useState(true);
+    const [openFixed, setOpenFixed] = useState(true);
     return (
         <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
             <Header
@@ -17,6 +26,84 @@ export default function DetailGroupPage() {
                         소프트웨어공학 2조
                     </h1>
                 } />
+            <div className="flex flex-col justify-center items-center gap-5 text-black-1 pt-7 pb-5">
+                {/* <Image src={"https://placehold.co/64x64"} alt="팀" width={64} height={64}
+                                    className="border-gray-1 rounded-[8px]" /> */}
+                <div className="w-16 h-16 bg-amber-500 border-gray-1 rounded-[8px]" />
+                <span className="text-gray-1 text-sm font-normal leading-tight">
+                    소프트웨어공학 2조
+                </span>
+            </div>
+
+            <div className="flex flex-col px-4 gap-4 pb-3">
+                <div className="flex justify-between">
+                    <div className="justify-start text-black-1 text-lg font-medium leading-tight px-1">
+                        내 약속
+                    </div>
+                    <button>
+                        <Plus />
+                    </button>
+                </div>
+                <div>
+                    <div className="flex justify start items-center text-gray-1 text-sm font-medium leading-none px-1">
+                        약속 정하는 중
+                        <button onClick={()=>setOpenOngoing(!openOngoing)}>
+                            <ArrowDown />
+                        </button>
+                    </div>
+
+                    {openOngoing && (
+                        <div className="flex flex-col gap-2">
+                            <GroupScheduleItem type={"스터디"} title={"주제 정하기"} place="학교" />
+                            <GroupScheduleItem type={"스터디"} title={"내용 정하기"} time="10/12 (토)  09:00~12:00" faced="온라인" />
+                            <GroupScheduleItem type={"식사"} title={"하기"} time="10/12 (토)  09:00~12:00" faced="오프라인" place="카페온더플랜" />
+                        </div>
+                    )}
+
+                </div>
+
+                <div>
+                    <div className="flex justify start items-center text-gray-1 text-sm font-medium leading-none px-1">
+                        약속 확정 완료
+                        <button onClick={()=>setOpenFixed(!openFixed)}>
+                            <ArrowDown />
+                        </button>
+                    </div>
+                    {openFixed && (
+                            <div className="flex flex-col gap-2">
+                                <GroupScheduleItem type={"스터디"} title={"주제 정하기"} place="학교" />
+                                <GroupScheduleItem type={"스터디"} title={"내용 정하기"} time="10/12 (토)  09:00~12:00" faced="온라인" />
+                                <GroupScheduleItem type={"식사"} title={"하기"} time="10/12 (토)  09:00~12:00" faced="오프라인" place="카페온더플랜" />
+                            </div>
+                        )
+                    }
+
+                </div>
+            </div>
+
+            <div className="flex flex-col px-4 gap-4">
+                <div className="flex justify-between px-1 py-2">
+                    <div className="flex gap-2 items-center">
+                        <div className="justify-start text-black-1 text-lg font-medium leading-tight">
+                            그룹원
+                        </div>
+                        <span className="text-gray-2 text-sm font-medium leading-tight">
+                            8 / 30
+                        </span>
+                    </div>
+                    <button>
+                        <Plus />
+                    </button>
+                </div>
+
+                <div className="flex p-4 bg-white gap-2">
+                    <GroupMemberItem marker={["사용자"]} name={"김나박이"} />
+                    <GroupMemberItem marker={["그룹장"]} name={"가나다람바사아자차카파타하"} />
+                    <GroupMemberItem marker={["사용자", "그룹장"]} name="둘다" />
+                    <GroupMemberItem name={"먼데이"} />
+                </div>
+            </div>
+
         </div>
     )
 }
