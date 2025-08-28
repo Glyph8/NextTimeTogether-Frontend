@@ -7,13 +7,21 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { GroupMemberItem } from "../../groups/detail/GroupMemberItem";
 import { Button } from "@/components/ui/button/Button";
+import { RadioButton } from "@/components/shared/Input/RadioButton";
 
 export default function CreateSchedulePage() {
     const router = useRouter()
-    const handleBackClick = () => router.push("/")
     const [progress, setProgress] = useState(1);
     const [topic, setTopic] = useState("");
-    const [purpose, setPurpose] = useState("스터디");
+    const [purpose, setPurpose] = useState("study");
+
+
+    const handleOptionChange = (event:React.ChangeEvent<HTMLInputElement>) => {
+        // 3. event.target.value를 통해 선택된 값을 가져와 state 업데이트
+        console.log('선택된 값:', event.target.value);
+        setPurpose(event.target.value);
+    };
+
     // useEffect(() => {
     //     if (pathname.includes('/step1')) setProgress(25);
     //     else if (pathname.includes('/step2')) setProgress(50);
@@ -44,7 +52,7 @@ export default function CreateSchedulePage() {
                     약속 정보를 입력해주세요.
                 </nav>
 
-                <div>
+                <div className="py-4">
                     <span className="text-gray-1 text-sm font-normal leading-tight">
                         주제
                     </span>
@@ -61,7 +69,7 @@ export default function CreateSchedulePage() {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-4 pb-7">
+                <div className="flex flex-col gap-4 py-4">
                     <div className="flex justify-between py-2 gap-2 items-center text-gray-2 text-sm font-medium leading-tight">
                         <div>
                             참여 그룹원
@@ -72,27 +80,27 @@ export default function CreateSchedulePage() {
                     </div>
 
                     <div className="flex p-4 bg-[#F9F9F9] gap-2">
-                        <GroupMemberItem marker={["사용자"]} name={"김나박이"} selectable={true} isSelected={true}/>
-                        <GroupMemberItem marker={["그룹장"]} name={"가나다람바사아자차카파타하"} selectable={true} isSelected={true}/>
-                        <GroupMemberItem marker={["사용자", "그룹장"]} name="둘다" selectable={true} isSelected={false}/>
-                        <GroupMemberItem name={"먼데이"} selectable={true} isSelected={false}/>
+                        <GroupMemberItem marker={["사용자"]} name={"김나박이"} selectable={true} isSelected={true} />
+                        <GroupMemberItem marker={["그룹장"]} name={"가나다람바사아자차카파타하"} selectable={true} isSelected={true} />
+                        <GroupMemberItem marker={["사용자", "그룹장"]} name="둘다" selectable={true} isSelected={false} />
+                        <GroupMemberItem name={"먼데이"} selectable={true} isSelected={false} />
                     </div>
                 </div>
 
-                <div>
+                <div className="py-4">
                     <span className="text-gray-1 text-sm font-normal leading-tight">
                         목적
                     </span>
-                    <div>
-                        <input type="radio" name="purpose" checked={purpose === "스터디"} onChange={()=>setPurpose("스터디")}/>
-                        <label htmlFor="스터디">스터디</label>
-
-                        <input type="radio" name="purpose" checked={purpose === "식사"} onChange={()=>setPurpose("식사")}/>
-                        <label htmlFor="식사">식사</label>
+                    <div className="flex gap-3">
+                        <RadioButton id="study" name="purpose" value="study" label="스터디"
+                            checked={purpose === "study"} handleChange={handleOptionChange} />
+                        <RadioButton id="meal" name="purpose" value="meal" label="식사"
+                            checked={purpose === "meal"} handleChange={handleOptionChange} />
                     </div>
                 </div>
-
-                <Button text={"다음"} disabled={false} onClick={()=>{}}/>
+                <div className="pt-11 pb-5">
+                    <Button text={"다음"} disabled={false} onClick={() => { }} />
+                </div>
             </div>
         </div>
     )

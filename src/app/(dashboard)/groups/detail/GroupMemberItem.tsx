@@ -14,9 +14,9 @@ interface GroupMemberItemProps {
 
 export const GroupMemberItem = ({ marker, image, name, selectable = false, isSelected = false }: GroupMemberItemProps) => {
     return (
-        <div className="w-13 flex flex-col gap-0.5 justify-between items-center">
-            <div>
-                <div className="flex justify-center items-center">
+        <div className="w-13 flex flex-col justify-between items-center">
+            <div className="w-full flex flex-col gap-0.5 justify-between items-center">
+                <div className="w-full flex justify-center items-center">
                     {marker ? (
                         <>
                             {marker.includes("사용자") ? <UserMark /> : null}
