@@ -10,9 +10,12 @@ import { GroupScheduleItem } from "./GroupScheduleItem";
 import { GroupMemberItem } from "./GroupMemberItem";
 import { useState } from "react";
 import { GroupInviteDialog } from "./GroupInviteDialog";
+import { useRouter } from "next/navigation";
 
 
 export default function DetailGroupPage() {
+    const router = useRouter()
+    
     const [openOngoing, setOpenOngoing] = useState(true);
     const [openFixed, setOpenFixed] = useState(true);
     const [inviteModal, setInviteModal] = useState(false);
@@ -44,7 +47,7 @@ export default function DetailGroupPage() {
                     <div className="justify-start text-black-1 text-lg font-medium leading-tight px-1">
                         내 약속
                     </div>
-                    <button>
+                    <button onClick={()=>router.push("/schedules/create")}>
                         <Plus />
                     </button>
                 </div>
