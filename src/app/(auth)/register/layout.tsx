@@ -30,9 +30,7 @@ export default function RegisterLayout({
                     <ArrowLeft onClick={handleBackClick} />
                 }
                 title={
-                    <h1 className="text-center text-lg font-medium leading-tight">
-                        회원가입
-                    </h1>
+                        "회원가입"
                 } />
             <main className="flex-1 overflow-y-auto px-4">
                 <div className="w-full h-16 py-7 relative">

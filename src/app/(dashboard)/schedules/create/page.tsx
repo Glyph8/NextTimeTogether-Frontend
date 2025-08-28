@@ -4,7 +4,7 @@ import Header from "@/components/ui/header/Header";
 import X from "@/assets/svgs/icons/x-black.svg"
 import XWhite from "@/assets/svgs/icons/x-white.svg"
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GroupMemberItem } from "../../groups/detail/GroupMemberItem";
 import { Button } from "@/components/ui/button/Button";
 import { RadioButton } from "@/components/shared/Input/RadioButton";
@@ -15,21 +15,10 @@ export default function CreateSchedulePage() {
     const [topic, setTopic] = useState("");
     const [purpose, setPurpose] = useState("study");
 
-
-    const handleOptionChange = (event:React.ChangeEvent<HTMLInputElement>) => {
-        // 3. event.target.value를 통해 선택된 값을 가져와 state 업데이트
+    const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         console.log('선택된 값:', event.target.value);
         setPurpose(event.target.value);
     };
-
-    // useEffect(() => {
-    //     if (pathname.includes('/step1')) setProgress(25);
-    //     else if (pathname.includes('/step2')) setProgress(50);
-    //     else if (pathname.includes('/step3')) setProgress(75);
-    //     else if (pathname.includes('/complete')) setProgress(100);
-    //     else setProgress(0);
-    // }, [pathname]); // pathname이 바뀔 때마다 progress를 다시 계산
-
 
     return (
         <div>
@@ -37,9 +26,8 @@ export default function CreateSchedulePage() {
                 leftChild={
                     <X onClick={() => router.back()} />
                 }
-                title={<h1 className="text-center text-lg font-medium leading-tight">
-                    약속 만들기
-                </h1>} />
+                title={
+                    "약속 만들기"} />
             <div className="w-full px-4">
                 <div className="w-full h-16 py-7 relative">
                     <div className="h-2 bg-main rounded-[20px] transition-all duration-300 z-10 absolute" style={{
@@ -99,7 +87,7 @@ export default function CreateSchedulePage() {
                     </div>
                 </div>
                 <div className="pt-11 pb-5">
-                    <Button text={"다음"} disabled={false} onClick={() => { }} />
+                    <Button text={"다음"} disabled={false} onClick={() => { setProgress(2) }} />
                 </div>
             </div>
         </div>

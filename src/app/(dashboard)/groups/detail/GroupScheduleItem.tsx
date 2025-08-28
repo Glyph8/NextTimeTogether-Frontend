@@ -1,3 +1,5 @@
+import { useRouter } from "next/navigation";
+
 interface GroupScheduleItemProps {
     category: string;
     title: string;
@@ -7,9 +9,13 @@ interface GroupScheduleItemProps {
 }
 
 export const GroupScheduleItem = ({ category, title, time, attendees, place }: GroupScheduleItemProps) => {
-
+    const router = useRouter()
+    const handleNavToDetail = () => {
+        router.push("/schedules/detail");
+    }
     return (
-        <div className="w-full p-4 rounded-[20px] shadow-[0px_0px_10px_0px_rgba(0,0,0,0.04)] outline-1 outline-offset-[-1px] outline-gray-3 inline-flex flex-col justify-start items-start gap-2">
+        <div className="w-full p-4 rounded-[20px] shadow-[0px_0px_10px_0px_rgba(0,0,0,0.04)] outline-1 outline-offset-[-1px] outline-gray-3 inline-flex flex-col justify-start items-start gap-2"
+        onClick={handleNavToDetail}>
             <div className="flex gap-2 items-center">
                 <span className="rounded-[20px] px-1 py-0.5 text-calendar-blue bg-[#3B4FFF1A]">
                     {category}

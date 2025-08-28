@@ -1,7 +1,7 @@
 import React from "react";
 
 type Props = {
-  title?: React.ReactNode;
+  title?: string | React.ReactNode;
   leftChild?: React.ReactNode;
   rightChild?: React.ReactNode;
   bgColor?: string;
@@ -19,7 +19,10 @@ const Header = ({
       style={{ background: `${bgColor}` }}
     >
       <div className="flex-1 flex justify-start">{leftChild}</div>
-      <div className="flex-4 flex justify-center">{title}</div>
+      <div className="flex-4 flex justify-center">
+        <h1 className="text-center text-lg font-medium leading-tight">
+          {title}
+        </h1></div>
       <div className="flex-1 flex justify-end">{rightChild}</div>
     </header>
   );

@@ -25,9 +25,7 @@ export default function CreateGroupPage() {
                     </Link>
                 }
                 title={
-                    <h1 className="text-center text-lg font-medium leading-tight">
-                        그룹 만들기
-                    </h1>
+                        "그룹 만들기"
                 } />
 
             <div className="w-full flex justify-center items-center px-4 md:px-40 pt-5 pb-3.5 relative">

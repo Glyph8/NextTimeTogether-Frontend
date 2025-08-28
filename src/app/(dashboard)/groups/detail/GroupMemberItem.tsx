@@ -36,18 +36,22 @@ export const GroupMemberItem = ({ marker, image, name, selectable = false, isSel
                     </p>
                 </div>
             </div>
-
             {
-                selectable &&
-                    isSelected ? (
-                    <button>
-                        <Checked />
-                    </button>
-                ) : (
-                    <button>
-                        <Unchecked />
-                    </button>
-                )
+                selectable ?
+                <>
+                    {
+                        isSelected ? (
+                            <button>
+                                <Checked />
+                            </button>
+                        ) : (
+                            <button>
+                                <Unchecked />
+                            </button>
+                        )
+                    }
+                </> : null
+
             }
         </div>
     )
