@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import "./globals.css";
 import { pretandard} from "./fonts";
-
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "타임투게더",
@@ -20,6 +20,22 @@ export default function RootLayout({
       </head>
       <body className="bg-[#8E98A8] text-black-1 ">
         {children}
+        <Toaster toastOptions={{
+          style:{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            background: 'rgba(0, 0, 0, 0.60)',
+            color: 'white',
+            borderRadius: '40px',
+            fontSize: '16px',
+            fontStyle: 'normal',
+            fontWeight: '500',
+            lineHeight: '20px',
+            textAlign: 'center',
+            padding:'12px 20px',
+          }
+        }}/>
       </body>
     </html>
   );

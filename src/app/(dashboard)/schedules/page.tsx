@@ -6,10 +6,10 @@ import ArrowUp from "@/assets/svgs/icons/arrow-up-gray.svg";
 import Checked from "@/assets/svgs/icons/checked.svg";
 import Unchecked from "@/assets/svgs/icons/unchecked.svg";
 import { useState } from "react";
-import { ScheduleItem } from "./ScheduleItem";
-import { TeamItem } from "./TeamItem";
+import { ScheduleItem } from "./components/ScheduleItem";
+import { TeamItem } from "./components/TeamItem";
 import { scheduleList, teamList } from "./constants";
-import { ScheduleDialog } from "./ScheduleDialog";
+import { ScheduleDialog } from "./components/ScheduleDialog";
 
 export default function SchedulePage() {
     const [filterArray, setFilterArray] = useState([
