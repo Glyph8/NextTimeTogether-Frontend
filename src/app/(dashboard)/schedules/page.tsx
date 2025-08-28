@@ -10,6 +10,7 @@ import { ScheduleItem } from "./components/ScheduleItem";
 import { TeamItem } from "./components/TeamItem";
 import { scheduleList, teamList } from "./constants";
 import { ScheduleDialog } from "./components/ScheduleDialog";
+import Header from "@/components/ui/header/Header";
 
 export default function SchedulePage() {
     const [filterArray, setFilterArray] = useState([
@@ -53,8 +54,10 @@ export default function SchedulePage() {
 
     return (
         <div className="flex flex-col w-full flex-1 bg-gray-1">
-                <ScheduleDialog isOpen={isOpenDialog} setIsOpen={setIsOpenDialog} />
-
+            <ScheduleDialog isOpen={isOpenDialog} setIsOpen={setIsOpenDialog} />
+            <Header title={<h1 className="text-center text-lg font-medium leading-tight">
+                약속 일정
+            </h1>} />
             <div className="flex flex-col w-full bg-[#F9F9F9] px-4 py-4 gap-2.5">
                 <div className="w-full h-11 flex justify-start items-center py-1.5 px-2 gap-3 bg-white rounded-[32px]
                 focus:border-b-main">
