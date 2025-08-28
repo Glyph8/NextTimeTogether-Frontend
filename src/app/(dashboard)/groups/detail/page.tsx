@@ -4,15 +4,19 @@ import Header from "@/components/ui/header/Header";
 import Link from "next/link";
 import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg"
 import ArrowDown from "@/assets/svgs/icons/arrow-down-gray.svg"
+import ArrowUp from "@/assets/svgs/icons/arrow-up-gray.svg";
 import Plus from "@/assets/svgs/icons/plus-gray.svg"
 import { GroupScheduleItem } from "./GroupScheduleItem";
 import { GroupMemberItem } from "./GroupMemberItem";
 import { useState } from "react";
+import { GroupInviteDialog } from "./GroupInviteDialog";
 
 
 export default function DetailGroupPage() {
     const [openOngoing, setOpenOngoing] = useState(true);
     const [openFixed, setOpenFixed] = useState(true);
+    const [inviteModal, setInviteModal] = useState(false);
+
     return (
         <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
             <Header
@@ -45,10 +49,13 @@ export default function DetailGroupPage() {
                     </button>
                 </div>
                 <div>
-                    <div className="flex justify-start items-center text-gray-1 text-sm font-medium leading-none px-1">                        <button onClick={()=>setOpenOngoing(!openOngoing)}>
-                            <ArrowDown />
-                        </button>
-                    </div>
+                    <button className="flex justify-start items-center text-gray-1 text-sm font-medium leading-none px-1"
+                        onClick={() => setOpenOngoing(!openOngoing)}>
+                        약속 정하는 중
+                        {
+                         openOngoing ? <ArrowDown /> : <ArrowUp/>
+                        }
+                    </button>
 
                     {openOngoing && (
                         <div className="flex flex-col gap-2">
@@ -61,12 +68,13 @@ export default function DetailGroupPage() {
                 </div>
 
                 <div>
-                    <div className="flex justify-start items-center text-gray-1 text-sm font-medium leading-none px-1">
+                    <button className="flex justify-start items-center text-gray-1 text-sm font-medium leading-none px-1"
+                        onClick={() => setOpenFixed(!openFixed)}>
                         약속 확정 완료
-                        <button onClick={()=>setOpenFixed(!openFixed)}>
-                            <ArrowDown />
-                        </button>
-                    </div>
+                        {
+                         openFixed ? <ArrowDown /> : <ArrowUp/>
+                        }
+                    </button>
                     {openFixed && (
                         <div className="flex flex-col gap-2">
                             <GroupScheduleItem category={"스터디"} title={"주제 정하기"} place="학교" />
@@ -84,11 +92,11 @@ export default function DetailGroupPage() {
                                 place="카페온더플랜"
                             />
                         </div>
-                    )}                
+                    )}
                 </div>
             </div>
 
-            <div className="flex flex-col px-4 gap-4">
+            <div className="flex flex-col px-4 gap-4 pb-7">
                 <div className="flex justify-between px-1 py-2">
                     <div className="flex gap-2 items-center">
                         <div className="justify-start text-black-1 text-lg font-medium leading-tight">
@@ -98,7 +106,7 @@ export default function DetailGroupPage() {
                             8 / 30
                         </span>
                     </div>
-                    <button>
+                    <button onClick={() => setInviteModal(true)}>
                         <Plus />
                     </button>
                 </div>
@@ -110,7 +118,7 @@ export default function DetailGroupPage() {
                     <GroupMemberItem name={"먼데이"} />
                 </div>
             </div>
-
+            <GroupInviteDialog isOpen={inviteModal} setIsOpen={setInviteModal} />
         </div>
     )
 }
