@@ -4,8 +4,8 @@ import Header from "@/components/ui/header/Header";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import Menu from "@/assets/svgs/icons/menu-black.svg"
 import { useState } from "react";
-import { When2Meet } from "./components/When2Meet";
-import { Where2Meet } from "./components/Where2Meet";
+import { When2Meet } from "./When2Meet";
+import { Where2Meet } from "./Where2Meet";
 
 export default function ScheduleDetailPage() {
     const [tab, setTab] = useState(true);
