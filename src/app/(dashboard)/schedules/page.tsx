@@ -10,8 +10,11 @@ import { ScheduleItem } from "./components/ScheduleItem";
 import { TeamItem } from "./components/TeamItem";
 import { scheduleList, teamList } from "./constants";
 import { ScheduleDialog } from "./components/ScheduleDialog";
+import Header from "@/components/ui/header/Header";
+import { useRouter } from "next/navigation";
 
 export default function SchedulePage() {
+    const router = useRouter()
     const [filterArray, setFilterArray] = useState([
         {
             category: "전체",
@@ -30,7 +33,9 @@ export default function SchedulePage() {
             isSelected: true,
         }
     ]);
-
+    const handleNavDetail = () => {
+        router.push("/schedules/detail")
+    }
     const [conditionOpen, setConditionOpen] = useState(false);
     const [isOpenDialog, setIsOpenDialog] = useState(false);
     const [switches, setSwitches] = useState(
@@ -53,8 +58,10 @@ export default function SchedulePage() {
 
     return (
         <div className="flex flex-col w-full flex-1 bg-gray-1">
-                <ScheduleDialog isOpen={isOpenDialog} setIsOpen={setIsOpenDialog} />
-
+            <ScheduleDialog isOpen={isOpenDialog} setIsOpen={setIsOpenDialog} />
+            <Header title={
+                "약속 일정"
+            } />
             <div className="flex flex-col w-full bg-[#F9F9F9] px-4 py-4 gap-2.5">
                 <div className="w-full h-11 flex justify-start items-center py-1.5 px-2 gap-3 bg-white rounded-[32px]
                 focus:border-b-main">
@@ -104,19 +111,10 @@ export default function SchedulePage() {
 
             <div className="flex-1 flex flex-row bg-white">
                 <div className="flex flex-col border-r-1 border-[#F1F1F1] px-5 py-4 gap-4">
-                    {
-                        true ? (
-                            <button className="bg-white rounded-lg outline-1 outline-offset-[-1px] outline-main px-2 py-1 text-sm text-main font-medium leading-tight"
-                            >
-                                전체
-                            </button>
-                        ) : (
-                            <button className="bg-white rounded-lg outline-1 outline-offset-[-1px] outline-gray-3 px-2 py-1 text-sm text-gray-3 font-medium leading-tight"
-                            >
-                                전체
-                            </button>
-                        )
-                    }
+                    <button className={`bg-white rounded-lg outline-1 outline-offset-[-1px] ${true ? "outline-main text-main" : "outline-gray-3 text-gray-3"} px-2 py-1 text-sm font-medium leading-tight`}
+                    >
+                        전체
+                    </button>
 
                     <div className="flex flex-col gap-2">
                         {
@@ -130,7 +128,8 @@ export default function SchedulePage() {
                 <div className="flex flex-col">
                     {
                         scheduleList.map((schedule) => {
-                            return <ScheduleItem type={schedule.type} title={schedule.title} date={schedule.date} setIsOpen={setIsOpenDialog} key={schedule.title} />
+                            return <ScheduleItem type={schedule.type} title={schedule.title} date={schedule.date}
+                                setIsOpen={setIsOpenDialog} key={schedule.title} />
                         })
                     }
                 </div>

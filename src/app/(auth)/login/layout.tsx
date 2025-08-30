@@ -18,9 +18,7 @@ export default function LoginLayout({
                     <ArrowLeft onClick={handleBackClick}/>
                 }
                 title={
-                    <h1 className="text-center text-lg font-medium leading-tight">
-                        아이디로 로그인
-                    </h1>
+                        "아이디로 로그인"
                 } />
             <main className="flex-1 overflow-y-auto px-4">
                 {children}

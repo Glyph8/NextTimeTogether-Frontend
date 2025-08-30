@@ -29,9 +29,7 @@ export default function DetailGroupPage() {
                     </Link>
                 }
                 title={
-                    <h1 className="text-center text-lg font-medium leading-tight">
-                        소프트웨어공학 2조
-                    </h1>
+                        "소프트웨어공학 2조"
                 } />
             <div className="flex flex-col justify-center items-center gap-5 text-black-1 pt-7 pb-5">
                 {/* <Image src={"https://placehold.co/64x64"} alt="팀" width={64} height={64}
