@@ -1,4 +1,4 @@
-import { MemberCountPalette } from "./MemberCountPalette"
+import { MemberCountPalette } from "./when-components/MemberCountPalette"
 
 export const When2Meet = () => {
     return (

@@ -44,3 +44,21 @@ export const scheduleList = [
         date: "5/4 (토)  09:00~12:00"
     },
 ]
+
+export const dummyPlaceInfo = {
+    votedNumber: 5,
+    totalNumber: 5,
+    placeName: "스타벅스 건국대점",
+    address: "서울 광진구 능동로 117 (화양동)",
+    isMyPlace: false,
+    isUserVoted: true,
+}
+
+export const dummyPlaceInfo2 = {
+    votedNumber: 3,
+    totalNumber: 5,
+    placeName: "스타벅스 은하수점",
+    address: "서울 광진구 능동능동",
+    isMyPlace: true,
+    isUserVoted: false,
+}

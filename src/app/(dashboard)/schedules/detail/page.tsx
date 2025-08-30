@@ -4,13 +4,13 @@ import Header from "@/components/ui/header/Header";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import Menu from "@/assets/svgs/icons/menu-black.svg"
 import { useState } from "react";
-import { When2Meet } from "./components/When2Meet";
-import { Where2Meet } from "./components/Where2Meet";
+import { When2Meet } from "./When2Meet";
+import { Where2Meet } from "./Where2Meet";
 
 export default function ScheduleDetailPage() {
     const [tab, setTab] = useState(true);
     return (
-        <div className="w-full h-full bg-white">
+        <div className="w-full h-full">
             <Header
                 leftChild={
                     <button>
@@ -23,7 +23,6 @@ export default function ScheduleDetailPage() {
                         <Menu />
                     </button>
                 } />
-
             <nav className="w-full flex h-12 text-base font-medium leading-tight bg-white">
                 <div className={`w-full flex justify-center items-center border-b-2 
                     ${tab ? "text-main border-main" : "text-[#999999] border-[#D4D4D4]"}  transition-all duration-200`}
@@ -36,9 +35,7 @@ export default function ScheduleDetailPage() {
                     어디서
                 </div>
             </nav>
-
             {tab ? <When2Meet/> : <Where2Meet/>}
-            
         </div>
     )
 

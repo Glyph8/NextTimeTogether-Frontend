@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-   images: {
+  images: {
     // 1. Next.js 13+ 권장 방식
     remotePatterns: [
       {
@@ -44,23 +44,9 @@ const nextConfig: NextConfig = {
           loader: "@svgr/webpack",
           options: {
             typescript: true,
-            expandProps: "start", // className을 마지막에 적용하기
-            // ext: "tsx",
-            // icon: true, // 추가됨
-            svgo: true, // SVG 최적화 켜기
-            svgoConfig: {
-              plugins: [
-                "preset-default",
-                {
-                  name: "removeAttrs",
-                  params: {
-                    attrs: "(width|height|fill|stroke)", // 하드코딩된 속성 제거
-                  },
-                },
-              ],
-            },
+            expandProps: "end",
             replaceAttrValues: {
-              "#000": "currentColor", // 색상 Tailwind로 설정 가능하게 변환
+              "#000": "currentColor",
               "#000000": "currentColor",
             },
           },
