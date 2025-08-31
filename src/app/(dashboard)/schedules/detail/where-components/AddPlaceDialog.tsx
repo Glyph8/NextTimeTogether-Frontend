@@ -24,7 +24,7 @@ export const AddPlaceDialog = ({ isOpen, setIsOpen }: AddPlaceDialogProps) => {
             </DialogTitle>
             <DialogContent showCloseButton={false}
                 className="w-full p-8 bg-white">
-                    <div className="text-center text-black-1 text-lg font-medium leading-loose">
+                    <div className="text-center text-black-1 text-lg font-medium leading-l">
                         어떤 방식으로 장소를 등록할까요?
                     </div>
 

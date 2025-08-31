@@ -21,10 +21,12 @@ export default function CreateSchedulePage() {
     };
 
     return (
-        <div>
+        <div className="bg-white">
             <Header
                 leftChild={
-                    <X onClick={() => router.back()} />
+                    <button onClick={() => router.back()} >
+                        <X />
+                    </button>
                 }
                 title={
                     "약속 만들기"} />
@@ -67,7 +69,7 @@ export default function CreateSchedulePage() {
                         </span>
                     </div>
 
-                    <div className="flex p-4 bg-[#F9F9F9] gap-2">
+                    <div className="flex p-4 bg-[#F9F9F9] gap-2 rounded-[20px]">
                         <GroupMemberItem marker={["사용자"]} name={"김나박이"} selectable={true} isSelected={true} />
                         <GroupMemberItem marker={["그룹장"]} name={"가나다람바사아자차카파타하"} selectable={true} isSelected={true} />
                         <GroupMemberItem marker={["사용자", "그룹장"]} name="둘다" selectable={true} isSelected={false} />

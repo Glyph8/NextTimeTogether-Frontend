@@ -9,7 +9,7 @@ export const Where2Meet = () => {
     const [delModalOpen, setDelModalOpen] = useState(true);
     const handleAddPlace = () => setAddModalOpen(true);
     return (
-        <div className="bg-[#F9F9F9] h-full overflow-y-scroll scrollbar-hidden">
+        <div className="flex flex-col bg-[#F9F9F9] h-full overflow-y-scroll scrollbar-hidden">
             <AddPlaceDialog isOpen={addModalOpen} setIsOpen={setAddModalOpen}/>
             <YesNoDialog isOpen={delModalOpen} setIsOpen={setDelModalOpen}
                 title={
@@ -39,7 +39,7 @@ export const Where2Meet = () => {
                     모임을 원하는 장소에 투표해주세요.
                 </div>
             </div>
-            <div className="flex flex-col items-center gap-5.5 w-full p-4 bg-[#F9F9F9]">
+            <div className="flex-1 flex flex-col items-center gap-5.5 w-full p-4 bg-[#F9F9F9]">
                 <div className="w-full flex flex-col gap-2">
                     <PlaceCard placeInfo={dummyPlaceInfo} />
                     <PlaceCard placeInfo={dummyPlaceInfo} />

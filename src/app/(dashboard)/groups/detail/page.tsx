@@ -112,7 +112,7 @@ export default function DetailGroupPage() {
                     </button>
                 </div>
 
-                <div className="flex p-4 bg-white gap-2">
+                <div className="flex p-4 bg-white gap-2 rounded-[20px]">
                     <GroupMemberItem marker={["사용자"]} name={"김나박이"} />
                     <GroupMemberItem marker={["그룹장"]} name={"가나다람바사아자차카파타하"} />
                     <GroupMemberItem marker={["사용자", "그룹장"]} name="둘다" />
