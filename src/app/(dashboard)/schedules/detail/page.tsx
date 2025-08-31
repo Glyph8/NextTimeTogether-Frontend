@@ -3,19 +3,27 @@
 import Header from "@/components/ui/header/Header";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import Menu from "@/assets/svgs/icons/menu-black.svg"
-import {  useState } from "react";
+import { useState } from "react";
 import { When2Meet } from "./When2Meet";
 import { Where2Meet } from "./Where2Meet";
 import { useRouter } from "next/navigation";
 import { ScheduleDrawer } from "@/app/(dashboard)/schedules/detail/components/ScheduleDrawer";
+import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
 
 export default function ScheduleDetailPage() {
     const router = useRouter();
     const [tab, setTab] = useState(true);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [whenConfirmOpen, setWhenConfirmOpen] = useState(false);
+
+    // 임시로 약속장 권한 처리
+    const isMaster = true;
+
     return (
         <div className="flex flex-col flex-1 w-full bg-[#f9f9f9]">
-            <ScheduleDrawer open={menuOpen} setOpen={setMenuOpen} isMaster={true}/>
+            <ScheduleDrawer open={menuOpen} setOpen={setMenuOpen} isMaster={isMaster}/>
+            { isMaster && <WhenConfirmDrawer open={whenConfirmOpen} setOpen={setWhenConfirmOpen} /> }
+            
             <Header
                 leftChild={
                     <button type="button" aria-label="뒤로가기" onClick={()=>router.back()}>

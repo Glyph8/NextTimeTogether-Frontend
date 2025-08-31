@@ -1,7 +1,6 @@
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/col-drawer";
 import { ParticipantCard } from "./ParticipantCard";
 
-
 interface ScheduleDrawerProps {
     open: boolean;
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -14,7 +13,7 @@ export const ScheduleDrawer = ({ open, setOpen, isMaster = false }: ScheduleDraw
 
     }
     const handleExit = () =>{
-        
+
     }
 
     return (
