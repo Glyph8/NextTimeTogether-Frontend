@@ -48,12 +48,12 @@ const nextConfig: NextConfig = {
             // CSS/props로 크기 제어
             dimensions: false,
             svgo: true,
-            svgoConfig: {
-              plugins: [
-                { name: "removeViewBox", active: false },
-                { name: "removeAttrs", params: { attrs: "(width|height)" } }
-              ]
-            },
+            // svgoConfig: {
+            //   plugins: [
+            //     { name: "removeViewBox", active: false },
+            //     { name: "removeAttrs", params: { attrs: "(width|height)" } }
+            //   ]
+            // },
             replaceAttrValues: {
               "#000": "currentColor",
               "#000000": "currentColor",
