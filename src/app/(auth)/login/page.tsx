@@ -19,6 +19,7 @@ export default function LoginPage() {
         }
         catch {
             console.log("로그인 실패")
+            setWarnMsg("일치하지 않는 ID, 비밀번호 입니다.")
         }
     }
 
@@ -32,12 +33,12 @@ export default function LoginPage() {
                     </p>
                     <input type="text" placeholder="아이디를 입력해주세요"
                         className="w-full placeholder-gray-2 text-base font-medium leading-11.5 border-b-1 border-gray-3
-                        focus:border-b-main" 
-                        onChange={(e)=>{
+                        focus:border-b-main"
+                        onChange={(e) => {
                             setId(e.target.value);
-                            if(id !== "" && pw !== "")
+                            if (id !== "" && pw !== "")
                                 setLoginReady(true);
-                        }}/>
+                        }} />
                 </div>
 
                 <div className="w-full">
@@ -47,9 +48,9 @@ export default function LoginPage() {
                     <input type="password" placeholder="비밀번호를 입력해주세요"
                         className="w-full placeholder-gray-2 text-base font-medium leading-11.5 border-b-1 border-gray-3
                          focus:border-b-main"
-                         onChange={(e)=>{
+                        onChange={(e) => {
                             setPW(e.target.value)
-                        if(id !== "" && pw !== "")
+                            if (id !== "" && pw !== "")
                                 setLoginReady(true);
                         }} />
                 </div>

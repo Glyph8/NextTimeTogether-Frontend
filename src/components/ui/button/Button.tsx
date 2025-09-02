@@ -21,7 +21,7 @@ export const Button = ({ text, disabled, onClick }: ButtonProps) => {
                     </button>
                 ) : (
                     <button
-                        type="button"
+                        type="submit"
                         className={`${base} bg-main`}
                         onClick={onClick}>
                         {text}

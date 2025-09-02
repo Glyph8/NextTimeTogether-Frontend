@@ -47,22 +47,22 @@ export default function RegisterPage() {
                     비밀번호를 입력해주세요.
                 </label>
                 <input type="password" placeholder="비밀번호를 입력해주세요"
-                {...register('password')}
+                    {...register('password')}
                     className="w-full placeholder-gray-2 text-base font-medium leading-11.5 border-b-1 border-gray-3
                         focus:border-b-main"
                     onChange={(e) => {
                         setId(e.target.value);
                     }} />
-
+                {errors.email && <p>{errors.email.message}</p>}
                 <input type="password" placeholder="비밀번호를 한번 더 입력해주세요"
-                {...register('password')}
+                    {...register('password')}
                     className="w-full placeholder-gray-2 text-base font-medium leading-11.5 border-b-1 border-gray-3
                         focus:border-b-main"
                     onChange={(e) => {
                         setId(e.target.value);
                     }} />
-
-                <Button text={"다음"} disabled={false} onClick={handleNextStep} />
+                {errors.password && <p>{errors.password.message}</p>}
+                <Button text={"다음"} disabled={isSubmitting} onClick={handleNextStep} />
             </div>
         </form>
 

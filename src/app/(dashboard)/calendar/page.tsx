@@ -2,9 +2,10 @@
 import React, { useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import ArrowLeft from "@/assets/svgs/icons/arrow-left-gray.svg";
 import ArrowRight from "@/assets/svgs/icons/arrow-right-gray.svg";
+import { EventClickArg } from '@fullcalendar/core/index.js';
 
 interface CalendarEvent {
     id: string;
@@ -58,7 +59,7 @@ export default function CalendarPage() {
         }
     };
 
-    const handleDateClick = (arg: any) => {
+    const handleDateClick = (arg: DateClickArg) => {
         const title = prompt('일정 제목을 입력하세요:');
         if (title) {
             const newEvent: CalendarEvent = {
@@ -72,7 +73,7 @@ export default function CalendarPage() {
         }
     };
 
-    const handleEventClick = (clickInfo: any) => {
+    const handleEventClick = (clickInfo: EventClickArg) => {
         if (confirm(`'${clickInfo.event.title}' 일정을 삭제하시겠습니까?`)) {
             setEvents(events.filter(event => event.id !== clickInfo.event.id));
         }
