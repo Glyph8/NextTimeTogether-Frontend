@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import type { Configuration, RuleSetRule } from "webpack";
 import path from "path";
 
 const nextConfig: NextConfig = {
@@ -8,35 +9,58 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'placehold.co',
-        //pathname: '/600x400', // 특정 경로만 허용하고 싶다면 추가
       },
     ],
-    // 2. 구 버전 방식 (여전히 작동함)
-    // domains: ['placehold.co'],
   },
 
-  // TurboPack 설정
+  // TurboPack 설정 - 배포 환경에서 이미지 오류로 추가
   experimental: {
     turbo: {
       rules: {
         '*.svg': {
-          loaders: ['@svgr/webpack'],
+          loaders: [{
+            loader: '@svgr/webpack',
+            options: {
+              typescript: true,
+              expandProps: "end",
+              // dimensions를 true로 변경하여 기본 크기 유지
+              dimensions: true,
+              svgo: true,
+              svgoConfig: {
+                plugins: [
+                  { name: "removeViewBox", active: false },
+                  // width/height 제거하지 않고 유지
+                  { name: "removeDimensions", active: false }
+                ]
+              },
+              replaceAttrValues: {
+                "#000": "currentColor",
+                "#000000": "currentColor",
+              },
+            },
+          }],
           as: '*.js',
         },
       },
     },
   },
   // webpack 설정
-  webpack: (config) => {
-    // 기본 SVG 로더에서 제외
-    // @ts-expect-error 타입 무시
-    const fileLoaderRule = config.module.rules.find((rule) =>
-      rule.test?.test?.('.svg')
-    );
-    fileLoaderRule.exclude = /\.svg$/i;
+  webpack: (config: Configuration) => {
+    // RuleSetRule 타입 사용
+    const fileLoaderRule = config.module?.rules?.find((rule): rule is RuleSetRule => {
+      if (typeof rule !== 'object' || !rule) return false;
+      if (rule.test instanceof RegExp) {
+        return rule.test.test('.svg');
+      }
+      return false;
+    });
 
-    // 특정 폴더(src/assets/svgs) → svgr 처리
-    config.module.rules.push({
+    if (fileLoaderRule) {
+      fileLoaderRule.exclude = /\.svg$/i;
+    }
+
+    // SVGR 룰 추가
+    const svgrRule: RuleSetRule = {
       test: /\.svg$/i,
       include: path.resolve(__dirname, "src/assets/svgs"),
       use: [
@@ -45,15 +69,21 @@ const nextConfig: NextConfig = {
           options: {
             typescript: true,
             expandProps: "end",
-            // CSS/props로 크기 제어
-            dimensions: false,
+            dimensions: true,
             svgo: true,
-            // svgoConfig: {
-            //   plugins: [
-            //     { name: "removeViewBox", active: false },
-            //     { name: "removeAttrs", params: { attrs: "(width|height)" } }
-            //   ]
-            // },
+            svgoConfig: {
+              plugins: [
+                {
+                  name: 'preset-default',
+                  params: {
+                    overrides: {
+                      removeViewBox: false,
+                      removeDimensions: false,
+                    },
+                  },
+                },
+              ],
+            },
             replaceAttrValues: {
               "#000": "currentColor",
               "#000000": "currentColor",
@@ -61,14 +91,18 @@ const nextConfig: NextConfig = {
           },
         },
       ],
-    });
+    };
 
-    // 그 외 svg → URL 기반 처리 (<Image> 등에 사용할 예정)
-    config.module.rules.push({
+    config.module?.rules?.push(svgrRule);
+    
+    // 나머지 SVG 처리
+    const assetRule: RuleSetRule = {
       test: /\.svg$/i,
       exclude: path.resolve(__dirname, "src/assets/svgs"),
       type: "asset/resource",
-    });
+    };
+
+     config.module?.rules?.push(assetRule);
 
     return config;
   },
