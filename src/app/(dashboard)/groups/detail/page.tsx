@@ -52,7 +52,7 @@ export default function DetailGroupPage() {
                 <div>
                     <button className="flex justify-start items-center text-gray-1 text-sm font-medium leading-none px-1"
                         onClick={() => setOpenOngoing(!openOngoing)}>
-                        약속 정하는 중
+                        {'약속 정하는 중'}
                         {
                          openOngoing ? <ArrowDown /> : <ArrowUp/>
                         }
