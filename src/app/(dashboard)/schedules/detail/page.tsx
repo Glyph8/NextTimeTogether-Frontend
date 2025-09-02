@@ -7,7 +7,7 @@ import { useState } from "react";
 import { When2Meet } from "./When2Meet";
 import { Where2Meet } from "./Where2Meet";
 import { useRouter } from "next/navigation";
-import { ScheduleDrawer } from "@/app/(dashboard)/schedules/detail/components/ScheduleDrawer";
+import { ScheduleDrawer } from "./components/ScheduleDrawer";
 import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
 
 export default function ScheduleDetailPage() {
