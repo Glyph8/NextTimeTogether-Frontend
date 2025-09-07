@@ -37,7 +37,7 @@ export const YesNoDialog = ({ isOpen, setIsOpen, title, acceptedTitle, rejectTex
                 {title}
             </DialogTitle>
             <DialogContent showCloseButton={false}
-                className="w-full p-8 bg-white">
+                className="w-full p-8 bg-white rounded-4xl">
                 {
                     isAccept ? (
                         <span className="flex justify-center items-center text-lg font-medium leading-tight py-5">

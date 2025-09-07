@@ -18,7 +18,7 @@ export const ScheduleDrawer = ({ open, setOpen, isMaster = false }: ScheduleDraw
 
     return (
         <Drawer open={open} onOpenChange={setOpen} direction="right" >
-            <DrawerContent className="flex flex-col gap-7 justify-start w-[70%] bg-[#EEF1F3] p-6 after:hidden">
+            <DrawerContent className="flex flex-col gap-7 justify-start w-[70%] h-[80%] bg-[#EEF1F3] p-6 after:hidden overflow-y-scroll">
                 {
                     isMaster && (
                         <div className="flex flex-col gap-5 text-start justify-start text-black-1 text-lg font-medium leading-tight">
@@ -39,6 +39,7 @@ export const ScheduleDrawer = ({ open, setOpen, isMaster = false }: ScheduleDraw
                         참여 인원
                     </div>
                     <div className="flex flex-col gap-3 py-2 ">
+                        <ParticipantCard/>
                         <ParticipantCard/>
                         <ParticipantCard/>
                         <ParticipantCard/>

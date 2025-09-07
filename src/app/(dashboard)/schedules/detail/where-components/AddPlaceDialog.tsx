@@ -12,8 +12,8 @@ interface AddPlaceDialogProps{
 
 export const AddPlaceDialog = ({ isOpen, setIsOpen }: AddPlaceDialogProps) => {
     const router = useRouter();
-    const handleEnterDirect = () => router.push("/schedules/detail/where/direct-enter");
-    const handleEnterAI = () => router.push("/schedules/detail/where/ai-enter");
+    const handleEnterDirect = () => router.push("/schedules/add-place-direct");
+    const handleEnterAI = () => router.push("/schedules/add-place-ai");
 
     const buttonStyle = "flex flex-col justify-center items-center gap-3 w-full bg-white border-1 border-gray-3 text-black-1 p-4 rounded-[8px]"
     const descriptionStyle = "text-gray-2 text-sm font-normal leading-tight";
@@ -27,7 +27,6 @@ export const AddPlaceDialog = ({ isOpen, setIsOpen }: AddPlaceDialogProps) => {
                     <div className="text-center text-black-1 text-lg font-medium leading-l">
                         어떤 방식으로 장소를 등록할까요?
                     </div>
-
                     <DialogFooter className="flex flex-row gap-3.5">
                         <button className={buttonStyle}
                             onClick={handleEnterDirect }>

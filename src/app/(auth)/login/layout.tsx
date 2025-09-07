@@ -21,9 +21,9 @@ export default function LoginLayout({
                 title={
                         "아이디로 로그인"
                 } />
-            <main className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto px-4">
                 {children}
-            </main>
+            </div>
         </div>
     )
 }
