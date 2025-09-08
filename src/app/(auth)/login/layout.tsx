@@ -11,18 +11,19 @@ export default function LoginLayout({
 }>) {
     const router = useRouter();
     const handleBackClick = () => router.push("/")
+    console.log(ArrowLeft); 
     return (
         <div className="flex flex-col min-h-screen bg-white">
             <Header
                 leftChild={
-                    <ArrowLeft onClick={handleBackClick}/>
+                    <ArrowLeft className="w-6 h-6 text-black fill-current" onClick={handleBackClick}/>
                 }
                 title={
                         "아이디로 로그인"
                 } />
-            <main className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto px-4">
                 {children}
-            </main>
+            </div>
         </div>
     )
 }

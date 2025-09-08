@@ -1,79 +1,43 @@
+// next.config.ts
+
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-   images: {
-    // 1. Next.js 13+ 권장 방식
+  images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        //pathname: '/600x400', // 특정 경로만 허용하고 싶다면 추가
+        protocol: "https",
+        hostname: "placehold.co",
       },
     ],
-    // 2. 구 버전 방식 (여전히 작동함)
-    // domains: ['placehold.co'],
   },
-
-  // TurboPack 설정
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
-  },
-  // webpack 설정
-  webpack: (config) => {
-    // 기본 SVG 로더에서 제외
-    // @ts-expect-error 타입 무시
+  webpack(config) {
+    // 기존 Next.js의 SVG asset loader 규칙을 찾습니다.
+    // @ts-ignore
     const fileLoaderRule = config.module.rules.find((rule) =>
-      rule.test?.test?.('.svg')
+      rule.test?.test?.(".svg")
     );
+
+    config.module.rules.push(
+      // 찾은 규칙을 수정하여, *.svg?url 로 끝나는 파일만 asset loader가 처리하도록 합니다.
+      // (예: import iconUrl from './icon.svg?url';)
+      {
+        ...fileLoaderRule,
+        test: /\.svg$/i,
+        resourceQuery: /url/, 
+      },
+      // *.svg?url 로 끝나지 않는 모든 SVG 파일은 @svgr/webpack 로더가 처리하도록 규칙을 추가합니다.
+      // (예: import Icon from './icon.svg';)
+      {
+        test: /\.svg$/i,
+        issuer: fileLoaderRule.issuer,
+        resourceQuery: { not: /url/ }, 
+        use: ["@svgr/webpack"],
+      }
+    );
+
+    // 수정된 규칙을 적용했으니, 원래 규칙은 이제 SVG 파일을 처리하지 않도록 설정합니다.
     fileLoaderRule.exclude = /\.svg$/i;
-
-    // 특정 폴더(src/assets/svgs) → svgr 처리
-    config.module.rules.push({
-      test: /\.svg$/i,
-      include: path.resolve(__dirname, "src/assets/svgs"),
-      use: [
-        {
-          loader: "@svgr/webpack",
-          options: {
-            typescript: true,
-            expandProps: "start", // className을 마지막에 적용하기
-            // ext: "tsx",
-            // icon: true, // 추가됨
-            svgo: true, // SVG 최적화 켜기
-            svgoConfig: {
-              plugins: [
-                "preset-default",
-                {
-                  name: "removeAttrs",
-                  params: {
-                    attrs: "(width|height|fill|stroke)", // 하드코딩된 속성 제거
-                  },
-                },
-              ],
-            },
-            replaceAttrValues: {
-              "#000": "currentColor", // 색상 Tailwind로 설정 가능하게 변환
-              "#000000": "currentColor",
-            },
-          },
-        },
-      ],
-    });
-
-    // 그 외 svg → URL 기반 처리 (<Image> 등에 사용할 예정)
-    config.module.rules.push({
-      test: /\.svg$/i,
-      exclude: path.resolve(__dirname, "src/assets/svgs"),
-      type: "asset/resource",
-    });
 
     return config;
   },

@@ -1,5 +1,9 @@
-import FullLogo from "@/assets/svgs/images/logo-full.svg"
+"use client"
+
+import FullLogo from "@/assets/pngs/logo-full.png";
 import Link from "next/link";
+import Image from "next/image";
+
 export default function Home() {
 
   return (
@@ -7,7 +11,7 @@ export default function Home() {
       <div className="flex flex-col items-center w-full text-center p-4">
 
         <div className="h-fit mb-24">
-            <FullLogo className="mx-auto"/>
+            <Image src={FullLogo} alt="로고" className="object-cover mx-auto"/>
           <div className="text-purple-500 text-3xl font-normal font-['KCC-Hanbit'] leading-tight">
             Time Together
           </div>
