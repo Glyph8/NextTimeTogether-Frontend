@@ -70,6 +70,14 @@
 
   /* Pretendard 폰트 정의 */
   --font-pretendard: "Pretendard", system-ui, sans-serif;
+
+   --animate-floating: floating 2s ease-in-out infinite;
+
+  @keyframes floating {
+    0% { transform: translateY(0); }    
+    100% { transform: translateY(0); }    
+    50%{ transform: translateY(-20px); }    
+  }
 }
 
 /* 커스텀 gradient 클래스 */

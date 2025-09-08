@@ -62,3 +62,41 @@ export const dummyPlaceInfo2 = {
     isMyPlace: true,
     isUserVoted: false,
 }
+
+export const dummySearchResult = [
+    {
+        placeName: "스타시티아트홀",
+        placeAddress: "서울 광진구 능동로 110 스타시티 영존 15층",        
+    },
+    {
+        placeName: "스타벅스 건국대점",
+        placeAddress: "서울 광진구 능동로 117 (화양동)",        
+    },
+    {
+        placeName: "스타벅스 건대 후문 점",
+        placeAddress: "서울 광진구 능동로 172 (화양동)",        
+    },
+]
+
+export const dummyAISearchResult = [
+    {
+        id: 1,
+        placeName: "스타시티아트홀",
+        placeAddress: "서울 광진구 능동로 110 스타시티 영존 15층",        
+    },
+    {
+        id:2,
+        placeName: "스타벅스 건국대점",
+        placeAddress: "서울 광진구 능동로 117 (화양동)",        
+    },
+    {
+        id:3,
+        placeName: "스타벅스 건대 후문 점",
+        placeAddress: "서울 광진구 능동로 172 (화양동)",        
+    },
+    {
+        id:4,
+        placeName: "스타시티아트홀2",
+        placeAddress: "서울 광진구 능동로 110 스타시티 영존 15층",        
+    },
+]

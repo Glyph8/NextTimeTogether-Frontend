@@ -9,7 +9,7 @@ export default function AddPlaceLayout({
     children: React.ReactNode;
 }>) {
     const router = useRouter();
-    const handleBackClick = () => router.push("/")
+    const handleBackClick = () => router.back();
     console.log(ArrowLeft); 
     return (
         <div className="flex flex-col flex-1 bg-white">
@@ -20,8 +20,8 @@ export default function AddPlaceLayout({
             onClick={handleBackClick}
           />
         }
-        title={"직접 입력하기"}
-        setShadow={false}
+        title={"AI 장소 검색"}
+        setShadow={true}
       />
             <main className="flex flex-col flex-1 overflow-y-auto px-4">
                 {children}
