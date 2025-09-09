@@ -16,7 +16,7 @@ export const TextInput = ({
   isPassword = false,
 }: TextInputProps) => {
   return (
-    <div className="w-full">
+    <div>
       <span className="text-gray-1 text-sm font-normal leading-tight">
         {label}
       </span>
