@@ -33,7 +33,7 @@ export default function Home() {
           타임투게더가 처음이신가요? &nbsp;
           <span className="justify-start text-purple-500 text-sm font-medium font-['Pretendard'] underline leading-tight"
           >
-            <Link href="/register">
+            <Link href="/register/step1">
             회원가입
             </Link>
           </span>

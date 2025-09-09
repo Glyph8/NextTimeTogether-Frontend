@@ -11,15 +11,17 @@ export default function RegisterLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
-  const handleBackClick = () => router.push("/");
+  const handleBackClick = () => router.back();
   const pathname = usePathname();
   const [progress, setProgress] = useState(10);
 
   useEffect(() => {
-    if (pathname.includes("/step1")) setProgress(30);
-    else if (pathname.includes("/step2")) setProgress(50);
-    else if (pathname.includes("/step3")) setProgress(75);
-    else if (pathname.includes("/complete")) setProgress(90);
+    if (pathname.includes("/step1")) setProgress(10);
+    else if (pathname.includes("/step2")) setProgress(25);
+    else if (pathname.includes("/step3")) setProgress(45);
+    else if (pathname.includes("/step4")) setProgress(65);
+    else if (pathname.includes("/step5")) setProgress(75);
+    else if (pathname.includes("/step6")) setProgress(90);
     else setProgress(10);
   }, [pathname]); // pathname이 바뀔 때마다 progress를 다시 계산
 
@@ -38,7 +40,9 @@ export default function RegisterLayout({
         />
         <div className="w-full h-2 bg-gray-3 rounded-[20px] z-1" />
       </div>
-      <main className="flex flex-col flex-1 overflow-y-auto px-4">{children}</main>
+      <main className="flex flex-col flex-1 overflow-y-auto px-4">
+        {children}
+      </main>
     </div>
   );
 }

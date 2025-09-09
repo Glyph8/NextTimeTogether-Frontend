@@ -26,7 +26,7 @@ export default function RootLayout({
           style:{
             display: 'flex',
             justifyContent: 'center',
-            width:'fit-content',
+            // width:'fit-content',
             alignItems: 'center',
             background: 'rgba(0, 0, 0, 0.60)',
             color: 'white',
@@ -37,6 +37,7 @@ export default function RootLayout({
             lineHeight: '20px',
             textAlign: 'center',
             padding:'12px 20px',
+            whiteSpace:'nowrap'
           }
         }}
         />
