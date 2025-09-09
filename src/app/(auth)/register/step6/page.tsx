@@ -7,10 +7,16 @@ import { useRouter } from "next/navigation";
 export default function RegisterPhoneNumberPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const router = useRouter();
+
+  /** 추후 number 제출 api 연결 */
   const handleNextStep = () => {
     router.push("/complete-signup");
   };
 
+  /** number 제출 skip! */
+  const handleSkipForm = () => {
+    router.push("/complete-signup");
+  };
   /** 추후 전화번호 form대로 가공 */
   // const makePhoneNumberForm = (value:string) => {
   //   const arrString = Array.from(value);
@@ -39,10 +45,11 @@ export default function RegisterPhoneNumberPage() {
           placeholder="휴대폰 번호를 입력해주세요."
         />
       </div>
-      <div className="w-full flex flex-col gap-5">
+      <div className="w-full flex flex-col items-center gap-5">
         <button
           type="submit"
           className="text-main text-sm font-medium leading-tight underline"
+          onClick={handleSkipForm}
         >
           지금 입력 안할래요.
         </button>

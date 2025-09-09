@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate:api": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/generated-api --clean-output --axios",
+  "generate:api:local": "swagger-typescript-api generate -p ./openapi.json -o ./src/generated-api --clean-output --axios"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
