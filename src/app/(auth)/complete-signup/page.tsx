@@ -11,8 +11,8 @@ export default function CompleteSignupPage() {
     router.push("/calendar");
   };
   return (
-    <div className="flex flex-col justify-between items-center min-h-screen bg-white px-4 pb-5 pt-18">
-      <div className="w-full flex flex-col justify-start text-2xl font-semibold leading-5">
+    <div className="relative flex flex-col justify-between items-center min-h-screen bg-white px-4 pb-5 pt-18">
+      <div className="w-full max-w-200 flex flex-col justify-start text-2xl font-semibold leading-5">
         <span>시간 조율 걱정 없이</span>
         <span>
           그룹 모임을{" "}
