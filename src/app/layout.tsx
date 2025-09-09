@@ -20,10 +20,13 @@ export default function RootLayout({
       </head>
       <body className="bg-[#8E98A8] text-black-1 ">
         {children}
-        <Toaster toastOptions={{
+        <Toaster 
+        position="bottom-center"
+        toastOptions={{
           style:{
             display: 'flex',
             justifyContent: 'center',
+            width:'fit-content',
             alignItems: 'center',
             background: 'rgba(0, 0, 0, 0.60)',
             color: 'white',
@@ -35,7 +38,8 @@ export default function RootLayout({
             textAlign: 'center',
             padding:'12px 20px',
           }
-        }}/>
+        }}
+        />
       </body>
     </html>
   );
