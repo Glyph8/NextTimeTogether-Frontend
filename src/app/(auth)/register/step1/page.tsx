@@ -15,6 +15,10 @@ export default function RegisterIDPage() {
   const [id, setId] = useState("");
   /** 회원 가입 api 갖춰졌는지 불명. 확정 후 재개 */
   const [isDup, setIsDup] = useState(true);
+  const isLenOk = id.length > 0 && id.length <= 20;
+  const isCharsOk = /^[A-Za-z0-9_]+$/.test(id);
+  const canProceed = isLenOk && isCharsOk && !isDup;
+
   const handleDupCheck = () => {
     toast("다른 아이디를 사용해주세요.");
     setIsDup(false);
@@ -54,6 +58,7 @@ export default function RegisterIDPage() {
               onChange={(e) => {
                 setId(e.target.value);
               }}
+              value={id}
             />
             <div className="flex gap-3 items-center">
               {id !== "" && (
@@ -76,10 +81,10 @@ export default function RegisterIDPage() {
           </div>
 
           <span className="flex items-center gap-1.5 text-sm font-medium leading-tight text-gray-2">
-            <span className={`flex gap-1 ${id.length <= 20 && "text-main"}`}>
+            <span className={`flex gap-1 ${isLenOk && "text-main"}`}>
               20자 이내 <Check className="w-4 h-4 " />
             </span>
-            <span className={`flex gap-1 ${id.length <= 20 && "text-main"}`}>
+            <span className={`flex gap-1 ${isCharsOk && "text-main"}`}>
               영어, 숫자, 언더바(_)만 사용 <Check className="w-4 h-4 " />
             </span>
             <span className={`flex gap-1 ${!isDup && "text-main"}`}>
@@ -88,7 +93,7 @@ export default function RegisterIDPage() {
           </span>
         </div>
       </div>
-      <Button text={"다음"} disabled={false} onClick={handleNextStep} />
+      <Button text={"다음"} disabled={canProceed} onClick={handleNextStep} />
     </div>
   );
 }

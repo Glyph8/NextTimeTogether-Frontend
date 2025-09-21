@@ -6,7 +6,7 @@ import { RadioButton } from "@/components/shared/Input/RadioButton";
 
 export default function RegisterGenderAgePage() {
   const [gender, setGender] = useState("male");
-
+  const [age, setAge] = useState("20~24세");
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log("선택된 값:", event.target.value);
     setGender(event.target.value);
@@ -56,7 +56,7 @@ export default function RegisterGenderAgePage() {
           >
             연령대
           </label>
-          <select name="age" id="age" className="w-fit">
+          <select name="age" id="age" className="w-fit" value={age} onChange={(e)=>setAge(e.target.value)}>
             <option value="14세 이하">14세 이하</option>
             <option value="15~19세">15~19세</option>
             <option value="20~24세">20~24세</option>
