@@ -3,14 +3,32 @@ import { Button } from "@/components/ui/button/Button";
 import { useState } from "react";
 import ConditionInputBar from "../components/ConditionInputBar";
 import { useRouter } from "next/navigation";
+import { signupRequest } from "@/api/auth";
+import { UserSignUpDTO } from "@/apis/generated/Api";
 
 export default function RegisterPhoneNumberPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const router = useRouter();
 
+  const signupData:UserSignUpDTO = {
+    userId: "123",
+    email: "123@naver.com",
+    password: "123",
+    nickname: "123",
+    wrappedDEK: "123"
+  }
   /** 추후 number 제출 api 연결 */
-  const handleNextStep = () => {
-    router.push("/complete-signup");
+  const handleNextStep = async () => {
+    await signupRequest(signupData)
+      .then((res) => {
+        // 에러 응답이 와도 main 진입하는 문제 해결 필요
+        console.log("회원가입 성공 res : ", res);
+        if (res) router.push("/complete-signup");
+        else alert("회원가입에서 문제 발생. 토큰 관련 오류 추정");
+      })
+      .catch((err) => {
+        console.log("회원가입 실패", err);
+      });
   };
 
   /** number 제출 skip! */

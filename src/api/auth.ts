@@ -1,0 +1,50 @@
+import axios from "axios";
+import { Api, UserSignUpDTO } from "@/apis/generated/Api";
+
+const api = new Api();
+// const LOGIN_API_URL = "https://meetnow.duckdns.org/auth/login";
+const LOGIN_API_URL = "http://43.202.154.29:8083/auth/login";
+
+export const loginRequest = (userId: string, password: string) =>
+  axios
+    .post(LOGIN_API_URL, {
+      userId: userId,
+      password: password,
+    })
+    .then((response) => {
+      console.log("login api : ", response);
+      if (response.headers["authorization"]) {
+        localStorage.setItem("access_token", response.headers["authorization"]);
+        return true;
+      }
+      return false;
+    })
+    .catch((error) => {
+      console.error("로그인에서 에러 발생", error);
+      throw new Error(error);
+    });
+
+/** sns 로그인 로직이 미완성인듯? */
+export const snsLoginRequest = (userId: string, password: string) =>
+  api.auth
+    .login1({ userId: userId, password: password })
+    .then((response) => {
+      console.log(response.data);
+      return response.data;
+    })
+    .catch((error) => {
+      console.error(error);
+      return false;
+    });
+
+export const signupRequest = (signupData: UserSignUpDTO) =>
+  api.auth
+    .signUp(signupData)
+    .then((response) => {
+      console.log(response.data);
+      return response.data;
+    })
+    .catch((error) => {
+      console.error(error);
+      return false;
+    });

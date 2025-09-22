@@ -34,12 +34,12 @@ export default function RegisterForSnsPage() {
   };
 
   return (
-    <div className="flex-1 bg-white flex flex-col pb-4 justify-between items-center">
+    <div className="flex-1 bg-white flex flex-col pb-5 justify-between items-center">
       <div className="w-full flex-1 flex flex-col items-center">
-        <nav className="w-full text-black-1 text-xl font-medium leading-8 inline-flex justify-start items-start">
-          성별과 연령대를
+        <nav className="w-full text-black-1 text-xl font-medium leading-8 inline-flex justify-start items-start pt-7 pb-5">
+          서비스 이용 전에
           <br />
-          알려주세요.
+          정보를 입력해주세요.
         </nav>
         <form className="w-full flex flex-col gap-3 py-4">
           <span className="text-gray-1 text-sm font-normal leading-tight">
@@ -92,6 +92,7 @@ export default function RegisterForSnsPage() {
           checkWithWarn={checkWithWarnEmail}
         />
       </div>
+
       <Button text={"다음"} disabled={false} onClick={handleNextStep} />
     </div>
   );
