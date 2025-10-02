@@ -5,21 +5,32 @@ import ConditionInputBar from "../components/ConditionInputBar";
 import { useRouter } from "next/navigation";
 import { signupRequest } from "@/api/auth";
 import { UserSignUpDTO } from "@/apis/generated/Api";
+import { useSignupStore } from "@/store/signupStore";
+import { userSignUpSchema } from "@/lib/schemas/signupSchema";
 
 export default function RegisterPhoneNumberPage() {
+  const { formData, updateFormData } = useSignupStore();
   const [phoneNumber, setPhoneNumber] = useState("");
   const router = useRouter();
 
-  const signupData:UserSignUpDTO = {
-    userId: "123",
-    email: "123@naver.com",
-    password: "123",
-    nickname: "123",
-    wrappedDEK: "123"
-  }
+  const isFormValid = (formData: Partial<UserSignUpDTO>): boolean => {
+    // safeParse는 유효성 검사를 시도하고, 성공/실패 여부와 결과를 객체로 반환합니다.
+    // (에러를 throw하는 parse와 달리 안전합니다)
+    const result = userSignUpSchema.safeParse(formData);
+
+    if (!result.success) {
+      return false;
+    }
+
+    console.log("유효성 검사 성공!", result.data);
+    return true;
+  };
+
   /** 추후 number 제출 api 연결 */
   const handleNextStep = async () => {
-    await signupRequest(signupData)
+    updateFormData({ telephone: phoneNumber });
+    if (!isFormValid(formData)) return;
+    await signupRequest(formData as UserSignUpDTO)
       .then((res) => {
         // 에러 응답이 와도 main 진입하는 문제 해결 필요
         console.log("회원가입 성공 res : ", res);
@@ -32,16 +43,19 @@ export default function RegisterPhoneNumberPage() {
   };
 
   /** number 제출 skip! */
-  const handleSkipForm = () => {
-    router.push("/complete-signup");
+  const handleSkipForm = async () => {
+    if (!isFormValid(formData)) return;
+    await signupRequest(formData as UserSignUpDTO)
+      .then((res) => {
+        // 에러 응답이 와도 main 진입하는 문제 해결 필요
+        console.log("회원가입 성공 res : ", res);
+        if (res) router.push("/complete-signup");
+        else alert("회원가입에서 문제 발생. 토큰 관련 오류 추정");
+      })
+      .catch((err) => {
+        console.log("회원가입 실패", err);
+      });
   };
-  /** 추후 전화번호 form대로 가공 */
-  // const makePhoneNumberForm = (value:string) => {
-  //   const arrString = Array.from(value);
-  // if (!/^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(inputs)) return false;
-  // const digitsOnly = inputs.replace(/[^0-9]/g, ""); // 그냥 숫자만 받게
-  // return /^(?:\d{9,11})$/.test(digitsOnly); // 9~11자리로 제한
-  // };
 
   return (
     <div className="flex-1 bg-white flex flex-col pb-4 justify-between items-center">

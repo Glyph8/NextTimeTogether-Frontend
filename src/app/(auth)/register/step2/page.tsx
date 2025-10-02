@@ -3,12 +3,15 @@ import { Button } from "@/components/ui/button/Button";
 import { useState } from "react";
 import ConditionInputBar from "../components/ConditionInputBar";
 import { useRouter } from "next/navigation";
+import { useSignupStore } from "@/store/signupStore";
 
 export default function RegisterPasswordPage() {
+  const { updateFormData } = useSignupStore();
   const [password, setPassword] = useState("");
   const [passwordRe, setPasswordRe] = useState("");
   const router = useRouter();
   const handleNextStep = () => {
+    updateFormData({ password: password });
     router.push("/register/step3");
   };
 

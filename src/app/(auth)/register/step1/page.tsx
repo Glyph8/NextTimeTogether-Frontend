@@ -1,6 +1,7 @@
 "use client";
 import XWhite from "@/assets/svgs/icons/x-white.svg";
 import { Button } from "@/components/ui/button/Button";
+import { useSignupStore } from "@/store/signupStore";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 
 export default function RegisterIDPage() {
   const router = useRouter();
+  const { updateFormData } = useSignupStore();
   const [id, setId] = useState("");
   /** 회원 가입 api 갖춰졌는지 불명. 확정 후 재개 */
   const [isDup, setIsDup] = useState(true);
@@ -25,6 +27,7 @@ export default function RegisterIDPage() {
   };
   const handleNextStep = () => {
     console.log(id);
+    updateFormData({ userId: id });
     router.push("/register/step2");
   };
 
@@ -40,6 +43,7 @@ export default function RegisterIDPage() {
   //     resolver: zodResolver(loginSchema), // 2. zodResolver를 사용하여 스키마를 연동합니다.
   //     mode: "onBlur", // (선택사항) 포커스가 해제될 때 유효성 검사를 실행합니다.
   //   });
+
   return (
     <div className="flex-1 bg-white flex flex-col pb-4 justify-between items-center">
       <div className="w-full flex-1 flex flex-col items-center">
