@@ -2,7 +2,8 @@ import argon2 from "argon2";
 import { hmacSha256 } from "../base-func";
 
 export const hashPassword = async (
-  masterkey: string,
+  // masterkey: string,
+  masterkey: ArrayBuffer | string,
   password: string
 ): Promise<string> => {
   /** 1. 해시함수(마스터키, 원본 비밀번호)로 블라인딩 */

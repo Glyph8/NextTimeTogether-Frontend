@@ -3,6 +3,9 @@
 import { loginRequest } from "@/api/auth";
 import { TextInput } from "@/components/shared/Input/TextInput";
 import { Button } from "@/components/ui/button/Button";
+import { hmacSha256Truncated } from "@/utils/crypto/auth/encrypt-id-img";
+import { hashPassword } from "@/utils/crypto/auth/encrypt-password";
+import { deriveMasterKeyPBKDF2 } from "@/utils/crypto/generate-key/derive-masterkey";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,7 +16,22 @@ export default function LoginPage() {
   const [pw, setPW] = useState("");
   const [warnMsg, setWarnMsg] = useState("");
 
+  const getMaskterkey = async (id: string, pw: string) => {
+    return await deriveMasterKeyPBKDF2(id, pw);
+  };
+
+  const getHashedId = async (id: string, masterKey: ArrayBuffer) => {
+    const encryptedId = hmacSha256Truncated(masterKey, id, 128);
+    return encryptedId;
+  };
+
+  const getHashedPw = async (pw: string, maskterKey: ArrayBuffer) => {
+    const envryptedPw = hashPassword(maskterKey, pw);
+  };
+
   const handleLogin = async () => {
+    const masterKey = deriveMasterKeyPBKDF2(id, pw);
+
     await loginRequest(id, pw)
       .then((res) => {
         // 에러 응답이 와도 main 진입하는 문제 해결 필요

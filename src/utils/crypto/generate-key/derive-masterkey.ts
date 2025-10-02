@@ -1,4 +1,7 @@
-export async function deriveMasterKeyPBKDF2(userId: string, password: string): Promise<ArrayBuffer> {
+export async function deriveMasterKeyPBKDF2(
+  userId: string,
+  password: string
+): Promise<ArrayBuffer> {
   const encoder = new TextEncoder();
 
   const salt = encoder.encode(userId);
@@ -19,7 +22,7 @@ export async function deriveMasterKeyPBKDF2(userId: string, password: string): P
       hash: "SHA-256",
     },
     keyMaterial,
-    256 
+    256
   );
 
   return derivedBits;
