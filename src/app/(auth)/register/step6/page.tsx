@@ -19,14 +19,13 @@ export default function RegisterPhoneNumberPage() {
     const result = userSignUpSchema.safeParse(formData);
 
     if (!result.success) {
+      console.log("유효성 검사 실패", formData);
       return false;
     }
 
     console.log("유효성 검사 성공!", result.data);
     return true;
   };
-
-  /** 추후 number 제출 api 연결 */
   const handleNextStep = async () => {
     updateFormData({ telephone: phoneNumber });
     if (!isFormValid(formData)) return;

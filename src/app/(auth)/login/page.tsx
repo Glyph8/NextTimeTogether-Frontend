@@ -6,14 +6,12 @@ import { Button } from "@/components/ui/button/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-// import {auth} from "@/apis/generated/Api"
 
 export default function LoginPage() {
   const router = useRouter();
   const [id, setId] = useState("");
   const [pw, setPW] = useState("");
   const [warnMsg, setWarnMsg] = useState("");
-  /** 추후 로그인 API 연결 */
 
   const handleLogin = async () => {
     await loginRequest(id, pw)

@@ -28,14 +28,19 @@ export default function Home() {
             Time Together
           </div>
           <p className="text-neutral-400 text-sm font-medium font-['Pretendard'] leading-tight mt-3">
-            시간 조율 걱정 없이 <br/>
+            시간 조율 걱정 없이 <br />
             그룹 모임을 편하고 빠르게
           </p>
         </div>
 
-        <nav className="w-full flex flex-col gap-2">
+        <nav className="w-full flex flex-col justify-center items-center gap-2">
           {loginList.map((item) => (
-            <LoginItem icon={item.icon} text={item.text} route={item.route} key={item.text} />
+            <LoginItem
+              icon={item.icon}
+              text={item.text}
+              route={item.route}
+              key={item.text}
+            />
           ))}
         </nav>
 
