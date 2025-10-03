@@ -4,7 +4,8 @@ import { Api } from "@/apis/generated/Api";
 // "http://43.202.154.29:8083/auth/login";
 
 const baseApi = new Api({
-  baseURL: "https://meetnow.duckdns.org",
+  // baseURL: "https://meetnow.duckdns.org",
+  baseURL: "http://43.202.154.29:8083",
   securityWorker: () => {
     const token = localStorage.getItem("access_token");
     if (!token) {

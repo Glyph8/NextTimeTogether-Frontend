@@ -42,17 +42,17 @@ export const userSignUpSchema = z
     userId: userIdSchema,
     email: emailSchema,
     password: passwordSchema,
-    passwordConfirm: z.string().min(8, "비밀번호 확인을 입력해주세요."),
+    // passwordConfirm: z.string().min(8, "비밀번호 확인을 입력해주세요."),
     nickname: nicknameSchema,
-    wrappedDEK: z.string().min(1, "DEK 값이 비어있습니다."),
+    // wrappedDEK: z.string().min(1, "DEK 값이 비어있습니다."),
     telephone: telephoneSchema,
     age: z.string().optional(),
     gender: z.enum(["MALE", "FEMALE"]).optional(),
   })
-  .refine((data) => data.password === data.passwordConfirm, {
-    message: "비밀번호가 일치하지 않습니다.",
-    path: ["passwordConfirm"],
-  });
+  // .refine((data) => data.password === data.passwordConfirm, {
+  //   message: "비밀번호가 일치하지 않습니다.",
+  //   path: ["passwordConfirm"],
+  // });
 
 // Zod 스키마로부터 TypeScript 타입을 자동으로 추론
 export type UserSignUpDTO = z.infer<typeof userSignUpSchema>;

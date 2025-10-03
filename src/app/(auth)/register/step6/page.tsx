@@ -1,60 +1,31 @@
 "use client";
 import { Button } from "@/components/ui/button/Button";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import ConditionInputBar from "../components/ConditionInputBar";
-import { useRouter } from "next/navigation";
-import { signupRequest } from "@/api/auth";
-import { UserSignUpDTO } from "@/apis/generated/Api";
+// import { signupRequest } from "@/api/auth";
+// import { UserSignUpDTO } from "@/apis/generated/Api";
 import { useSignupStore } from "@/store/signupStore";
-import { userSignUpSchema } from "@/lib/schemas/signupSchema";
+// import { userSignUpSchema } from "@/lib/schemas/signupSchema";
+import { register, RegisterActionState } from "./action";
 
 export default function RegisterPhoneNumberPage() {
-  const { formData, updateFormData } = useSignupStore();
+  const { formData } = useSignupStore();
   const [phoneNumber, setPhoneNumber] = useState("");
-  const router = useRouter();
 
-  const isFormValid = (formData: Partial<UserSignUpDTO>): boolean => {
-    // safeParse는 유효성 검사를 시도하고, 성공/실패 여부와 결과를 객체로 반환합니다.
-    // (에러를 throw하는 parse와 달리 안전합니다)
-    const result = userSignUpSchema.safeParse(formData);
-
-    if (!result.success) {
-      console.log("유효성 검사 실패", formData);
-      return false;
-    }
-
-    console.log("유효성 검사 성공!", result.data);
-    return true;
+  const initialState: RegisterActionState = {
+    error: null,
   };
-  const handleNextStep = async () => {
-    updateFormData({ telephone: phoneNumber });
-    if (!isFormValid(formData)) return;
-    await signupRequest(formData as UserSignUpDTO)
-      .then((res) => {
-        // 에러 응답이 와도 main 진입하는 문제 해결 필요
-        console.log("회원가입 성공 res : ", res);
-        if (res) router.push("/complete-signup");
-        else alert("회원가입에서 문제 발생. 토큰 관련 오류 추정");
-      })
-      .catch((err) => {
-        console.log("회원가입 실패", err);
-      });
-  };
+  const [error, registerAction] = useActionState(register, initialState);
 
-  /** number 제출 skip! */
-  const handleSkipForm = async () => {
-    if (!isFormValid(formData)) return;
-    await signupRequest(formData as UserSignUpDTO)
-      .then((res) => {
-        // 에러 응답이 와도 main 진입하는 문제 해결 필요
-        console.log("회원가입 성공 res : ", res);
-        if (res) router.push("/complete-signup");
-        else alert("회원가입에서 문제 발생. 토큰 관련 오류 추정");
-      })
-      .catch((err) => {
-        console.log("회원가입 실패", err);
-      });
-  };
+  // const isFormValid = (formData: Partial<UserSignUpDTO>): boolean => {
+  //   const result = userSignUpSchema.safeParse(formData);
+  //   if (!result.success) {
+  //     console.log("유효성 검사 실패", formData);
+  //     return false;
+  //   }
+  //   console.log("유효성 검사 성공!", result.data);
+  //   return true;
+  // };
 
   return (
     <div className="flex-1 bg-white flex flex-col pb-4 justify-between items-center">
@@ -76,16 +47,32 @@ export default function RegisterPhoneNumberPage() {
           placeholder="휴대폰 번호를 입력해주세요."
         />
       </div>
-      <div className="w-full flex flex-col items-center gap-5">
+
+      <div className="flex justify-center items-center text-center w-full h-20 text-highlight-1 text-sm font-medium leading-tight">
+        {error && <p>{error.error}</p>}
+      </div>
+      <form
+        action={registerAction}
+        className="w-full flex flex-col items-center gap-5"
+      >
+        <input type="hidden" name="userId" value={formData.userId} />
+        <input type="hidden" name="password" value={formData.password} />
+        <input type="hidden" name="email" value={formData.email} />
+        <input type="hidden" name="nickname" value={formData.nickname} />
+        <input
+          type="hidden"
+          name="telephone"
+          value={formData.telephone || ""}
+        />
         <button
           type="submit"
           className="text-main text-sm font-medium leading-tight underline"
-          onClick={handleSkipForm}
         >
           지금 입력 안할래요.
         </button>
-        <Button text={"다음"} disabled={false} onClick={handleNextStep} />
-      </div>
+
+        <Button text={"다음"} isSubmit={true} />
+      </form>
     </div>
   );
 }

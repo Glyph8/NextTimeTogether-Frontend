@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Api, UserSignUpDTO } from "@/apis/generated/Api";
+import { Api, BaseResponse, UserSignUpDTO } from "@/apis/generated/Api";
 
 const api = new Api();
 // const LOGIN_API_URL = "https://meetnow.duckdns.org/auth/login";
@@ -37,7 +37,9 @@ export const snsLoginRequest = (userId: string, password: string) =>
       return false;
     });
 
-export const signupRequest = (signupData: UserSignUpDTO) =>
+export const signupRequest = async (
+  signupData: UserSignUpDTO
+): Promise<BaseResponse> =>
   api.auth
     .signUp(signupData)
     .then((response) => {
@@ -46,5 +48,5 @@ export const signupRequest = (signupData: UserSignUpDTO) =>
     })
     .catch((error) => {
       console.error(error);
-      return false;
+      throw error;
     });

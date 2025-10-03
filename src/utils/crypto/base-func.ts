@@ -6,7 +6,9 @@ import { createHmac } from "crypto";
  * @param {string} data - 해싱할 데이터 (사용자 비밀번호)
  * @returns {string} - Base64로 인코딩된 해시 값
  */
-export function hmacSha256(key: string, data: string): Promise<string> {
+
+
+export function hmacSha256(key: string | Buffer, data: string): Promise<string> {
   return new Promise((resolve) => {
     const hmac = createHmac("sha256", key);
     hmac.update(data);

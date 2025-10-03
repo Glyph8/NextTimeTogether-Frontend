@@ -8,7 +8,8 @@ export const encryptEmailPhone = async (
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
     masterKey,
-    { name: "AES-256-GCM" },
+    // { name: "AES-256-GCM" },
+     { name: "AES-GCM" }, // AES-256-GCM이 아니라 AES-GCM
     false,
     ["encrypt"]
   );

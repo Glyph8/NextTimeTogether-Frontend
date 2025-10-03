@@ -1,5 +1,6 @@
 import argon2 from "argon2";
 import { hmacSha256 } from "../base-func";
+// import { hmacSha256Truncated } from "./encrypt-id-img";
 
 export const hashPassword = async (
   // masterkey: string,
@@ -7,8 +8,14 @@ export const hashPassword = async (
   password: string
 ): Promise<string> => {
   /** 1. 해시함수(마스터키, 원본 비밀번호)로 블라인딩 */
-  const blind = await hmacSha256(masterkey, password);
-
+  
+  const blind = await hmacSha256(
+    typeof masterkey === "string" ? masterkey : Buffer.from(masterkey),
+    password
+  );
+  // POINT: 타입 에러가 발생. truncated 버전으로 대체했음.
+  // const blind = await hmacSha256Truncated(masterkey, password, 256);
+  
   /** 2. argon2 알고리즘으로 최종 해시 생성. */
   const hashedPassword = await argon2.hash(blind, {
     type: argon2.argon2id,

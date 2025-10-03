@@ -2,6 +2,7 @@ import XWhite from "@/assets/svgs/icons/x-white.svg";
 
 interface TextInputProps {
   label: string;
+  name: string;
   data: string;
   setData: React.Dispatch<React.SetStateAction<string>>;
   placeholder: string;
@@ -10,6 +11,7 @@ interface TextInputProps {
 
 export const TextInput = ({
   label,
+  name,
   data,
   setData,
   placeholder,
@@ -17,11 +19,16 @@ export const TextInput = ({
 }: TextInputProps) => {
   return (
     <div className="w-full">
-      <span className="text-gray-1 text-sm font-normal leading-tight">
+      <label
+        htmlFor={label}
+        className="text-gray-1 text-sm font-normal leading-tight"
+      >
         {label}
-      </span>
+      </label>
       <div className="w-full flex justify-between relative">
         <input
+          id={label}
+          name={name}
           type={`${isPassword ? "password" : "text"}`}
           placeholder={placeholder}
           className="w-full py-2.5 text-black-1 text-base font-medium leading-tight border-b-1 focus:border-b-main"

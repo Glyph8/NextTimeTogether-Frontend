@@ -29,12 +29,14 @@ export default function AddPlaceDirectPage() {
         <div className="py-5 flex flex-col gap-5">
           <TextInput
             label={"장소명"}
+            name="placeName"
             data={placeName}
             setData={setPlaceName}
             placeholder={"장소 이름을 입력해주세요"}
           />
           <TextInput
             label={"어떤 장소인가요? (선택)"}
+            name="placeDescription"
             data={placeDescription}
             setData={setPlaceDescription}
             placeholder={"장소 설명을 입력해주세요"}
