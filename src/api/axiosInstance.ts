@@ -1,7 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://43.202.154.29:8083/auth/login",
+  // baseURL: "http://43.202.154.29:8083/auth/login",
+  baseURL: "https://meetnow.duckdns.org",
   // httpOnly 쿠키를 주고받기 위해 꼭 필요한 설정
   withCredentials: true,
 });
@@ -10,7 +11,7 @@ axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("access_token");
     if (token) {
-        // securityWorker를 대체하는 로직
+      // securityWorker를 대체하는 로직
       config.headers.Authorization = token;
     }
     return config;
@@ -60,12 +61,12 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-                // httpOnly 쿠키에 담긴 Refresh Token으로 새로운 Access Token 요청
+        // httpOnly 쿠키에 담긴 Refresh Token으로 새로운 Access Token 요청
         // 이 요청은 withCredentials: true 설정 덕분에 자동으로 쿠키를 포함합니다.
 
         const { data } = await axiosInstance.post("/auth/refresh");
 
-        console.log("리프레쉬 응답 : ", data)
+        console.log("리프레쉬 응답 : ", data);
         const newAccessToken = data.accessToken;
         localStorage.setItem("access_token", newAccessToken);
         axiosInstance.defaults.headers.common["Authorization"] = newAccessToken;
@@ -81,7 +82,7 @@ axiosInstance.interceptors.response.use(
         // 로그아웃 처리 (localStorage 비우기, 로그인 페이지로 리디렉션)
         localStorage.removeItem("access_token");
         console.error("세션 만료됨. 재로그인 필요");
-         window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

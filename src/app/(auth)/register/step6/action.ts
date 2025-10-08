@@ -17,7 +17,23 @@ export async function register(
   prevState: RegisterActionState,
   formData: FormData
 ): Promise<RegisterActionState> {
-  const data = Object.fromEntries(formData.entries());
+  // 1. FormData 내용 확인
+  console.log("=== FormData entries ===");
+  for (const [key, value] of formData.entries()) {
+    console.log(`${key}:`, value);
+  }
+
+  // const data = Object.fromEntries(formData.entries());
+  const data = {
+    userId: formData.get("userId"),
+    password: formData.get("password"),
+    email: formData.get("email"),
+    age: formData.get("age"),
+    gender: formData.get("gender"),
+    nickname: formData.get("nickname"),
+    telephone: formData.get("telephone"),
+  };
+  console.log("=== 변환된 data 객체 ===", data);
   const validationResult = userSignUpSchema.safeParse(data);
 
   if (!validationResult.success) {
@@ -31,9 +47,10 @@ export async function register(
 
   // 유효성 검사를 통과한 데이터
   const validatedData = validationResult.data;
-
+  console.log("=== 유효성 검사 통과 ===", validatedData);
   // telephone은 생략될 수도 있음.
-  const { userId, email, password, telephone, nickname } = validatedData;
+  const { userId, email, password, telephone, nickname, age, gender } =
+    validatedData;
 
   try {
     const masterKey = await deriveMasterKeyPBKDF2(userId, password);
@@ -49,10 +66,21 @@ export async function register(
       password: hashedPassword,
       nickname: nickname,
       telephone: hashedTelephone.ciphertext,
+      age: age,
+      gender: gender,
       wrappedDEK: Buffer.from(masterKey).toString("base64"),
     };
 
-     const signupResult = await signupRequest(hashedUserDTO);
+    console.log("=== API 전송 직전 DTO ===");
+    console.log(JSON.stringify(hashedUserDTO, null, 2));
+    console.log("=== DTO 타입 체크 ===");
+    console.log("typeof hashedUserDTO:", typeof hashedUserDTO);
+    console.log(
+      "hashedUserDTO instanceof FormData:",
+      hashedUserDTO instanceof FormData
+    );
+
+    const signupResult = await signupRequest(hashedUserDTO);
 
     if (!signupResult || signupResult.code !== 200) {
       console.log("회원가입 요청 실패:", signupResult);
@@ -61,9 +89,9 @@ export async function register(
 
     console.log("✅ 회원가입 성공!");
   } catch (err) {
-    console.error("로그인 처리 중 에러 발생:", err);
+    console.error("회원가입 처리 중 에러 발생:", err);
     // redirect 에러는 정상적인 흐름이므로 다시 throw
-    if (err instanceof Error && err.message.includes('NEXT_REDIRECT')) {
+    if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
       throw err;
     }
     return { error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요." };

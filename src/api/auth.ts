@@ -2,10 +2,13 @@ import axios from "axios";
 import { Api, BaseResponse, UserSignUpDTO } from "@/apis/generated/Api";
 
 const api = new Api();
-// const LOGIN_API_URL = "https://meetnow.duckdns.org/auth/login";
-const LOGIN_API_URL = "http://43.202.154.29:8083/auth/login";
+const LOGIN_API_URL = "https://meetnow.duckdns.org/auth/login";
+// const LOGIN_API_URL = "http://43.202.154.29:8083/auth/login";
 
-export const loginRequest = (userId: string, password: string) =>
+export const loginRequest = async (
+  userId: string,
+  password: string
+): Promise<BaseResponse> =>
   axios
     .post(LOGIN_API_URL, {
       userId: userId,
@@ -15,9 +18,11 @@ export const loginRequest = (userId: string, password: string) =>
       console.log("login api : ", response);
       if (response.headers["authorization"]) {
         localStorage.setItem("access_token", response.headers["authorization"]);
-        return true;
+        // return true;
+        return response.data;
       }
-      return false;
+      console.log("로그인 응답에서 토큰을 찾을 수 없음.");
+      return response.data;
     })
     .catch((error) => {
       console.error("로그인에서 에러 발생", error);

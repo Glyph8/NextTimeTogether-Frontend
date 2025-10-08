@@ -7,11 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "swagger-typescript-api": "swagger-typescript-api generate -p http://43.202.154.29:8083/v3/api-docs -r -o ./apis --modular -d --extract-request-body --extract-response-body --extract-response-error --axios --clean-output",
-    "gen:api": "swagger-typescript-api generate -p http://43.202.154.29:8083/v3/api-docs -o ./src/apis/generated --axios --clean-output",
-    "gen:api:split": "swagger-typescript-api generate -p http://43.202.154.29:8083/v3/api-docs -o ./src/apis/generated --modular --union-types",
-    "generate:api": "swagger-typescript-api generate -p http://43.202.154.29:8083/v3/api-docs -o ./src/generated-api --clean-output --axios",
-    "generate:api:local": "swagger-typescript-api generate -p http://43.202.154.29:8083/v3/api-docs -o ./src/generated-api --clean-output --axios"
+    "swagger-typescript-api": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -r -o ./apis --modular -d --extract-request-body --extract-response-body --extract-response-error --axios --clean-output",
+    "gen:api": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/apis/generated --axios --clean-output",
+    "gen:api:split": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/apis/generated --modular --union-types",
+    "generate:api": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/generated-api --clean-output --axios",
+    "generate:api:local": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/generated-api --clean-output --axios"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",

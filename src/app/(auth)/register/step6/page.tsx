@@ -1,5 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button/Button";
 import { useActionState, useState } from "react";
 import ConditionInputBar from "../components/ConditionInputBar";
 // import { signupRequest } from "@/api/auth";
@@ -16,16 +15,6 @@ export default function RegisterPhoneNumberPage() {
     error: null,
   };
   const [error, registerAction] = useActionState(register, initialState);
-
-  // const isFormValid = (formData: Partial<UserSignUpDTO>): boolean => {
-  //   const result = userSignUpSchema.safeParse(formData);
-  //   if (!result.success) {
-  //     console.log("유효성 검사 실패", formData);
-  //     return false;
-  //   }
-  //   console.log("유효성 검사 성공!", result.data);
-  //   return true;
-  // };
 
   return (
     <div className="flex-1 bg-white flex flex-col pb-4 justify-between items-center">
@@ -58,11 +47,14 @@ export default function RegisterPhoneNumberPage() {
         <input type="hidden" name="userId" value={formData.userId} />
         <input type="hidden" name="password" value={formData.password} />
         <input type="hidden" name="email" value={formData.email} />
+        <input type="hidden" name="age" value={formData.age} />
+        <input type="hidden" name="gender" value={formData.gender} />
         <input type="hidden" name="nickname" value={formData.nickname} />
         <input
           type="hidden"
           name="telephone"
-          value={formData.telephone || ""}
+          value={phoneNumber}
+          // value={formData.telephone || ""}
         />
         <button
           type="submit"
@@ -71,7 +63,13 @@ export default function RegisterPhoneNumberPage() {
           지금 입력 안할래요.
         </button>
 
-        <Button text={"다음"} isSubmit={true} />
+        <button
+          type="submit"
+          className="w-full h-14 bg-main rounded-xl text-white font-bold" // 스타일은 기존 버튼과 유사하게 맞춰주세요
+        >
+          다음
+        </button>
+        {/* <Button text={"다음"} isSubmit={true} disabled={phoneNumber === ""} /> */}
       </form>
     </div>
   );
