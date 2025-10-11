@@ -475,7 +475,7 @@ export type RequestParams = Omit<
 export interface ApiConfig<SecurityDataType = unknown>
   extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
   securityWorker?: (
-    securityData: SecurityDataType | null,
+    securityData: SecurityDataType | null
   ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
   secure?: boolean;
   format?: ResponseType;
@@ -504,9 +504,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      // http://43.202.154.29:8083
-      // baseURL: axiosConfig.baseURL || "https://meetnow.duckdns.org",
-       baseURL: axiosConfig.baseURL || "http://43.202.154.29:8083",
+      baseURL: axiosConfig.baseURL || "https://meetnow.duckdns.org",
     });
     this.secure = secure;
     this.format = format;
@@ -519,7 +517,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected mergeRequestParams(
     params1: AxiosRequestConfig,
-    params2?: AxiosRequestConfig,
+    params2?: AxiosRequestConfig
   ): AxiosRequestConfig {
     const method = params1.method || (params2 && params2.method);
 
@@ -560,7 +558,7 @@ export class HttpClient<SecurityDataType = unknown> {
         const isFileType = formItem instanceof Blob || formItem instanceof File;
         formData.append(
           key,
-          isFileType ? formItem : this.stringifyFormItem(formItem),
+          isFileType ? formItem : this.stringifyFormItem(formItem)
         );
       }
 
@@ -625,7 +623,7 @@ export class HttpClient<SecurityDataType = unknown> {
  * 개인정보 보호 및 사용자 맞춤형 일정 관리 서비스
  */
 export class Api<
-  SecurityDataType extends unknown,
+  SecurityDataType extends unknown
 > extends HttpClient<SecurityDataType> {
   time = {
     /**
@@ -652,7 +650,7 @@ export class Api<
     viewUsersByTime: (
       promiseId: string,
       data: TimeSlotReqDTO,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/time/${promiseId}`,
@@ -672,7 +670,7 @@ export class Api<
     updateUserTime: (
       promiseId: string,
       data: UserTimeSlotReqDTO,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/time/my/${promiseId}`,
@@ -692,7 +690,7 @@ export class Api<
     confirmDateTime: (
       promiseId: string,
       data: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/time/confirm/${promiseId}`,
@@ -742,7 +740,7 @@ export class Api<
     confirmSchedule: (
       groupId: string,
       data: ScheduleConfirmReqDTO,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/schedule/confirm/${groupId}`,
@@ -862,7 +860,7 @@ export class Api<
      */
     getPromiseView1: (
       data: GetPromiseBatchReqDTO,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/promise/get`,
@@ -882,7 +880,7 @@ export class Api<
     getPromiseView2: (
       groupId: string,
       data: GetPromiseBatchReqDTO,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/promise/get/${groupId}`,
@@ -1002,7 +1000,7 @@ export class Api<
         query: string;
         filter?: string[];
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/promise/search`,
@@ -1021,7 +1019,7 @@ export class Api<
     getUsersByPromiseTime2: (
       promiseId: string,
       data: UserIdsResDTO,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/promise/mem/s2/${promiseId}`,
@@ -1086,7 +1084,7 @@ export class Api<
     votePlace: (
       promiseId: string,
       placeId: number,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/place/vote/${promiseId}/${placeId}`,
@@ -1104,7 +1102,7 @@ export class Api<
     registerPlace: (
       promiseId: string,
       data: PlaceRegisterDTO[],
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/place/register/${promiseId}`,
@@ -1124,7 +1122,7 @@ export class Api<
     confirmedPlace: (
       promiseId: string,
       placeId: number,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/place/confirm/${promiseId}/${placeId}`,
@@ -1142,7 +1140,7 @@ export class Api<
     checkAiPlace: (
       promiseId: string,
       data: UserAIInfoReqDTO,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/place/check/ai/${promiseId}`,
@@ -1162,7 +1160,7 @@ export class Api<
     viewPlaceBoard: (
       promiseId: string,
       page: number,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseObject, any>({
         path: `/place/${promiseId}/${page}`,
@@ -1648,7 +1646,7 @@ export class Api<
      */
     rewriteCalendar1: (
       data: CalendarRewriteRequest1,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseCalendarRewriteResponse1, any>({
         path: `/api/v1/calendar/rewrite1`,
@@ -1668,7 +1666,7 @@ export class Api<
      */
     createCalendar1: (
       data: CalendarCreateRequest1,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BaseResponseCalendarCreateResponse1, any>({
         path: `/api/v1/calendar/create1`,

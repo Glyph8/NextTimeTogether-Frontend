@@ -48,10 +48,11 @@ export const signupRequest = async (
   api.auth
     .signUp(signupData)
     .then((response) => {
-      console.log(response.data);
+      console.log("##", response.data);
       return response.data;
     })
     .catch((error) => {
+      console.log(signupData);
       console.error(error);
       throw error;
     });

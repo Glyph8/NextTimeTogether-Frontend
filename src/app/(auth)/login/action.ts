@@ -35,13 +35,20 @@ export async function login(
     // 가입(회원가입) 시 사용했던 로직과 동일해야 합니다.
     const masterKey = await deriveMasterKeyPBKDF2(userId, password);
     // STEP 2: 생성된 마스터 키와 입력한 아이디로 아이디 해시를 생성합니다.
-    const hashedUserId = await hmacSha256Truncated(masterKey, userId, 256);
-    const hashedPassword = await hashPassword(masterKey, password);
+
+    // TODO : 아직 회원가입에서 암호화하여 받지 않음..
+    // const hashedUserId = await hmacSha256Truncated(masterKey, userId, 256);
+    const hashedUserId = userId;
+    // const hashedPassword = await hashPassword(masterKey, password);
+    const hashedPassword = password;
 
     // STEP 4: 생성된 마스터 키와 입력한 비밀번호로 최종 비밀번호 해시를 생성합니다.
     // 이 때, DB에 저장된 해시값과 비교하기 위해 argon2.verify 함수를 사용합니다??
     // hashPassword 함수는 해시 '생성'용이므로, '검증'에는 verify를 사용해야 합니다??
 
+    console.log("요청 전 데이터 점검 - masterkey = ", masterKey);
+
+    // const loginResult = await loginRequest(hashedUserId, hashedPassword);
     const loginResult = await loginRequest(hashedUserId, hashedPassword);
     if (!loginResult || loginResult.code !== 200) {
       console.log("로그인 요청 응답에 문제 발생");
