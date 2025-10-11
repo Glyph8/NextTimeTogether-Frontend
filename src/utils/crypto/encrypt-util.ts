@@ -1,7 +1,15 @@
 // encrypt-util.ts
 import { Buffer } from "buffer";
+import { createHash } from "crypto";
 
 export class EncryptUtil {
+  static normalizeAESKey(baseKey: string, length: 32 = 32): string {
+    // SHA-256 해시로 32바이트 고정 길이 생성
+    const hash = createHash("sha256").update(baseKey).digest();
+    // 원하는 길이만 추출 후 base64 인코딩
+    return Buffer.from(hash.slice(0, length)).toString("base64");
+  }
+
   /**
    * 암호화에 사용할 랜덤한 128비트 AES 키 생성
    */
@@ -15,7 +23,7 @@ export class EncryptUtil {
    * 고정된 초기화 벡터(IV)를 사용하여 암호화
    * @throws IV가 제공되지 않으면 오류 발생
    */
-  static async encryptAESGCMWithFixedIV(
+  static async encryptAESGCMWithIV(
     plainText: string,
     base64Key: string,
     fixedIV?: Uint8Array
@@ -38,7 +46,8 @@ export class EncryptUtil {
 
     const ciphertext = await crypto.subtle.encrypt(
       // { name: "AES-GCM", iv: fixedIV },
-      { name: "AES-GCM", iv: new Uint8Array(fixedIV) },
+      // { name: "AES-GCM", iv: new Uint8Array(fixedIV) },
+      { name: "AES-GCM", iv: fixedIV as BufferSource },
       key,
       encoded
     );
@@ -51,7 +60,7 @@ export class EncryptUtil {
    * 고정된 IV로 AES-GCM 복호화
    * @throws IV가 제공되지 않으면 오류 발생
    */
-  static async decryptAESGCMWithFixedIV(
+  static async decryptAESGCMWithIV(
     cipherTextBase64: string,
     base64Key: string,
     fixedIV?: Uint8Array
@@ -74,7 +83,8 @@ export class EncryptUtil {
 
     const plainBuffer = await crypto.subtle.decrypt(
       // { name: "AES-GCM", iv: fixedIV },
-      { name: "AES-GCM", iv: new Uint8Array(fixedIV) },
+      // { name: "AES-GCM", iv: new Uint8Array(fixedIV) },
+      { name: "AES-GCM", iv: fixedIV as BufferSource },
       key,
       cipherBuffer
     );

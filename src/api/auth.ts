@@ -2,8 +2,8 @@ import axios from "axios";
 import { Api, BaseResponse, UserSignUpDTO } from "@/apis/generated/Api";
 
 const api = new Api();
-const LOGIN_API_URL = "https://meetnow.duckdns.org/auth/login";
-// const LOGIN_API_URL = "http://43.202.154.29:8083/auth/login";
+// const LOGIN_API_URL = "https://meetnow.duckdns.org/auth/login";
+const LOGIN_API_URL = "http://43.202.154.29:8083/auth/login";
 
 export const loginRequest = async (
   userId: string,
