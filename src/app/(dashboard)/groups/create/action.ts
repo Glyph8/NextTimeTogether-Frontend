@@ -4,6 +4,8 @@ import { createGroupRequest, createGroupRequest2 } from "@/api/group";
 import { CreateGroup2Request } from "@/apis/generated/Api";
 import encryptPlainData from "@/utils/crypto/encrypt-test";
 import testGenerateKey from "@/utils/crypto/generate-key/key-generator";
+import { decryptKey } from "@/utils/crypto/generate-key/manage-session-key";
+import { cookies } from "next/headers";
 
 // TODO : 서버 액션은 보통 재사용성을 위해 일반 객체 대신 FormData를 받지만,
 // 일단 객체를 받도록 작성해두고 나중에 리팩토링 할 것
@@ -16,6 +18,17 @@ interface GroupData {
 }
 
 export async function createGroupAction(groupData: GroupData) {
+  const cookieStore = await cookies();
+
+  const encryptedKey = cookieStore.get("encrypted-master-key")?.value;
+  if (!encryptedKey) throw new Error("인증 필요");
+  const encryptedUserId = cookieStore.get("encrypted-user-id")?.value;
+  if (!encryptedUserId) throw new Error("재로그인 필요");
+
+
+  const masterKey = decryptKey(encryptedKey);
+  const userId = decryptKey(encryptedUserId);
+
   try {
     // 첫 번째 API 호출로 그룹 기본 정보 생성
     const firstApiResponse = await createGroupRequest({
@@ -23,7 +36,8 @@ export async function createGroupAction(groupData: GroupData) {
       groupExplain: groupData.groupExplain,
       groupImg: groupData.groupImg,
       explain: groupData.explain,
-    });
+    },
+  );
 
     // 성공적으로 그룹이 생성되었는지 확인 (API 응답 구조에 따라 달라짐)
     if (!firstApiResponse || !firstApiResponse.result) {
@@ -32,6 +46,7 @@ export async function createGroupAction(groupData: GroupData) {
 
     // 첫 응답값 활용
     const groupId = firstApiResponse.result.groupId;
+    console.log("1단계 그룹 데이터 전송 성공, group ID : ", groupId)
 
     // 서버에서만 실행되어야 하는 암호화 로직 수행
 
@@ -47,12 +62,9 @@ export async function createGroupAction(groupData: GroupData) {
 
     const groupKey = await testGenerateKey();
 
-    const userId = "추후 redis로..";
-    const masterkey = "추후 redis로..";
-
     const encGroupId = await encryptPlainData(
       groupId,
-      masterkey,
+      masterKey,
       "group_proxy_user"
     );
     const encUserId = await encryptPlainData(
@@ -62,12 +74,12 @@ export async function createGroupAction(groupData: GroupData) {
     );
     const encencGroupMemberId = await encryptPlainData(
       encUserId,
-      masterkey,
+      masterKey,
       "group_proxy_user"
     );
     const encGroupKey = await encryptPlainData(
       groupKey,
-      masterkey,
+      masterKey,
       "group_sharekey"
     );
 
@@ -78,6 +90,8 @@ export async function createGroupAction(groupData: GroupData) {
       encUserId: encUserId,
       encGroupKey: encGroupKey,
     };
+
+    console.log("2단계 그룹 메타데이터 " , encryptedMetaData)
 
     // 암호화된 데이터로 두 번째 API 호출
     const secondApiResponse = await createGroupRequest2(encryptedMetaData);

@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button/Button";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { createGroupAction } from "./action";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+// TODO : 임시 기본 이미지
+import FullLogo from "@/assets/pngs/logo-full.png";
+
 export default function CreateGroupPage() {
   const router = useRouter();
   const [groupName, setGroupName] = useState("");
@@ -56,7 +59,7 @@ export default function CreateGroupPage() {
       <div className="w-full flex justify-center items-center px-4 md:px-40 pt-5 pb-3.5 relative">
         <div className="w-16 h-16 rounded-[8px] border border-[#E4E4E4] bg-gray-3 relative">
           <Image
-            src={"https://placehold.co/64x64"}
+            src={FullLogo}
             alt="프로필"
             width={64}
             height={64}

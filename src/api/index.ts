@@ -1,8 +1,5 @@
 import { Api } from "@/apis/generated/Api";
-// import axiosInstance from "@/api/axiosInstance";
-  // baseURL: "http://43.202.154.29:8083",
 
-  
 const baseApi = new Api({
   baseURL: "https://meetnow.duckdns.org",
   securityWorker: () => {
@@ -23,8 +20,14 @@ const api = baseApi;
 
 export default api;
 
-
 // const baseApi = new Api({
 //     // baseURL, securityWorker 등은 이제 axiosInstance가 모두 처리
 //     customAxios: axiosInstance,
+// });
+// import axiosInstance from "@/api/axiosInstance";
+
+// baseURL: "http://43.202.154.29:8083",
+
+// const baseApi = new Api({
+//   baseURL: "https://meetnow.duckdns.org",
 // });
