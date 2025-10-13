@@ -1,3 +1,4 @@
+// TODO : 추후 보안을 위해서 localStorage가 아닌 cookie로 토큰 관리할 수도 있음.
 import axios from "axios";
 import { Api, BaseResponse, UserSignUpDTO } from "@/apis/generated/Api";
 
@@ -25,7 +26,7 @@ export const loginRequest = async (
       return response.data;
     })
     .catch((error) => {
-      console.error("로그인에서 에러 발생", error);
+      console.error("auth.ts 로그인에서 에러 발생", error);
       throw new Error(error);
     });
 

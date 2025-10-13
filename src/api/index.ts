@@ -1,8 +1,10 @@
 import { Api } from "@/apis/generated/Api";
 // import axiosInstance from "@/api/axiosInstance";
+  // baseURL: "http://43.202.154.29:8083",
+
+  
 const baseApi = new Api({
-  // baseURL: "https://meetnow.duckdns.org",
-  baseURL: "http://43.202.154.29:8083",
+  baseURL: "https://meetnow.duckdns.org",
   securityWorker: () => {
     const token = localStorage.getItem("access_token");
     if (!token) {
