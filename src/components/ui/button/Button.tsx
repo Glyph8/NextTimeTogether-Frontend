@@ -1,34 +1,23 @@
+import { ButtonHTMLAttributes } from "react";
 
-interface ButtonProps {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>{
     text: string;
-    disabled: boolean;
-    onClick: () => void;
+    isSubmit?: boolean;
 }
 
-export const Button = ({ text, disabled, onClick }: ButtonProps) => {
+export const Button = ({ text, isSubmit = false, ...props }: ButtonProps) => {
     const base = "w-full max-w-200 flex justify-center items-center text-center text-white text-base font-medium leading-tight py-[15px] rounded-[8px]";
+     const { disabled } = props;
 
     return (
-        <>
-            {
-                disabled ? (
-                    <button
-                        type="button"
-                        className={`${base} bg-[#999999]`}
-                        disabled
-                    >
-                        {text}
-                    </button>
-                ) : (
-                    <button
-                        type="submit"
-                        className={`${base} bg-main`}
-                        onClick={onClick}>
-                        {text}
-                    </button>
-                )
-            }
-        </>
+        <button
+            type={isSubmit ? "submit" : "button"}
+            className={`${base} ${disabled ? 'bg-[#999999]' : 'bg-main'}`}
+            disabled={disabled}
+            {...props}
+        >
+            {text}
+        </button>
 
     )
 }

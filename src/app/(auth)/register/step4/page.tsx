@@ -3,16 +3,23 @@ import { Button } from "@/components/ui/button/Button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RadioButton } from "@/components/shared/Input/RadioButton";
+import { useSignupStore } from "@/store/signupStore";
 
 export default function RegisterGenderAgePage() {
-  const [gender, setGender] = useState("male");
+  const { updateFormData } = useSignupStore();
+  const [gender, setGender] = useState<"MALE" | "FEMALE">("MALE");
   const [age, setAge] = useState("20~24세");
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("선택된 값:", event.target.value);
-    setGender(event.target.value);
+    console.log("선택된 성별:", event.target.value);
+    if (event.target.value === "MALE" || "FEMALE") {
+      setGender("MALE");
+    } else if (event.target.value === "FEMALE") {
+      setGender("FEMALE");
+    }
   };
   const router = useRouter();
   const handleNextStep = () => {
+    updateFormData({ gender: gender, age: age });
     router.push("/register/step5");
   };
 
@@ -32,17 +39,17 @@ export default function RegisterGenderAgePage() {
             <RadioButton
               id="male"
               name="gender"
-              value="male"
+              value="MALE"
               label="남성"
-              checked={gender === "male"}
+              checked={gender === "MALE"}
               handleChange={handleOptionChange}
             />
             <RadioButton
               id="female"
               name="gender"
-              value="female"
+              value="FEMALE"
               label="여성"
-              checked={gender === "female"}
+              checked={gender === "FEMALE"}
               handleChange={handleOptionChange}
             />
           </div>
@@ -56,7 +63,13 @@ export default function RegisterGenderAgePage() {
           >
             연령대
           </label>
-          <select name="age" id="age" className="w-fit" value={age} onChange={(e)=>setAge(e.target.value)}>
+          <select
+            name="age"
+            id="age"
+            className="w-fit"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+          >
             <option value="14세 이하">14세 이하</option>
             <option value="15~19세">15~19세</option>
             <option value="20~24세">20~24세</option>

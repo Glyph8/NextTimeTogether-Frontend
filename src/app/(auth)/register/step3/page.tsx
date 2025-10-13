@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button/Button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ConditionInputBar from "../components/ConditionInputBar";
+import { useSignupStore } from "@/store/signupStore";
 
 export default function RegisterNickNamePage() {
+  const { updateFormData } = useSignupStore();
   const [nickName, setNickName] = useState("");
   const router = useRouter();
   const handleNextStep = () => {
+    updateFormData({ nickname: nickName });
     router.push("/register/step4");
   };
 

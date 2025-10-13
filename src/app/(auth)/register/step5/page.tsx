@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button/Button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ConditionInputBar from "../components/ConditionInputBar";
+import { useSignupStore } from "@/store/signupStore";
 
 export default function RegisterMailPage() {
+  const { updateFormData } = useSignupStore();
   const [email, setEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(true);
   const router = useRouter();
@@ -16,6 +18,7 @@ export default function RegisterMailPage() {
 
   const handleNextStep = () => {
     if (checkEmailValid(email)) {
+      updateFormData({ email: email });
       router.push("/register/step6");
     } else {
       setIsEmailValid(false);

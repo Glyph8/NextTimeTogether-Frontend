@@ -18,9 +18,9 @@ export default function LoginLayout({
                     <ArrowLeft className="w-6 h-6 text-black fill-current" onClick={handleBackClick}/>
                 }
                 title={
-                        "아이디로 로그인"
+                        "로그인"
                 } />
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex flex-col flex-1 overflow-y-auto px-4">
                 {children}
             </div>
         </div>

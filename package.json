@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "gen:api:split": "swagger-typescript-api generate -p http://43.202.154.29:8083/v3/api-docs -o ./src/apis/generated --modular --clean-output --single-http-client",
-    "generate:api": "swagger-typescript-api generate -p http://43.202.154.29:8083/v3/api-docs -o ./src/generated-api --clean-output --axios",
-    "generate:api:local": "swagger-typescript-api generate -p http://43.202.154.29:8083/v3/api-docs -o ./src/generated-api --clean-output --axios"
+    "swagger-typescript-api": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -r -o ./apis --modular -d --extract-request-body --extract-response-body --extract-response-error --axios --clean-output",
+    "gen:api": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/apis/generated --axios --clean-output",
+    "gen:api:split": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/apis/generated --modular --union-types",
+    "generate:api": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/generated-api --clean-output --axios",
+    "generate:api:local": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -o ./src/generated-api --clean-output --axios"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
@@ -19,6 +21,9 @@
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@types/webpack": "^5.28.5",
+    "@upstash/redis": "^1.35.5",
+    "argon2": "^0.44.0",
+    "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.541.0",
@@ -31,7 +36,8 @@
     "tailwind-merge": "^3.3.1",
     "vaul": "^1.1.2",
     "webpack": "^5.101.3",
-    "zod": "^4.1.4"
+    "zod": "^4.1.4",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -45,6 +51,6 @@
     "swagger-typescript-api": "^13.2.13",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.7",
-    "typescript": "^5"
+    "typescript": "^5.9.2"
   }
 }
