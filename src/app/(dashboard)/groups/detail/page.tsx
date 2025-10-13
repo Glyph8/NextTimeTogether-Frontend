@@ -29,9 +29,7 @@ export default function DetailGroupPage() {
                     </Link>
                 }
                 title={
-                    <h1 className="text-center text-lg font-medium leading-tight">
-                        소프트웨어공학 2조
-                    </h1>
+                        "소프트웨어공학 2조"
                 } />
             <div className="flex flex-col justify-center items-center gap-5 text-black-1 pt-7 pb-5">
                 {/* <Image src={"https://placehold.co/64x64"} alt="팀" width={64} height={64}
@@ -54,7 +52,7 @@ export default function DetailGroupPage() {
                 <div>
                     <button className="flex justify-start items-center text-gray-1 text-sm font-medium leading-none px-1"
                         onClick={() => setOpenOngoing(!openOngoing)}>
-                        약속 정하는 중
+                        {'약속 정하는 중'}
                         {
                          openOngoing ? <ArrowDown /> : <ArrowUp/>
                         }
@@ -114,7 +112,7 @@ export default function DetailGroupPage() {
                     </button>
                 </div>
 
-                <div className="flex p-4 bg-white gap-2">
+                <div className="flex p-4 bg-white gap-2 rounded-[20px]">
                     <GroupMemberItem marker={["사용자"]} name={"김나박이"} />
                     <GroupMemberItem marker={["그룹장"]} name={"가나다람바사아자차카파타하"} />
                     <GroupMemberItem marker={["사용자", "그룹장"]} name="둘다" />

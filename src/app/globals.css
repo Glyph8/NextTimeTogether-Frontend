@@ -48,7 +48,7 @@
   /* 흑백 컬러 */
   --color-black-1: #111111;
   --color-gray-1: #656565;
-  --color-gray-2: #5E5E5E;
+  --color-gray-2: #999999;
   --color-gray-3: #e4e4e4;
   --color-background: #8E98A8;
 
@@ -70,6 +70,14 @@
 
   /* Pretendard 폰트 정의 */
   --font-pretendard: "Pretendard", system-ui, sans-serif;
+
+   --animate-floating: floating 2s ease-in-out infinite;
+
+  @keyframes floating {
+    0% { transform: translateY(0); }    
+    100% { transform: translateY(0); }    
+    50%{ transform: translateY(-20px); }    
+  }
 }
 
 /* 커스텀 gradient 클래스 */

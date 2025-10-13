@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button/Button";
 import { DialogFooter } from "@/components/ui/dialog"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 
 interface PlainDialogProps {
     isOpen: boolean;

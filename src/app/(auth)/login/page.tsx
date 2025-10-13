@@ -1,75 +1,64 @@
-"use client"
+"use client";
 
+import { TextInput } from "@/components/shared/Input/TextInput";
 import { Button } from "@/components/ui/button/Button";
 import Link from "next/link";
+import { useActionState, useEffect, useState } from "react";
+import { login, LoginActionState } from "./action";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 export default function LoginPage() {
-    const router = useRouter()
-    const [id, setId] = useState("");
-    const [pw, setPW] = useState("");
-    const [loginReady, setLoginReady] = useState(false)
-    const [warnMsg, setWarnMsg] = useState("");
-    /** 추후 로그인 API 연결 */
-    const handleLogin = () => {
-        try {
-            // await loginApi(id, pw)
-            router.push('/calendar')
-        }
-        catch {
-            console.log("로그인 실패")
-        }
+  const initialState: LoginActionState = {
+    error: null,
+    success: null,
+  };
+  const [state, loginAction] = useActionState(login, initialState);
+  const router = useRouter();
+  const [id, setId] = useState("");
+  const [pw, setPw] = useState("");
+
+  // --- useEffect를 사용하여 성공 시 리다이렉트 처리 ---
+  useEffect(() => {
+    if (state.success && state.accessToken) {
+      localStorage.setItem("access_token", state.accessToken);
+      router.push("/calendar");
     }
+  }, [state, router]);
 
-    return (
-        <div className="flex flex-col bg-white items-center">
+  return (
+    <form action={loginAction} className="flex flex-col bg-white items-center">
+      <div className="w-full flex flex-col justify-center items-start gap-5 mt-10">
+        <TextInput
+          label={"아이디"}
+          name="userId"
+          data={id}
+          setData={setId}
+          placeholder={"아이디를 입력해주세요"}
+        />
+        <TextInput
+          label={"비밀번호"}
+          name="password"
+          data={pw}
+          setData={setPw}
+          placeholder={"비밀번호를 입력해주세요"}
+          isPassword={true}
+        />
+      </div>
+      <div className="flex justify-center items-center text-center w-full h-20 text-highlight-1 text-sm font-medium leading-tight">
+        {state.error && <p>{state.error}</p>}
+      </div>
 
-            <div className="w-full flex flex-col justify-center items-start gap-5 mt-10">
-                <div className="w-full">
-                    <p className="w-full text-gray-1 text-sm leading-tight">
-                        아이디
-                    </p>
-                    <input type="text" placeholder="아이디를 입력해주세요"
-                        className="w-full placeholder-gray-2 text-base font-medium leading-11.5 border-b-1 border-gray-3
-                        focus:border-b-main" 
-                        onChange={(e)=>{
-                            setId(e.target.value);
-                            if(id !== "" && pw !== "")
-                                setLoginReady(true);
-                        }}/>
-                </div>
-
-                <div className="w-full">
-                    <p className="text-gray-1 text-sm leading-tight">
-                        비밀번호
-                    </p>
-                    <input type="password" placeholder="비밀번호를 입력해주세요"
-                        className="w-full placeholder-gray-2 text-base font-medium leading-11.5 border-b-1 border-gray-3
-                         focus:border-b-main"
-                         onChange={(e)=>{
-                            setPW(e.target.value)
-                        if(id !== "" && pw !== "")
-                                setLoginReady(true);
-                        }} />
-                </div>
-            </div>
-
-            <div className="flex justify-center items-center text-center w-full h-20 text-highlight-1 text-sm font-medium leading-tight">
-                {warnMsg}아이디 또는 비밀번호를 확인해주세요
-            </div>
-
-            <Button text={"로그인"} disabled={!loginReady} onClick={handleLogin} />
-
-            <span className="text-center justify-start text-neutral-400 text-sm font-medium font-['Pretendard'] leading-tight mt-5">
-                타임투게더가 처음이신가요? &nbsp;
-                <span className="justify-start text-purple-500 text-sm font-medium font-['Pretendard'] underline leading-tight"
-                >
-                    <Link href="/register">
-                        회원가입
-                    </Link>
-                </span>
-            </span>
-        </div>
-    )
+      <Button
+        text={"로그인"}
+        isSubmit={true}
+        disabled={id === "" || pw === ""}
+      />
+      <span className="text-center justify-start text-neutral-400 text-sm font-medium font-['Pretendard'] leading-tight mt-5">
+        타임투게더가 처음이신가요? &nbsp;
+        <span className="justify-start text-purple-500 text-sm font-medium font-['Pretendard'] underline leading-tight">
+          <Link href="/register/step1">회원가입</Link>
+        </span>
+      </span>
+    </form>
+  );
 }

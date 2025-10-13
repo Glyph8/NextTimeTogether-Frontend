@@ -20,9 +20,7 @@ export default function GroupsPage() {
     return (
         <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
             <Header title={
-                <h1 className="text-center text-lg font-medium leading-tight">
-                    그룹 관리
-                </h1>
+                    "그룹 관리"
             } />
 
             <div className="w-full h-19 flex justify-end items-center px-4">
