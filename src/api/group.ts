@@ -3,14 +3,15 @@ import {
   CreateGroup1Request,
   CreateGroup2Request,
 } from "@/apis/generated/Api";
-import api from ".";
-
+import { createServerApi } from ".";
 
 /** 생성할 그룹 정보 서버로 보내주기 */
 export const createGroupRequest = async (
   groupInfo: CreateGroup1Request
-): Promise<BaseResponse> =>
-  api.api
+): Promise<BaseResponse> => {
+  const serverApi = await createServerApi();
+
+  return serverApi.api
     .createGroup1(groupInfo)
     .then((response) => {
       console.log("그룹 생성 1 : ", response.data);
@@ -33,12 +34,14 @@ export const createGroupRequest = async (
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
+};
 
 /** 그룹의 메타 데이터 암호화하여 POST */
 export const createGroupRequest2 = async (
   encGroupMetaInfo: CreateGroup2Request
-): Promise<BaseResponse> =>
-  api.api
+): Promise<BaseResponse> => {
+  const serverApi = await createServerApi();
+  return serverApi.api
     .createGroup2(encGroupMetaInfo)
     .then((response) => {
       console.log("암호화된 그룹의 메타데이터 (그룹 생성2) : ", response.data);
@@ -61,3 +64,4 @@ export const createGroupRequest2 = async (
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
+};

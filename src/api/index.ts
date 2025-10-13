@@ -1,6 +1,7 @@
 import { Api } from "@/apis/generated/Api";
+import { cookies } from "next/headers";
 
-const baseApi = new Api({
+export const clientBaseApi = new Api({
   baseURL: "https://meetnow.duckdns.org",
   securityWorker: () => {
     const token = localStorage.getItem("access_token");
@@ -16,9 +17,20 @@ const baseApi = new Api({
   secure: true, // security가 필요한 엔드포인트에 자동 적용
 });
 
-const api = baseApi;
-
-export default api;
+export async function createServerApi() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+  
+  if (!token) throw new Error("쿠키의 엑세스 토큰 not found");
+  
+  return new Api({
+    baseURL: "https://meetnow.duckdns.org",
+    securityWorker: () => ({
+      headers: { Authorization: token }
+    }),
+    secure: true,
+  });
+}
 
 // const baseApi = new Api({
 //     // baseURL, securityWorker 등은 이제 axiosInstance가 모두 처리

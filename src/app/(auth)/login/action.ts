@@ -73,7 +73,13 @@ export async function loginRequestWithCookie(
     if (!accessToken || !setCookieHeader) {
       return { tokenErrorMessage: "로그인에 실패했습니다. (토큰 없음)" };
     }
-
+    // 서버에서 localStorage 사용이 불가한 경우, 쿠키로 사용.
+    cookieStore.set("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // 프로덕션 환경에서는 https 강제
+      maxAge: 60 * 60 * 2, // 2시간
+      path: "/", // 사이트 전체에서 사용
+    });
     // 리프레시 토큰은 httpOnly 쿠키에 저장 (보안 강화)
     // TODO : 'set-cookie'가 토큰 값만 반환해주면 더 좋을 듯.. 백엔드 팀!!!!!
     const refreshTokenValue = setCookieHeader[0].split(";")[0].split("=")[1];
@@ -159,12 +165,11 @@ export async function login(
     // 6. 모든 검증 통과! 로그인 성공 처리
     return {
       success: "로그인에 성공했습니다. 로그인 최종 단계 통과",
-      accessToken: loginResult.accessToken
+      accessToken: loginResult.accessToken,
     };
   } catch (err) {
     console.error("로그인 처리 중 에러 발생:", err);
     console.log("!!!", err);
     return { error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요." };
   }
-  // redirect("/calendar"); // 성공 시 메인 페이지로 이동
 }
