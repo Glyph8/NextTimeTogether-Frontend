@@ -12,7 +12,6 @@ const initialState: Partial<UserSignUpDTO> = {
   email: "",
   password: "",
   nickname: "",
-  wrappedDEK: "",
 };
 
 export const useSignupStore = create<SignupState>((set) => ({

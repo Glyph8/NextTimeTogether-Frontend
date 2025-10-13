@@ -9,15 +9,17 @@ import { GroupMemberItem } from "../../groups/detail/GroupMemberItem";
 import { Button } from "@/components/ui/button/Button";
 import { RadioButton } from "@/components/shared/Input/RadioButton";
 
+type PurposeType = "study" | "meal";
+
 export default function CreateSchedulePage() {
     const router = useRouter()
     const [progress, setProgress] = useState(1);
     const [topic, setTopic] = useState("");
-    const [purpose, setPurpose] = useState("study");
-
+    const [purpose, setPurpose] = useState<PurposeType>("study");
+    
     const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         console.log('선택된 값:', event.target.value);
-        setPurpose(event.target.value);
+         setPurpose(event.target.value as PurposeType);
     };
 
     return (

@@ -5,10 +5,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>{
     isSubmit?: boolean;
 }
 
-export const Button = ({ text, isSubmit = false, ...props }: ButtonProps) => {
+export const Button = ({ text, isSubmit = false, disabled, ...props }: ButtonProps) => {
     const base = "w-full max-w-200 flex justify-center items-center text-center text-white text-base font-medium leading-tight py-[15px] rounded-[8px]";
-     const { disabled } = props;
-
     return (
         <button
             type={isSubmit ? "submit" : "button"}

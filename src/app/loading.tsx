@@ -9,8 +9,8 @@ export default function Splash() {
           <Image
             src={WhiteLogo}
             alt="앱 로고"
-            sizes="(max-width: 768px) 100vw, (max-height: 1268px) 50vw, 33vw "
-            className="object-cover mx-auto rounded-full"
+             sizes="(max-width: 768px) 100vw, (max-width: 1268px) 50vw, 33vw"
+            className="object-contain mx-auto rounded-full"
           />
           {/* <WhiteLogo/> */}
         </div>

@@ -11,7 +11,7 @@ export default function RegisterGenderAgePage() {
   const [age, setAge] = useState("20~24세");
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log("선택된 성별:", event.target.value);
-    if (event.target.value === "MALE" || "FEMALE") {
+    if (event.target.value === "MALE") {
       setGender("MALE");
     } else if (event.target.value === "FEMALE") {
       setGender("FEMALE");
@@ -37,7 +37,7 @@ export default function RegisterGenderAgePage() {
           </span>
           <div className="flex gap-3">
             <RadioButton
-              id="male"
+              id="MALE"
               name="gender"
               value="MALE"
               label="남성"
@@ -45,7 +45,7 @@ export default function RegisterGenderAgePage() {
               handleChange={handleOptionChange}
             />
             <RadioButton
-              id="female"
+              id="FEMALE"
               name="gender"
               value="FEMALE"
               label="여성"

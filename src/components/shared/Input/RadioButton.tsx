@@ -26,6 +26,7 @@ export function RadioButton({ id, name, value, label, checked, handleChange }: R
                 htmlFor={id}
                 className="
           flex items-center justify-center
+        space-x-2
           w-4 h-4 outline-1 outline-offset-[-1px] outline-gray-3 rounded-full cursor-pointer
           peer-checked:outline-main
           transition-all duration-200 peer-checked:[&>span]:bg-main

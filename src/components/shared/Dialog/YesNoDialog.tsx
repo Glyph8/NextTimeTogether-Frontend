@@ -1,6 +1,6 @@
 import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 interface YesNoDialogProps {
   isOpen: boolean;
@@ -24,9 +24,13 @@ export const YesNoDialog = ({
   extraHandleAccept,
 }: YesNoDialogProps) => {
   const [isAccept, setIsAccept] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleAccept = () => {
     setIsAccept(true);
-    setTimeout(() => { extraHandleAccept();}, 1000);
+     timerRef.current = setTimeout(() => {
+     extraHandleAccept();
+     timerRef.current = null;
+   }, 1000);
   };
 
   const handleReject = () => {
@@ -37,8 +41,18 @@ export const YesNoDialog = ({
   useEffect(() => {
     if (!isOpen) {
       setIsAccept(false);
+      if (timerRef.current) {
+     clearTimeout(timerRef.current);
+     timerRef.current = null;
+   }
     }
   }, [isOpen]);
+
+ useEffect(() => {
+   return () => {
+     if (timerRef.current) clearTimeout(timerRef.current);
+   };
+ }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
