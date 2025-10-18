@@ -1,22 +1,26 @@
 "use client"
 
 import Header from "@/components/ui/header/Header";
-import { GroupItem } from "./GroupItem";
-import { ExitGroupDialog } from "./ExitGroupDialog";
+import { GroupItem } from "./(components)/GroupItem";
+import { ExitGroupDialog } from "./(components)/ExitGroupDialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EnterGroupDialog } from "./EnterGroupDialog";
+import { EnterGroupDialog } from "./(components)/EnterGroupDialog";
 
 export default function GroupsPage() {
     const router = useRouter();
     const [isOpenExitDialog, setIsOpenExitDialog] = useState(false);
     const [isOpenEnterDialog, setIsOpenEnterDialog] = useState(false);
+
     const handleCreateBtn = () => {
         router.push("/groups/create");
     }
     const handleJoinBtn = () =>{
         setIsOpenEnterDialog(true);
     }
+
+    
+
     return (
         <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
             <Header title={
