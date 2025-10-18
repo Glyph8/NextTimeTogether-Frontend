@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { redis } from '@/lib/redis';
 
-// TODO : redis를 사용하지 않게 됨. 추후에도 안쓸 시 제거. 혹은 엑세스 토큰 갱신으로 변경
+// TODO : redis를 사용하지 않게 됨. 추후에도 안쓸 시 제거. 혹은 토큰 갱신으로 변경
 
 /** 세션 검증용 미들웨어 */
 export async function middleware(request: NextRequest) {
