@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import "./globals.css";
 import { pretandard} from "./fonts";
 import { Toaster } from "@/components/ui/sonner"
+import Providers from "./providers";
 
 export const metadata: Metadata = {
   title: "타임투게더",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <title>Time Together</title>
       </head>
       <body className="bg-[#8E98A8] text-black-1 ">
+        <Providers>
         {children}
         <Toaster 
         position="bottom-center"
@@ -41,6 +43,7 @@ export default function RootLayout({
           }
         }}
         />
+        </Providers>
       </body>
     </html>
   );

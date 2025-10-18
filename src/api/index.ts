@@ -1,5 +1,9 @@
-import { Api } from "@/apis/generated/Api";
+import { Api, BaseResponse } from "@/apis/generated/Api";
 import { cookies } from "next/headers";
+
+export interface ApiResponse<T> extends BaseResponse {
+  result?: T; // 제네릭 T 타입으로 result를 재정의
+}
 
 export const clientBaseApi = new Api({
   baseURL: "https://meetnow.duckdns.org",

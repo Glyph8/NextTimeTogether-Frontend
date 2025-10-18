@@ -5,12 +5,13 @@ import {
   ViewGroup2Request,
   ViewGroup3Request,
 } from "@/apis/generated/Api";
-import { createServerApi } from ".";
+import { ApiResponse, createServerApi } from ".";
+import { ViewGroupFirstResponseData, ViewGroupSecResponseData, ViewGroupThirdResponseData } from "@/app/(dashboard)/groups/action";
 
 
 /** 참여한 그룹들의 암호화 된 groupId, groupMemberId 리스트 요청하기 */
 export const getEncGroupsIdRequest = async (
-): Promise<BaseResponse> => {
+): Promise<ApiResponse<ViewGroupFirstResponseData[]>> => {
   const serverApi = await createServerApi();
 
   return serverApi.api
@@ -48,13 +49,18 @@ export const getEncGroupsIdRequest = async (
 /** groupId와 groupMemberKey로 암호화된 groupKey 요청 */
 export const getEncGroupsKeyRequest = async (
   groupIdAndKeySets: ViewGroup2Request[]
-): Promise<BaseResponse> => {
+): Promise<ApiResponse<ViewGroupSecResponseData[]>> => {
   const serverApi = await createServerApi();
 
   return serverApi.api
     .viewGroup2(groupIdAndKeySets)
     .then((response) => {
       console.log("step2 - 암호화된 groupKey 요청  : ", response.data);
+    //   "data": [
+    //     {
+    //         "encGroupKey": "Scq5wDXowLXzQLD8ZKCFBQF+CS6k+Vp/oj4hXWlGWEvhOoYS+QSCdw=="
+    //     }
+    // ]
       return response.data;
     })
     .catch((error) => {
@@ -79,13 +85,24 @@ export const getEncGroupsKeyRequest = async (
 /** groupId와 groupMemberKey로 암호화된 groupKey 요청 */
 export const getGroupsInfoRequest = async (
   groupIdSets: ViewGroup3Request[]
-): Promise<BaseResponse> => {
+): Promise<ApiResponse<ViewGroupThirdResponseData[]>>=> {
   const serverApi = await createServerApi();
 
   return serverApi.api
     .viewGroup3(groupIdSets)
     .then((response) => {
       console.log("step3 - 실제 그룹 정보 요청  : ", response.data);
+    //   "data": [
+    //     {
+    //         "groupId": "83b6015b-8ba7-489d-ad7e-229da602442f",
+    //         "groupName": "진달래전(수정1번됨)",
+    //         "groupImg": "꽃꽃꽃(수정1번됨)",
+    //         "managerId": "bloomberg",
+    //         "encUserId": [
+    //             "C6t/+rMv3mlOKwB5eFkNMs2Af9CpA6iyYw=="
+    //         ]
+    //     }
+    // ]
       return response.data;
     })
     .catch((error) => {
