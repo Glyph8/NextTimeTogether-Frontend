@@ -27,10 +27,10 @@ export const YesNoDialog = ({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleAccept = () => {
     setIsAccept(true);
-     timerRef.current = setTimeout(() => {
-     extraHandleAccept();
-     timerRef.current = null;
-   }, 1000);
+    timerRef.current = setTimeout(() => {
+      extraHandleAccept();
+      timerRef.current = null;
+    }, 1000);
   };
 
   const handleReject = () => {
@@ -42,17 +42,17 @@ export const YesNoDialog = ({
     if (!isOpen) {
       setIsAccept(false);
       if (timerRef.current) {
-     clearTimeout(timerRef.current);
-     timerRef.current = null;
-   }
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
     }
   }, [isOpen]);
 
- useEffect(() => {
-   return () => {
-     if (timerRef.current) clearTimeout(timerRef.current);
-   };
- }, []);
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
