@@ -2,7 +2,8 @@ import { EncryptUtil } from "./encrypt-util";
 import { GroupProxyUser_iv, GroupShareKey_iv, User_iv } from "./iv-value/iv-constants";
 
 async function decryptEncryptData(encrypted:string,  personalKey:string, role:string) {
-  // TODO : const normalizedKey = EncryptUtil.normalizeAESKey(key, 32); // 길이 맞추기 필요함?
+  // TODO : // 길이 맞추기 필요함?
+  const normalizedKey = EncryptUtil.normalizeAESKey(personalKey, 32); 
   const Code_iv = () => {
       if (role === "group_iv") return GroupProxyUser_iv;
       else if (role === "user_iv") return User_iv;
@@ -14,7 +15,7 @@ async function decryptEncryptData(encrypted:string,  personalKey:string, role:st
   try {
     const decrypted = await EncryptUtil.decryptAESGCMWithIV(
       encrypted,
-      personalKey,
+      normalizedKey,
       Code_iv()
     );
     console.log("🔑 복호화 결과:", decrypted);

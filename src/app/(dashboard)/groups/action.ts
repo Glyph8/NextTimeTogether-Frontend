@@ -11,7 +11,7 @@ import { cookies } from "next/headers";
 
 export interface ViewGroupFirstResponseData {
   encGroupId: string;
-  encGroupMemberId: string;
+  encencGroupMemberId: string;
 }
 
 export interface ViewGroupSecResponseData {
@@ -41,6 +41,9 @@ export async function getGroupListAction() {
 
   try {
     // 첫 번째 API 호출로 그룹 기본 정보 생성
+
+    console.log("###### 그룹 조회 요청 시퀀스 시작 #####")
+
     const firstApiResponse = await getEncGroupsIdRequest();
 
     // 성공적으로 그룹이 생성되었는지 확인 (API 응답 구조에 따라 달라짐)
@@ -67,10 +70,16 @@ export async function getGroupListAction() {
           "group_proxy_user"
         );
 
-        // 원하는 최종 객체 형태로 즉시 반환합니다.
+        const decryptedGroupMemberId = await decryptEncryptData(
+          item.encencGroupMemberId,
+          masterKey,
+          "group_proxy_user"
+        );
+
+        // TODO : encenc?? 이것도 복호화 한번 하라는거야?
         return {
           groupId: decryptedGroupId,
-          encGroupMemberId: item.encGroupMemberId,
+          encGroupMemberId: decryptedGroupMemberId
         };
       })
     );
@@ -85,12 +94,6 @@ export async function getGroupListAction() {
     [2-1] groupKey(그룹키) = encGroupKey를 개인키(ex. LsEEoX7tXFlyXPa5rHvV0w==)로 복호화 (GroupShareKey_iv사용) : Decrypt-test.ts 사용
     [2-3] groupKey 저장해두기
     */
-    // const encryptedMetaData: ViewGroup2Request[] = [
-    //   {
-    //     groupId: "",
-    //     encGroupMemberId: "",
-    //   },
-    // ];
 
     console.log("2단계 그룹 메타데이터 ", decryptedGroupObjects);
 
@@ -119,6 +122,7 @@ export async function getGroupListAction() {
       })
     );
 
+    // groupKey 쿠키 저장
     // json 형식 문자열로 객체를 변환해서 넣음. 추후 파싱해서 쓸 것.
     cookieStore.set("groupKeys", JSON.stringify(decryptedGroupKeyObjects), {
       httpOnly: true,
