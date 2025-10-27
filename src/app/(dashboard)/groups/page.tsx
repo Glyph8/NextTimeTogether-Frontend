@@ -68,9 +68,6 @@ export default function GroupsPage() {
       <div className="w-full flex flex-col gap-2 px-4">
         {data &&
           data.map((group) => {
-            // <GroupItem image={group.groupImg} title={groupName} description={""} members={""} setIsOpen={function (value: SetStateAction<boolean>): void {
-            //     throw new Error("Function not implemented.");
-            // } }/>
             return <GroupItem
             key={group.groupId}
               image={"https://placehold.co/64x64"}

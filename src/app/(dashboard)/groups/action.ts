@@ -22,7 +22,7 @@ export interface ViewGroupThirdResponseData {
   groupId: string;
   groupName: string;
   groupImg: string;
-  managerId : string;
+  managerId: string;
   encUserId: string[];
 }
 
@@ -40,13 +40,10 @@ export async function getGroupListAction() {
   // 기본 마스터키, 사용자 아이디 획득
 
   try {
-    // 첫 번째 API 호출로 그룹 기본 정보 생성
-
-    console.log("###### 그룹 조회 요청 시퀀스 시작 #####")
+    console.log("###### 그룹 조회 요청 시퀀스 시작 #####");
 
     const firstApiResponse = await getEncGroupsIdRequest();
 
-    // 성공적으로 그룹이 생성되었는지 확인 (API 응답 구조에 따라 달라짐)
     if (!firstApiResponse || !firstApiResponse.result) {
       throw new Error("1단계 그룹 데이터 로딩에 실패했습니다.");
     }
@@ -79,7 +76,7 @@ export async function getGroupListAction() {
         // TODO : encenc?? 이것도 복호화 한번 하라는거야?
         return {
           groupId: decryptedGroupId,
-          encGroupMemberId: decryptedGroupMemberId
+          encGroupMemberId: decryptedGroupMemberId,
         };
       })
     );
@@ -95,7 +92,7 @@ export async function getGroupListAction() {
     [2-3] groupKey 저장해두기
     */
 
-    console.log("2단계 그룹 메타데이터 ", decryptedGroupObjects);
+    console.log("2단계 그룹 id, 멤버 id ", decryptedGroupObjects);
 
     // 암호화된 데이터로 두 번째 API 호출
     const secondApiResponse = await getEncGroupsKeyRequest(
@@ -103,7 +100,7 @@ export async function getGroupListAction() {
     );
 
     if (!secondApiResponse || !secondApiResponse.result) {
-      throw new Error("2단계 그룹 메타데이터 전송에 실패했습니다.");
+      throw new Error("2단계 암호화된 그룹키 획득에 실패했습니다.");
     }
 
     const encGroupKeys = secondApiResponse.result;
@@ -131,14 +128,51 @@ export async function getGroupListAction() {
       path: "/", // 사이트 전체에서 사용
     });
 
+    console.log("그룹 키 구조 : ", JSON.stringify(decryptedGroupKeyObjects));
+
     /*
     [3] 암호화한? groupId를 인자로, 요청. 실제 그룹 데이터 객체 배열 응답받음.
     [3-1] 객체에서, ?? edit3을 해야 할 수 있는건가?
     */
-    const fianlApiResponse = await getGroupsInfoRequest(groupIdObjects);
+    const fianlApiResponse = (await getGroupsInfoRequest(groupIdObjects)).result;
+
+    if (!fianlApiResponse) {
+      return { success: false, data: [] };
+    }
+    // 2. 외부 map: 각 그룹을 비동기적으로 처리하므로 async를 붙임
+    //    (결과로 Promise 배열이 생성됨)
+    const promisesOfCompleteGroupInfo = fianlApiResponse.map(
+      async (groupData, index) => {
+        // 3. 내부 map: 각 encId에 대해 복호화 Promise를 생성 (이때 await 안 씀)
+        const decryptionPromises = groupData.encUserId.map((encId) => {
+          // decryptEncryptData가 Promise를 반환한다고 가정
+          // (Promise.all을 여기 쓰지 않습니다)
+          return decryptEncryptData(
+            encId,
+            decryptedGroupKeyObjects[index].groupKey,
+            "group_sharekey"
+          );
+        }); // decryptionPromises는 이제 [Promise, Promise, ...] 배열
+
+        // 4. 내부 Promise.all: 이 그룹의 *모든* 멤버가 복호화될 때까지 기다림
+        const decMembers = await Promise.all(decryptionPromises);
+
+        // 5. 이 그룹의 최종 데이터 반환
+        return {
+          ...groupData,
+          encUserId: decMembers,
+        };
+      }
+    ); // promisesOfCompleteGroupInfo는 이제 [Promise, Promise, ...] 배열
+
+    // 6. 외부 Promise.all: *모든* 그룹의 정보 처리가 완료될 때까지 기다림
+    const completePlainGroupInfo = await Promise.all(
+      promisesOfCompleteGroupInfo
+    );
 
     // 클라이언트에 성공 결과와 필요한 데이터 반환
-    return { success: true, data: fianlApiResponse.result };
+    // return { success: true, data: fianlApiResponse.result };
+    return { success: true, data: completePlainGroupInfo };
   } catch (error) {
     console.error("그룹 생성 액션 실패:", error);
     // 클라이언트에 에러 정보 반환
