@@ -5,7 +5,7 @@ import X from "@/assets/svgs/icons/x-black.svg"
 import XWhite from "@/assets/svgs/icons/x-white.svg"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { GroupMemberItem } from "../../groups/detail/GroupMemberItem";
+import { GroupMemberItem } from "../../groups/detail/[groupId]/(components)/GroupMemberItem";
 import { Button } from "@/components/ui/button/Button";
 import { RadioButton } from "@/components/shared/Input/RadioButton";
 

@@ -70,6 +70,7 @@ export default function GroupsPage() {
           data.map((group) => {
             return <GroupItem
             key={group.groupId}
+            groupId={group.groupId}
               image={"https://placehold.co/64x64"}
               title={group.groupName}
               description={"2024-2학기 소프트웨어공학 팀플"}

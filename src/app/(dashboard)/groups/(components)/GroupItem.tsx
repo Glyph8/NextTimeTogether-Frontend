@@ -3,6 +3,7 @@ import Trashcan from "@/assets/svgs/icons/trashcan.svg";
 import { useRouter } from "next/navigation";
 
 interface GroupItemProps {
+  groupId: string;
   image: string;
   title: string;
   description: string;
@@ -11,6 +12,7 @@ interface GroupItemProps {
 }
 
 export const GroupItem = ({
+  groupId,
   image,
   title,
   description,
@@ -20,7 +22,7 @@ export const GroupItem = ({
   const router = useRouter();
 
   const handleToDetail = () => {
-    router.push("/groups/detail");
+    router.push(`/groups/detail/${groupId}`);
   };
 
   const handleExit = (e: React.MouseEvent<HTMLButtonElement>) => {

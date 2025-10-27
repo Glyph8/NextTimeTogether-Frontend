@@ -6,11 +6,11 @@ import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg"
 import ArrowDown from "@/assets/svgs/icons/arrow-down-gray.svg"
 import ArrowUp from "@/assets/svgs/icons/arrow-up-gray.svg";
 import Plus from "@/assets/svgs/icons/plus-gray.svg"
-import { GroupScheduleItem } from "./GroupScheduleItem";
-import { GroupMemberItem } from "./GroupMemberItem";
+import { GroupScheduleItem } from "./(components)/GroupScheduleItem";
+import { GroupMemberItem } from "./(components)/GroupMemberItem";
 import { useState } from "react";
-import { GroupInviteDialog } from "./GroupInviteDialog";
-import { useRouter } from "next/navigation";
+import { GroupInviteDialog } from "./(components)/GroupInviteDialog";
+import { useParams, useRouter } from "next/navigation";
 
 
 export default function DetailGroupPage() {
@@ -19,7 +19,10 @@ export default function DetailGroupPage() {
     const [openOngoing, setOpenOngoing] = useState(true);
     const [openFixed, setOpenFixed] = useState(true);
     const [inviteModal, setInviteModal] = useState(false);
-
+    // TODO: 추후 url query의 groupId도 암호화-복호화 필요
+    const params = useParams<{ groupId: string }>();
+    const groupId = params.groupId
+    
     return (
         <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
             <Header
@@ -119,7 +122,7 @@ export default function DetailGroupPage() {
                     <GroupMemberItem name={"먼데이"} />
                 </div>
             </div>
-            <GroupInviteDialog isOpen={inviteModal} setIsOpen={setInviteModal} />
+            <GroupInviteDialog isOpen={inviteModal} setIsOpen={setInviteModal} groupId={groupId ?? 'error'}/>
         </div>
     )
 }
