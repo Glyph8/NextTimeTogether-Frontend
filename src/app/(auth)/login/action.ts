@@ -39,34 +39,6 @@ export async function loginRequestWithCookie(
       userId,
       password,
     });
-    // .then((response) => {
-    //   console.log("로그인! : ", response);
-    //   return response;
-    // })
-    // .catch((error) => {
-    //   // 💥 상세 에러 로깅으로 수정!
-    //   if (error.response) {
-    //     // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-    //     console.error("Login API Error Response Data:", error.response.data);
-    //     console.error(
-    //       "Login API Error Response Status:",
-    //       error.response.status
-    //     );
-    //     console.error(
-    //       "Login API Error Response Headers:",
-    //       error.response.headers
-    //     );
-    //   } else if (error.request) {
-    //     // 요청이 전송되었지만, 응답을 받지 못한 경우
-    //     console.error("Login API Error Request:", error.request);
-    //   } else {
-    //     // 요청을 설정하는 중에 에러가 발생한 경우
-    //     console.error("Login API Error Message:", error.message);
-    //   }
-    //   console.error("Login API Error Config:", error.config); // 어떤 요청이었는지 확인
-    //   throw error;
-    // });
-
     // 2. 응답 헤더에서 토큰 추출
     const accessToken = response.headers["authorization"];
     const setCookieHeader = response.headers["set-cookie"];

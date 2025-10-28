@@ -10,6 +10,17 @@ import { decryptKey } from "@/utils/crypto/generate-key/manage-session-key";
 import generateGroupJoinURL from "@/utils/crypto/group/make-invite-code";
 import { cookies } from "next/headers";
 
+export async function getGroupDetailInfoAction(groupId: string) {
+  const cookieStore = await cookies();
+
+  const encryptedKey = cookieStore.get("encrypted-master-key")?.value;
+  if (!encryptedKey) throw new Error("인증 필요");
+  const encryptedUserId = cookieStore.get("encrypted-user-id")?.value;
+  if (!encryptedUserId) throw new Error("재로그인 필요");
+  const masterKey = decryptKey(encryptedKey);
+}
+
+/** 그룹 초대 코드 발급 action */
 export async function getInviteLinkAction(groupId: string) {
   const cookieStore = await cookies();
 
