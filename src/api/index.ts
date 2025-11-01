@@ -1,16 +1,24 @@
 import { Api, BaseResponse } from "@/apis/generated/Api";
+import { useAuthStore } from "@/store/auth.store";
 import { cookies } from "next/headers";
 
 export interface ApiResponse<T> extends BaseResponse {
   result?: T; // 제네릭 T 타입으로 result를 재정의
 }
 
+const MAIN_BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export const clientBaseApi = new Api({
-  baseURL: "https://meetnow.duckdns.org",
+  baseURL: MAIN_BACKEND_URL,
   securityWorker: () => {
-    const token = localStorage.getItem("access_token");
+    // const token = localStorage.getItem("access_token");
+     // 2. localStorage 대신 Zustand의 .getState()로 토큰을 직접 읽습니다.
+    const token = useAuthStore.getState().accessToken;
     if (!token) {
-      throw new Error("Token not found");
+      console.warn("No access token found in Zustand store.");
+      return {
+        headers: {}, // 헤더 없이 요청
+      };
     }
     return {
       headers: {
@@ -28,7 +36,7 @@ export async function createServerApi() {
   if (!token) throw new Error("쿠키의 엑세스 토큰 not found");
   
   return new Api({
-    baseURL: "https://meetnow.duckdns.org",
+    baseURL: MAIN_BACKEND_URL,
     securityWorker: () => ({
       headers: { Authorization: token }
     }),

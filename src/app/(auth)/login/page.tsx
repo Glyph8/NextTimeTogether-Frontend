@@ -3,30 +3,26 @@
 import { TextInput } from "@/components/shared/Input/TextInput";
 import { Button } from "@/components/ui/button/Button";
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
-import { login, LoginActionState } from "./action";
-import { useRouter } from "next/navigation";
+import { useLogin } from "./hooks/use-login";
+import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 export default function LoginPage() {
-  const initialState: LoginActionState = {
-    error: null,
-    success: null,
-  };
-  const [state, loginAction] = useActionState(login, initialState);
-  const router = useRouter();
-  const [id, setId] = useState("");
-  const [pw, setPw] = useState("");
+  const {
+    id,
+    setId,
+    pw,
+    setPw,
+    handleSubmit,
+    isPending,
+    error
+  } = useLogin();
 
-  // --- useEffect를 사용하여 성공 시 리다이렉트 처리 ---
-  useEffect(() => {
-    if (state.success && state.accessToken) {
-      localStorage.setItem("access_token", state.accessToken);
-      router.push("/calendar");
-    }
-  }, [state, router]);
+  if(isPending){
+    return <DefaultLoading/>
+  }
 
   return (
-    <form action={loginAction} className="flex flex-col bg-white items-center">
+    <form onSubmit={handleSubmit} className="flex flex-col bg-white items-center">
       <div className="w-full flex flex-col justify-center items-start gap-5 mt-10">
         <TextInput
           label={"아이디"}
@@ -45,13 +41,13 @@ export default function LoginPage() {
         />
       </div>
       <div className="flex justify-center items-center text-center w-full h-20 text-highlight-1 text-sm font-medium leading-tight">
-        {state.error && <p>{state.error}</p>}
+        {error && <p>{error}</p>}
       </div>
-
       <Button
         text={"로그인"}
         isSubmit={true}
         disabled={id === "" || pw === ""}
+        type="submit"
       />
       <span className="text-center justify-start text-neutral-400 text-sm font-medium font-['Pretendard'] leading-tight mt-5">
         타임투게더가 처음이신가요? &nbsp;
