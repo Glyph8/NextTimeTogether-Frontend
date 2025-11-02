@@ -21,9 +21,13 @@ export function AuthInitializer() {
     didInitialize.current = true; 
 
     const initializeAuth = async () => {
+
+      // TODO : 현재 리프레쉬 API가 동작하지 않음으로. localSTorage로 대체
+      
       // 1. Zustand(메모리)에 이미 AccessToken이 있는지 확인
       // (e.g., 로그인 직후 페이지 이동 시)
       if (accessToken) {
+        console.log("이미 엑세스 토큰이 있음 : ", accessToken)
         setIsLoading(false); // 이미 로드됨
         return;
       }
@@ -34,9 +38,11 @@ export function AuthInitializer() {
 
         if (result.success && result.accessToken) {
           // 3. 성공 시: 새 AccessToken을 Zustand에 저장 (로그인 상태 복원)
+          console.log("리프레쉬 토큰으로 재발급 성공")
           setAccessToken(result.accessToken);
         } else {
           // 4. 실패 시: 유효한 RefreshToken이 없음 (로그아웃 상태)
+          console.log("리프레쉬 토큰으로 재발급 실패")
           clearAccessToken();
         }
       } catch (err) {

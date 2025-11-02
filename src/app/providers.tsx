@@ -25,7 +25,7 @@ export function Providers({ children, nonce }: ProvidersProps) {
        <AuthInitializer />
       {children}
       {/* <ReactQueryDevtools initialIsOpen={false} /> */}
-
+      {/* TODO : nonce 호환 되는 toast 라이브러리 찾아서 대체하기 */}
       {/* 3. Toaster에 nonce를 전달하고, 인라인 style을 className으로 변경합니다. */}
       {/* <Toaster
         position="bottom-center"

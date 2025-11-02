@@ -4,184 +4,75 @@ import {
   getEncGroupsIdRequest,
   getEncGroupsKeyRequest,
   getGroupsInfoRequest,
+  ViewGroupFirstResponseData,
+  ViewGroupSecResponseData,
+  ViewGroupThirdResponseData,
 } from "@/api/group";
-import decryptEncryptData from "@/utils/crypto/decrypt-test";
-import { decryptKey } from "@/utils/crypto/generate-key/manage-session-key";
-import { cookies } from "next/headers";
 
-export interface ViewGroupFirstResponseData {
-  encGroupId: string;
-  encencGroupMemberId: string;
-}
+// E2EE 원칙: BFF는 인증/인가를 API 계층(axiosInstance)에 위임하고,
+// 암호화된 데이터를 그대로 전달(Relay)합니다.
 
-export interface ViewGroupSecResponseData {
-  encGroupKey: string;
-}
-
-export interface ViewGroupThirdResponseData {
-  groupId: string;
-  groupName: string;
-  groupImg: string;
-  managerId: string;
-  encUserId: string[];
-}
-
-export async function getGroupListAction() {
-  const cookieStore = await cookies();
-
-  const encryptedKey = cookieStore.get("encrypted-master-key")?.value;
-  if (!encryptedKey) throw new Error("인증 필요");
-  const encryptedUserId = cookieStore.get("encrypted-user-id")?.value;
-  if (!encryptedUserId) throw new Error("재로그인 필요");
-
-  const masterKey = decryptKey(encryptedKey);
-  // const userId = decryptKey(encryptedUserId);
-
-  // 기본 마스터키, 사용자 아이디 획득
-
+// --- 1단계 액션 ---
+export async function getEncGroupsIdAction(): Promise<{
+  success: boolean;
+  data?: ViewGroupFirstResponseData[];
+  error?: string;
+}> {
   try {
-    console.log("###### 그룹 조회 요청 시퀀스 시작 #####");
-
+    // 1. 인증(AccessToken 헤더)은 클라이언트의 `axiosInstance`가 자동으로 처리합니다.
+    // 2. BFF는 백엔드에 암호화된 데이터 요청을 '전달'만 합니다.
     const firstApiResponse = await getEncGroupsIdRequest();
-
     if (!firstApiResponse || !firstApiResponse.result) {
-      throw new Error("1단계 그룹 데이터 로딩에 실패했습니다.");
+      throw new Error("1단계 그룹 데이터 로딩 실패");
     }
 
-    // 첫 응답값 활용
-    /*
-    [1] 사용자의 토큰을 삽입한 요청으로, 참가한 암호환 groupID, groupMemberID로 구성 된 집합을 응답받는다.
-    [1-2] `groupId` = `encGroupId`를 개인키(ex. LsEEoX7tXFlyXPa5rHvV0w==)로 복호화 (GroupProxyUser_iv사용) : `Decrypt-test.ts` 사용
-    [1-3] groupId는 리스트 형태로 저장해두기
-    */
-    const encGroupIdAndKeyArray: ViewGroupFirstResponseData[] =
-      firstApiResponse.result;
-    console.log("1단계 그룹 데이터 로딩 성공", encGroupIdAndKeyArray);
+    // 3. 암호화된 데이터를 클라이언트에 그대로 반환
+    return { success: true, data: firstApiResponse.result };
+  } catch (err) {
+    const error = err as Error;
+    // (axiosInstance의 401/403 에러가 여기에 잡혀서 반환됩니다)
+    return { success: false, error: error.message };
+  }
+}
 
-    const decryptedGroupObjects = await Promise.all(
-      encGroupIdAndKeyArray.map(async (item) => {
-        // 각 항목에 대해 복호화 작업을 딱 한 번만 수행합니다.
-        const decryptedGroupId = await decryptEncryptData(
-          item.encGroupId,
-          masterKey,
-          "group_proxy_user"
-        );
-
-        const decryptedGroupMemberId = await decryptEncryptData(
-          item.encencGroupMemberId,
-          masterKey,
-          "group_proxy_user"
-        );
-
-        // TODO : encenc?? 이것도 복호화 한번 하라는거야?
-        return {
-          groupId: decryptedGroupId,
-          encGroupMemberId: decryptedGroupMemberId,
-        };
-      })
-    );
-
-    // 둘 중 하나..
-    // const decryptedGroupIds = decryptedGroupObjects.map((item) => item.groupId);
-    const groupIdObjects = decryptedGroupObjects.map((item) => ({
-      groupId: item.groupId,
-    }));
-    /*
-    [2] 
-    [2-1] groupKey(그룹키) = encGroupKey를 개인키(ex. LsEEoX7tXFlyXPa5rHvV0w==)로 복호화 (GroupShareKey_iv사용) : Decrypt-test.ts 사용
-    [2-3] groupKey 저장해두기
-    */
-
-    console.log("2단계 그룹 id, 멤버 id ", decryptedGroupObjects);
-
-    // 암호화된 데이터로 두 번째 API 호출
+// --- 2단계 액션 ---
+export async function getEncGroupsKeyAction(
+  decryptedGroupObjects: { groupId: string; encGroupMemberId: string }[]
+): Promise<{ success: boolean; data?: ViewGroupSecResponseData[]; error?: string }> {
+  try {
+    // 1. 인증은 `axiosInstance`가 자동으로 처리
     const secondApiResponse = await getEncGroupsKeyRequest(
       decryptedGroupObjects
     );
-
     if (!secondApiResponse || !secondApiResponse.result) {
-      throw new Error("2단계 암호화된 그룹키 획득에 실패했습니다.");
+      throw new Error("2단계 그룹 키 로딩 실패");
     }
 
-    const encGroupKeys = secondApiResponse.result;
-
-    const decryptedGroupKeyObjects = await Promise.all(
-      encGroupKeys.map(async (item) => {
-        const decryptedGroupKey = await decryptEncryptData(
-          item.encGroupKey,
-          masterKey,
-          "group_sharekey"
-        );
-
-        return {
-          groupKey: decryptedGroupKey,
-        };
-      })
-    );
-
-    // groupKey 쿠키 저장
-    // json 형식 문자열로 객체를 변환해서 넣음. 추후 파싱해서 쓸 것.
-    cookieStore.set("groupKeys", JSON.stringify(decryptedGroupKeyObjects), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // 프로덕션 환경에서는 https 강제
-      maxAge: 60 * 60 * 24 * 7, // 7일
-      path: "/", // 사이트 전체에서 사용
-    });
-
-    console.log("그룹 키 구조 : ", JSON.stringify(decryptedGroupKeyObjects));
-
-    /*
-    [3] 암호화한? groupId를 인자로, 요청. 실제 그룹 데이터 객체 배열 응답받음.
-    [3-1] 객체에서, ?? edit3을 해야 할 수 있는건가?
-    */
-    const fianlApiResponse = (await getGroupsInfoRequest(groupIdObjects)).result;
-
-    if (!fianlApiResponse) {
-      return { success: false, data: [] };
-    }
-    // 2. 외부 map: 각 그룹을 비동기적으로 처리하므로 async를 붙임
-    //    (결과로 Promise 배열이 생성됨)
-    const promisesOfCompleteGroupInfo = fianlApiResponse.map(
-      async (groupData, index) => {
-        // 3. 내부 map: 각 encId에 대해 복호화 Promise를 생성 (이때 await 안 씀)
-        const decryptionPromises = groupData.encUserId.map((encId) => {
-          // decryptEncryptData가 Promise를 반환한다고 가정
-          // (Promise.all을 여기 쓰지 않습니다)
-          return decryptEncryptData(
-            encId,
-            decryptedGroupKeyObjects[index].groupKey,
-            "group_sharekey"
-          );
-        }); // decryptionPromises는 이제 [Promise, Promise, ...] 배열
-
-        // 4. 내부 Promise.all: 이 그룹의 *모든* 멤버가 복호화될 때까지 기다림
-        const decMembers = await Promise.all(decryptionPromises);
-
-        // 5. 이 그룹의 최종 데이터 반환
-        return {
-          ...groupData,
-          encUserId: decMembers,
-        };
-      }
-    ); // promisesOfCompleteGroupInfo는 이제 [Promise, Promise, ...] 배열
-
-    // 6. 외부 Promise.all: *모든* 그룹의 정보 처리가 완료될 때까지 기다림
-    const completePlainGroupInfo = await Promise.all(
-      promisesOfCompleteGroupInfo
-    );
-
-    // 클라이언트에 성공 결과와 필요한 데이터 반환
-    // return { success: true, data: fianlApiResponse.result };
-    return { success: true, data: completePlainGroupInfo };
-  } catch (error) {
-    console.error("그룹 생성 액션 실패:", error);
-    // 클라이언트에 에러 정보 반환
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "알 수 없는 오류가 발생했습니다.",
-    };
+    // 2. 암호화된 데이터를 클라이언트에 그대로 반환
+    return { success: true, data: secondApiResponse.result };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
   }
 }
+
+// --- 3단계 액션 ---
+export async function getGroupsInfoAction(
+  groupIdObjects: { groupId: string }[]
+): Promise<{ success: boolean; data?: ViewGroupThirdResponseData[]; error?: string }> {
+  try {
+    // 1. 인증은 `axiosInstance`가 자동으로 처리
+    const fianlApiResponse = (await getGroupsInfoRequest(groupIdObjects))
+      .result;
+    if (!fianlApiResponse) {
+      return { success: true, data: [] };
+    }
+
+    // 2. 암호화된 데이터를 클라이언트에 그대로 반환
+    return { success: true, data: fianlApiResponse };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+

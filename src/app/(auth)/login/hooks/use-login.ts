@@ -36,13 +36,9 @@ export const useLogin = () => {
     try {
       // 1. (클라이언트) 마스터 키 파생
       const masterKey = await deriveMasterKeyPBKDF2(id, pw);
-      // const masterKeyBase64 = arrayBufferToBase64(masterKey);
 
       // 2. (클라이언트) 서버 인증용 해시 생성
-      // (실제 값으로 변경 필요)
-      // const hashedUserId = "hashed-id-from-client"; // (테스트용)
       const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
-      // const hashedPassword = "hashed-pw-from-client"; // (테스트용)
       const hashedPassword = await hashPassword(pw, masterKey);
 
       // 3. 서버 액션에 전달할 FormData 수정
@@ -76,6 +72,9 @@ export const useLogin = () => {
           const masterKey = await deriveMasterKeyPBKDF2(id, pw);
           // IndexedDB에 '추출 불가' 키로 저장
           await storeMasterKey(masterKey);
+          
+          // TODO : 리프레쉬 로직 완성될 떄까지 임시 사용
+          localStorage.setItem('access_token', newAccessToken)
           
           // 모든 것이 성공하면 페이지 이동
           router.push("/calendar");

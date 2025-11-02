@@ -43,27 +43,19 @@ export const useRegister = () => {
       try {
         // 5. (클라이언트) E2EE 암호화/해시 작업 시작
         const masterKey = await deriveMasterKeyPBKDF2(userId, password);
-        // const masterKeyBase64 = arrayBufferToBase64(masterKey);
 
         // 6. 로그인과 동일한 '증명 값' 생성
         const hashedUserId = await hmacSha256Truncated(masterKey, userId, 256);
-        // const hashedUserId = await hmacSha256Truncated(masterKeyBase64, userId, 256);
         const hashedPassword = await hashPassword(password, masterKey);
-        // const hashedPassword = await hashPassword(password, masterKeyBase64);
         
         // 7. 암호화가 필요한 PII 데이터 처리 (Email, Phone)
         // (주의: 이 함수들은 매번 랜덤 IV를 생성해야 합니다)
-        // const hashedEmail = await encryptEmailPhone(masterKeyBase64, email);
         const hashedEmail = await encryptEmailPhone(masterKey, email);
-        // const hashedTelephone = await encryptEmailPhone(
-        //   masterKeyBase64,
-        //   isSkipping ? "" : phoneNumber
-        // );
         const hashedTelephone = await encryptEmailPhone(
           masterKey,
           isSkipping ? "" : phoneNumber
         );
-
+        const randomIv = crypto.getRandomValues(new Uint8Array(12));
         // 8. 메인 백엔드로 보낼 DTO 생성
         const userDto: UserSignUpDTO = {
           userId: hashedUserId,          // 로그인 시 '증명 값'으로 사용될 ID
@@ -76,7 +68,7 @@ export const useRegister = () => {
           nickname: formData.nickname || "", 
           age: formData.age || "",
           gender: formData.gender || undefined,
-          imgIv: "DEFAULT_IV", // 'hashedUserId'가 HMAC이므로 IV 불필요. DTO 수정 필요?
+          imgIv: btoa(String.fromCharCode(...randomIv)), // 'hashedUserId'가 HMAC이므로 IV 불필요. DTO 수정 필요?
         };
 
         // 9. (클라이언트 -> BFF) '암호화된 DTO'를 서버 액션으로 전송

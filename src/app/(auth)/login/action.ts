@@ -42,6 +42,9 @@ export async function login(formData: FormData): Promise<LoginActionState> {
     console.log(`✅ [BFF] 메인 백엔드 인증 성공. 토큰 프록시 시작.`);
 
     const cookieStore = await cookies(); // 3. (BFF -> Client) RefreshToken은 httpOnly 쿠키에 저장 //    (이 쿠키는 오직 /api/auth/refresh 같은 BFF 엔드포인트에서만 사용됨)
+    
+    console.log("리프레쉬 토큰 : ", refreshToken)
+
     cookieStore.set("refresh_token", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -49,6 +52,15 @@ export async function login(formData: FormData): Promise<LoginActionState> {
       path: "/", // /api/auth/refresh 경로로 제한하는 것이 더 안전할 수 있음
       sameSite: "lax",
     }); // 4. (BFF -> Client) AccessToken은 JSON 응답으로 클라이언트에 반환
+
+    // TODO: 리프레쉬 로직 안정될 때 까지 임시사용
+    cookieStore.set("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7, // 7일
+      path: "/", 
+      sameSite: "lax",
+    }); 
 
     return { success: true, accessToken: accessToken };
   } catch (err) {

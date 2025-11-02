@@ -6,25 +6,16 @@ import { ExitGroupDialog } from "./(components)/ExitGroupDialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EnterGroupDialog } from "./(components)/EnterGroupDialog";
-import { useQuery } from "@tanstack/react-query";
-import { getGroupListAction } from "./action";
+
+import { useDecryptedGroupList } from "./use-group-list";
+import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 export default function GroupsPage() {
   const router = useRouter();
   const [isOpenExitDialog, setIsOpenExitDialog] = useState(false);
   const [isOpenEnterDialog, setIsOpenEnterDialog] = useState(false);
 
-  const { data, isPending} = useQuery({
-    queryKey: ["groupList"], // 이 쿼리를 식별하는 고유한 키
-    queryFn: async () => {
-      // 서버 액션을 호출하고, 실제 데이터 부분만 반환
-      const result = await getGroupListAction();
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
+  const { data, isPending } = useDecryptedGroupList();
 
   const handleCreateBtn = () => {
     router.push("/groups/create");
@@ -58,27 +49,40 @@ export default function GroupsPage() {
         </button>
 
         <button
-          className="inline-flex w-[40%] px-5 py-2.5 mx-2 bg-main rounded-[8px] text-center justify-center text-white text-base font-medium leading-tight"
+          className="inline-flex w-[50%] px-5 py-2.5 mx-2 bg-main rounded-[8px] text-center justify-center text-white text-base font-medium leading-tight"
           onClick={handleJoinBtn}
         >
-          임시 초대 수락 버튼
+          임시 초대 수락
         </button>
       </div>
 
-      <div className="w-full flex flex-col gap-2 px-4">
-        {data &&
-          data.map((group) => {
-            return <GroupItem
-            key={group.groupId}
-            groupId={group.groupId}
-              image={"https://placehold.co/64x64"}
-              title={group.groupName}
-              description={"2024-2학기 소프트웨어공학 팀플"}
-              members={group.encUserId.join(',')}
-              setIsOpen={setIsOpenExitDialog}
-            />;
-          })}
-      </div>
+      {isPending ? (
+        <DefaultLoading />
+      ) : (
+        <div className="w-full flex flex-col gap-2 px-4">
+          {(data && data.length !== 0) ?
+          (
+            data.map((group) => {
+              return (
+                <GroupItem
+                  key={group.groupId}
+                  groupId={group.groupId}
+                  image={"https://placehold.co/64x64"}
+                  title={group.groupName}
+                  description={"2024-2학기 소프트웨어공학 팀플"}
+                  // members={group.encUserId.join(',')}
+                  members={group.userIds.join(", ")}
+                  setIsOpen={setIsOpenExitDialog}
+                />
+              );
+            }
+          )) : (
+            <p className="text-center pt-5">
+              참가하고 있는 그룹이 없어요!
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

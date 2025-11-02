@@ -9,11 +9,24 @@ import {
   ViewGroup3Request,
 } from "@/apis/generated/Api";
 import { ApiResponse, createServerApi } from ".";
-import {
-  ViewGroupFirstResponseData,
-  ViewGroupSecResponseData,
-  ViewGroupThirdResponseData,
-} from "@/app/(dashboard)/groups/action";
+
+
+export interface ViewGroupFirstResponseData {
+  encGroupId: string;
+  encencGroupMemberId: string;
+}
+
+export interface ViewGroupSecResponseData {
+  encGroupKey: string;
+}
+
+export interface ViewGroupThirdResponseData {
+  groupId: string;
+  groupName: string;
+  groupImg: string;
+  managerId: string;
+  encUserId: string[];
+}
 
 /** 그룹 초대 1단계 - 그룹 아이디, 암호 그룹 아이디 전달 */
 export const getInviteEncENcNewMemberId = async (

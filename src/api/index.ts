@@ -33,7 +33,7 @@ export async function createServerApi() {
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
   
-  if (!token) throw new Error("쿠키의 엑세스 토큰 not found");
+  if (!token) throw new Error("serverAPI에서 쿠키의 엑세스 토큰 not found");
   
   return new Api({
     baseURL: MAIN_BACKEND_URL,

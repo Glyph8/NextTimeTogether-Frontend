@@ -15,3 +15,15 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
   }
   return btoa(binary);
 }
+
+export function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binaryString = atob(base64); // base64를 디코딩해 바이너리 문자열로 변환
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  return bytes.buffer; // Uint8Array → ArrayBuffer 반환
+}
