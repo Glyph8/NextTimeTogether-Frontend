@@ -18,11 +18,11 @@ export function middleware(request: NextRequest) {
   const styleSrcPolicy = isDevelopment
     ? `'self' 'unsafe-inline'`
     : `'self' 'nonce-${nonce}'`;
-  
+
   // 통신 예외가 될 API URL, 추후 웹소켓 사용할 경우 추가 필요.
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const connectSrcPolicy = `'self' ${apiBaseUrl || ''}`.trim();
-  
+  const connectSrcPolicy = `'self' ${apiBaseUrl || ""}`.trim();
+
   // CSP 정책 모음
   const cspHeader = `
     default-src 'self';
@@ -59,6 +59,18 @@ export function middleware(request: NextRequest) {
     requestHeaders.get("Content-Security-Policy") || ""
   );
   response.headers.set("x-nonce", requestHeaders.get("x-nonce") || "");
+
+  // 1. X-Content-Type-Options: MIME 스니핑 방지
+  response.headers.set("X-Content-Type-Options", "nosniff");
+
+  // 2. Referrer-Policy: Referer 정보 전송 제어 (민감 정보 유출 방지)
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
+  // 3. Permissions-Policy: 브라우저 기능(API) 접근 제어 (최소 권한 원칙)
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(self)"
+  );
 
   return response;
 }
