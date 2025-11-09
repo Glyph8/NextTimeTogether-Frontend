@@ -61,6 +61,12 @@
   font-weight: 600;
 }
 
+/* FullCalendar가 내부에 span(.fc-day-number)을 추가하기 때문에
+   .fc-day-today에서 숫자 스팬에 명시적으로 흰색을 적용합니다. */
+.fc-day-today .fc-daygrid-day-number .fc-day-number {
+  color: white !important;
+}
+
 /* 일요일/토요일 날짜 색상 */
 .fc-day-sun .fc-daygrid-day-number {
   color: #ef4444 !important; /* text-red-500 */
@@ -76,13 +82,11 @@
 
 /* 이벤트 알약 기본 스타일 */
 .custom-event-pill {
-  border: none !important;
-  background-color: transparent !important; /* FullCalendar 배경 제거 */
   cursor: pointer;
   margin-bottom: 2px;
   padding: 0 !important;
-  display: block; /* 이벤트가 블록처럼 쌓이도록 */
-  width: 100%; /* 너비 꽉 채움 */
+  display: block;
+  width: 100%;
 }
 .custom-event-pill:hover {
   opacity: 0.8;
@@ -148,29 +152,30 @@
   text-decoration: none !important;
 }
 
-/* 드로워 내부 날짜 셀 (선 없음) */
+/* 드로워 내부 날짜 셀 (선 없음, 모바일 디자인) */
 .inline-calendar-container .minimal-calendar-cell {
   border: none !important;
-  padding: 0 !important; /* 패딩 제거 */
+  padding: 0 !important;
   text-align: center;
   cursor: pointer;
-  position: relative; /* 범위 배경용 */
+  position: relative;
+  background: transparent;
 }
-/* 날짜 숫자 기본 스타일 */
-/* span.date-number를 사용 */
 .inline-calendar-container .minimal-calendar-cell .date-number {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px; /* 동그라미 크기 */
+  width: 36px;
   height: 36px;
   border-radius: 9999px;
   font-weight: 500;
-  color: #374151; /* 기본 글자색 */
+  color: #222;
+  font-size: 1.1rem;
   position: relative;
-  z-index: 2; /* 범위 배경 위에 오도록 */
-  margin: 2px auto; /* 셀 중앙 정렬 및 상하 여백 */
-  transition: background-color 0.2s, color 0.2s;
+  z-index: 2;
+  margin: 2px auto;
+  background: transparent;
+  transition: background 0.2s, color 0.2s;
 }
 
 /* 범위 내 날짜 배경 (연한 보라) */
@@ -205,37 +210,31 @@
   display: none;
 }
 
-/* 범위 시작/종료/단일 날짜 (진한 보라 동그라미) */
+/* 선택된 날짜/범위 (진한 보라 동그라미 + 흰색 숫자) */
 .inline-calendar-container .minimal-calendar-cell.range-start .date-number,
 .inline-calendar-container .minimal-calendar-cell.range-end .date-number,
-.inline-calendar-container .minimal-calendar-cell.single-date .date-number {
-  background-color: #7c3aed; /* purple-600 */
-  color: white !important;
+.inline-calendar-container .minimal-calendar-cell.single-date .date-number,
+.inline-calendar-container .minimal-calendar-cell.selected .date-number {
+  background: #7c3aed;
+  color: #fff !important;
   font-weight: 700;
+  box-shadow: 0 2px 8px 0 rgba(124, 58, 237, 0.08);
 }
 
-/* 범위 내에 있으면서 시작/끝이 아닌 날짜 (글자만 진하게) */
+/* 범위 내에 있으면서 시작/끝이 아닌 날짜 (연한 보라, 진한 글씨) */
 .inline-calendar-container
   .minimal-calendar-cell.in-range:not(.range-start):not(.range-end)
   .date-number {
+  background: #ede9fe;
+  color: #5b21b6;
   font-weight: 600;
-  color: #5b21b6; /* purple-800 */
-  background-color: transparent; /* 혹시 모를 배경색 제거 */
 }
 
 /* 날짜 셀 hover 효과 (연한 회색 동그라미) - 범위 밖일 때만 */
 .inline-calendar-container
   .minimal-calendar-cell:not(.in-range):hover
   .date-number {
-  background-color: #f3f4f6; /* gray-100 */
-}
-
-/* 드로워 내부 오늘 날짜 - 특별 스타일 없음 (기획 이미지 기준) */
-.inline-calendar-container .fc-day-today {
-  background-color: transparent !important;
-}
-.inline-calendar-container .fc-day-today .date-number {
-  /* 기본 스타일 따름 */
+  background: #f3f4f6;
 }
 
 /* --- FullCalendar 헤더 툴바 스타일 (드로워 내부) - 미니멀 --- */
@@ -302,6 +301,14 @@
     black 80%,
     transparent
   );
+}
+/* 드로워 달력에서 오늘 날짜 스타일 완전 제거 */
+.inline-calendar-container .fc-day-today .date-number,
+.inline-calendar-container .fc-day-today .fc-daygrid-day-number {
+  background: transparent !important;
+  color: #222 !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
 }
 
 /* 휠 피커의 중앙 하이라이트 바 (선택된 영역) */

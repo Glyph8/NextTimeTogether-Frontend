@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import {
+  format,
+  isWithinInterval,
+  startOfDay,
+  endOfDay,
+  parseISO, // 문자열을 Date로 변환하기 위해 임포트
+} from "date-fns";
 import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
@@ -14,12 +20,16 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid"; // DayCellContentArg 여기서 가져오지 않음
+import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction";
-// --- 1. DayCellContentArg 임포트 경로 수정 ---
-import { DayCellContentArg } from "@fullcalendar/core"; // core에서 가져옴
+import { DayCellContentArg } from "@fullcalendar/core";
 import Picker, { PickerValue } from "react-mobile-picker";
 
+// page.tsx로부터 import
+import { NewEventData } from "./../page"; // Omit<CalendarEvent, 'id'>
+import type { CalendarEvent } from "./../page"; // CalendarEvent
+
+// --- (TimeWheelPicker, CustomSwitch 등 하위 컴포넌트는 변경 없음) ---
 const scheduleColors = [
   { name: "salmon", hex: "#FDB0A8" },
   { name: "orange", hex: "#F9B283" },
@@ -28,9 +38,7 @@ const scheduleColors = [
   { name: "darkPurple", hex: "#8668F9" },
   { name: "blue", hex: "#77ABF8" },
 ];
-
 type TimePickerValue = { ampm: string; hour: number; minute: number };
-
 const dateToValueGroups = (date: Date): TimePickerValue => {
   const hour = date.getHours();
   const minute = date.getMinutes();
@@ -38,7 +46,6 @@ const dateToValueGroups = (date: Date): TimePickerValue => {
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
   return { ampm, hour: displayHour, minute };
 };
-
 // TimeWheelPicker (변경 없음)
 const TimeWheelPicker = ({
   date,
@@ -107,7 +114,6 @@ const TimeWheelPicker = ({
     </div>
   );
 };
-
 // CustomSwitch (변경 없음)
 const CustomSwitch = ({
   id,
@@ -135,26 +141,39 @@ const CustomSwitch = ({
     </label>
   );
 };
+// --- (하위 컴포넌트 끝) ---
 
 interface Props {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  initialDate: Date | null;
+  initialDate: Date | null; // 생성 시 초기 날짜
+  editingEvent?: CalendarEvent | null; // 수정할 이벤트 데이터
+  onEventCreated: (newEvent: NewEventData) => void; // 생성 콜백
+  onEventUpdated: (updatedEvent: CalendarEvent) => void; // 수정 콜백
+  onEventDeleted: (eventId: string) => void; // 삭제 콜백
 }
 
 export function ScheduleCreateDrawer({
   isOpen,
   setIsOpen,
   initialDate,
+  editingEvent,
+  onEventCreated,
+  onEventUpdated,
+  onEventDeleted,
 }: Props) {
+  const isEditMode = !!editingEvent;
+
+  // --- 폼 상태 ---
   const [title, setTitle] = useState("");
   const [selectedColor, setSelectedColor] = useState(scheduleColors[1].name);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [isAllDay, setIsAllDay] = useState(true);
-  const [isRepeat, setIsRepeat] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false); // (이 기능은 아직 저장 로직에 반영 X)
   const [place, setPlace] = useState("");
   const [memo, setMemo] = useState("");
+
   type PickerType =
     | "START_DATE"
     | "START_TIME"
@@ -163,24 +182,161 @@ export function ScheduleCreateDrawer({
     | null;
   const [openPicker, setOpenPicker] = useState<PickerType>(null);
   const calendarRef = useRef<FullCalendar>(null);
+  // --- --- ---
 
+  // Date 객체에서 '오전/오후 HH:mm' 형식의 문자열 반환
+  const formatTime = (date: Date) => format(date, "a hh:mm", { locale: ko });
+
+  // Date 객체에서 'YYYY-MM-DD' 형식의 문자열 반환
+  const formatDateToISO = (date: Date) => format(date, "yyyy-MM-dd");
+
+  // '오전/오후 HH:mm' 형식 문자열과 기준 날짜(Date)를 합쳐 새 Date 객체 반환
+  // (수정 모드에서 문자열 -> Date 객체로 변환 시 필요)
+  const parseTimeString = (timeString: string, baseDate: Date): Date => {
+    const newDate = new Date(baseDate);
+    const [amPm, time] = timeString.split(" ");
+    const [hours, minutes] = time.split(":").map(Number);
+
+    let newHours = hours;
+    if (amPm === "오후" && hours !== 12) {
+      newHours += 12;
+    } else if (amPm === "오전" && hours === 12) {
+      newHours = 0; // 오전 12시 -> 0시
+    }
+    newDate.setHours(newHours, minutes, 0, 0); // 시, 분, 초, 밀리초
+    return newDate;
+  };
+
+  // 드로워가 열릴 때 폼 상태 초기화
   useEffect(() => {
     if (isOpen) {
-      /* ... 초기화 로직 ... */
+      if (isEditMode) {
+        // --- 수정 모드 ---
+        // editingEvent 데이터로 폼 채우기
+        const start = parseISO(editingEvent.start); // "YYYY-MM-DD" -> Date
+        const end = editingEvent.end ? parseISO(editingEvent.end) : start;
+
+        setTitle(editingEvent.title);
+        setSelectedColor(editingEvent.color || scheduleColors[1].name);
+        setIsAllDay(editingEvent.allDay || false);
+        // setPlace(editingEvent.place || ""); // (필요 시 추가)
+        // setMemo(editingEvent.memo || ""); // (필요 시 추가)
+
+        if (editingEvent.allDay) {
+          setStartDate(start);
+          setEndDate(end);
+        } else {
+          // 시간 정보가 있으면 Date 객체에 반영
+          const startTime = editingEvent.startTime
+            ? parseTimeString(editingEvent.startTime, start)
+            : start;
+          const endTime = editingEvent.endTime
+            ? parseTimeString(editingEvent.endTime, end)
+            : startTime; // 종료 시간이 없으면 시작 시간으로
+          setStartDate(startTime);
+          setEndDate(endTime);
+        }
+      } else {
+        // --- 생성 모드 ---
+        // initialDate (또는 오늘) 기준으로 폼 초기화
+        const baseDate = initialDate
+          ? startOfDay(initialDate)
+          : startOfDay(new Date());
+        // 생성 시 기본 시간: 현재 시간 기준 다음 정시
+        const now = new Date();
+        now.setHours(now.getHours() + 1, 0, 0, 0); // 다음 시간 00분
+
+        const defaultStartDate = new Date(baseDate);
+        defaultStartDate.setHours(now.getHours(), now.getMinutes());
+
+        const defaultEndDate = new Date(defaultStartDate);
+        defaultEndDate.setHours(defaultStartDate.getHours() + 1); // 1시간 뒤
+
+        setTitle("");
+        setSelectedColor(scheduleColors[1].name);
+        setIsAllDay(true); // 기본값 '하루 종일'
+        setStartDate(baseDate); // 날짜는 선택한 날짜
+        setEndDate(baseDate);
+        setPlace("");
+        setMemo("");
+        // (만약 allDay: false가 기본값이면)
+        // setStartDate(defaultStartDate);
+        // setEndDate(defaultEndDate);
+      }
+      setOpenPicker(null); // 모든 피커 닫기
     }
-  }, [isOpen, initialDate]);
+  }, [isOpen, initialDate, editingEvent, isEditMode]);
+
+  // '하루 종일' 스위치 변경 시
   useEffect(() => {
-    /* ... isAllDay 변경 로직 ... */
+    if (isAllDay) {
+      // 하루 종일
+      setStartDate(startOfDay(startDate));
+      setEndDate(startOfDay(endDate));
+      setOpenPicker(null); // 시간 피커 닫기
+    } else {
+      // 시간 설정
+      // (기본 시간 설정 - 예: 1시간 간격)
+      const newStart = new Date(startDate);
+      if (newStart.getHours() === 0 && newStart.getMinutes() === 0) {
+        // 00:00 이면 적절한 시간 (예: 오전 9시)으로 설정
+        newStart.setHours(9, 0);
+      }
+
+      const newEnd = new Date(endDate);
+      // 종료 시간이 시작 시간보다 빠르거나 같으면 (하루 종일 -> 시간 설정 시)
+      if (newEnd <= newStart) {
+        newEnd.setTime(newStart.getTime()); // 시작 시간과 같게
+        newEnd.setHours(newStart.getHours() + 1); // 1시간 뒤로 설정
+      }
+
+      setStartDate(newStart);
+      setEndDate(newEnd);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAllDay]);
 
   const isSubmitDisabled = title.trim() === "";
-  const handleSave = () => {
-    /* ... 저장 로직 ... */
-  };
-  const formatDate = (date: Date) =>
-    format(date, "M월 d일 (E)", { locale: ko });
-  const formatTime = (date: Date) => format(date, "a hh:mm", { locale: ko });
 
+  // --- 저장 / 수정 핸들러 ---
+  const handleSave = () => {
+    // 폼 데이터를 CalendarEvent 형식으로 변환
+    const eventData = {
+      title: title.trim(),
+      start: formatDateToISO(startDate), // "YYYY-MM-DD"
+      end: isAllDay ? formatDateToISO(endDate) : formatDateToISO(startDate), // FullCalendar는 allDay:true일 때 end가 exclusive
+      color: selectedColor,
+      allDay: isAllDay,
+      startTime: isAllDay ? undefined : formatTime(startDate),
+      endTime: isAllDay ? undefined : formatTime(endDate),
+      // place, memo 등도 추가 가능
+    };
+
+    if (isEditMode) {
+      // --- 수정 ---
+      onEventUpdated({
+        ...eventData,
+        id: editingEvent.id, // 기존 ID 유지
+      });
+    } else {
+      // --- 생성 ---
+      onEventCreated(eventData);
+    }
+    // 드로워 닫는 것은 page.tsx에서 처리
+  };
+
+  // --- 삭제 핸들러 ---
+  const handleDelete = () => {
+    if (isEditMode) {
+      // TODO: "정말 삭제하시겠습니까?" 확인 모달 추가하면 좋음
+      onEventDeleted(editingEvent.id);
+    }
+  };
+
+  const formatDateForDisplay = (date: Date) =>
+    format(date, "M월 d일 (E)", { locale: ko });
+
+  // 미니 캘린더 날짜 선택 핸들러
   const handleDateSelect = (clickInfo: DateClickArg) => {
     const clickedDate = startOfDay(clickInfo.date);
     if (openPicker === "START_DATE") {
@@ -189,7 +345,8 @@ export function ScheduleCreateDrawer({
       setOpenPicker(null);
     } else if (openPicker === "END_DATE") {
       if (clickedDate < startDate) {
-        setStartDate(clickedDate);
+        // 종료일을 시작일보다 앞으로 찍으면
+        setStartDate(clickedDate); // 시작일도 같이 변경
         setEndDate(clickedDate);
       } else {
         setEndDate(clickedDate);
@@ -207,10 +364,43 @@ export function ScheduleCreateDrawer({
       <DrawerContent className="h-dvh max-h-dvh flex flex-col bg-white">
         <DrawerHeader className="flex items-center justify-between p-4 h-16 border-b border-gray-100 flex-shrink-0">
           <DrawerClose asChild>
-            <button className="p-2"> {/* X 버튼 SVG */} </button>
+            <button className="p-2 text-gray-500">
+              {/* X 버튼 SVG (피그마 참고) */}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6L6 18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M6 6L18 18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </DrawerClose>
-          <DrawerTitle className="text-lg font-bold">일정 등록</DrawerTitle>
-          <div className="w-10"></div>
+          <DrawerTitle className="text-lg font-bold">
+            {isEditMode ? "일정 수정" : "일정 등록"}
+          </DrawerTitle>
+          {/* 삭제 버튼 (수정 모드에서만 보임) */}
+          <div className="w-10">
+            {isEditMode && (
+              <button onClick={handleDelete} className="text-sm text-red-500">
+                삭제
+              </button>
+            )}
+          </div>
         </DrawerHeader>
 
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -244,7 +434,7 @@ export function ScheduleCreateDrawer({
                 openPicker === "START_DATE" && "text-purple-600"
               )}
             >
-              {formatDate(startDate)}
+              {formatDateForDisplay(startDate)}
             </button>
             {!isAllDay && (
               <button
@@ -270,7 +460,7 @@ export function ScheduleCreateDrawer({
                 openPicker === "END_DATE" && "text-purple-600"
               )}
             >
-              {formatDate(endDate)}
+              {formatDateForDisplay(endDate)}
             </button>
             {!isAllDay && (
               <button
@@ -289,31 +479,29 @@ export function ScheduleCreateDrawer({
 
           {/* 피커 렌더링 영역 */}
           {(openPicker === "START_DATE" || openPicker === "END_DATE") && (
-            <div className="calendar-with-toggles-container my-4 pt-4 border-t border-gray-100">
+            <div className="calendar-with-toggles-container inline-calendar-container my-4 pt-4 border-t border-gray-100">
               <div className="flex justify-between items-center mb-4 px-2">
                 <label
                   htmlFor="drawer-all-day"
                   className="text-lg cursor-pointer font-semibold flex items-center"
                 >
-                  {" "}
-                  <span className="mr-2 text-purple-600">하루 종일</span>{" "}
+                  <span className="mr-2 text-purple-600">하루 종일</span>
                   <CustomSwitch
                     id="drawer-all-day"
                     checked={isAllDay}
                     onChange={setIsAllDay}
-                  />{" "}
+                  />
                 </label>
                 <label
                   htmlFor="drawer-repeat"
                   className="text-lg cursor-pointer font-semibold flex items-center"
                 >
-                  {" "}
-                  <span className="mr-2">매주 반복</span>{" "}
+                  <span className="mr-2">매주 반복</span>
                   <CustomSwitch
                     id="drawer-repeat"
                     checked={isRepeat}
                     onChange={setIsRepeat}
-                  />{" "}
+                  />
                 </label>
               </div>
 
@@ -336,6 +524,7 @@ export function ScheduleCreateDrawer({
                 dayCellDidMount={(arg) => {
                   const date = startOfDay(arg.date);
                   const cellEl = arg.el;
+                  const isToday = cellEl.classList.contains("fc-day-today");
                   const isInRange = isWithinInterval(date, {
                     start: startOfDay(startDate),
                     end: startOfDay(endDate),
@@ -344,19 +533,25 @@ export function ScheduleCreateDrawer({
                     date.toDateString() === startDate.toDateString();
                   const isEndDate =
                     date.toDateString() === endDate.toDateString();
-                  if (isInRange) cellEl.classList.add("in-range");
-                  else cellEl.classList.remove("in-range");
-                  if (isStartDate) cellEl.classList.add("range-start");
-                  else cellEl.classList.remove("range-start");
-                  if (isEndDate) cellEl.classList.add("range-end");
-                  else cellEl.classList.remove("range-end");
-                  if (isStartDate && isEndDate)
-                    cellEl.classList.add("single-date");
-                  else cellEl.classList.remove("single-date");
+                  // 오늘 날짜에는 선택 관련 클래스 추가하지 않음
+                  if (!isToday) {
+                    if (isInRange) cellEl.classList.add("in-range");
+                    else cellEl.classList.remove("in-range");
+                    if (isStartDate) cellEl.classList.add("range-start");
+                    else cellEl.classList.remove("range-start");
+                    if (isEndDate) cellEl.classList.add("range-end");
+                    else cellEl.classList.remove("range-end");
+                    if (isStartDate && isEndDate)
+                      cellEl.classList.add("single-date");
+                    else cellEl.classList.remove("single-date");
+                  } else {
+                    cellEl.classList.remove("in-range");
+                    cellEl.classList.remove("range-start");
+                    cellEl.classList.remove("range-end");
+                    cellEl.classList.remove("single-date");
+                  }
                 }}
-                // --- 2. dayCellContent 타입 적용 ---
                 dayCellContent={(arg: DayCellContentArg) => {
-                  // @fullcalendar/core에서 가져온 타입 사용
                   const dayNumber = arg.dayNumberText.replace("일", "");
                   return <span className="date-number">{dayNumber}</span>;
                 }}
@@ -367,8 +562,23 @@ export function ScheduleCreateDrawer({
             <TimeWheelPicker
               date={openPicker === "START_TIME" ? startDate : endDate}
               onTimeChange={(newDate) => {
-                if (openPicker === "START_TIME") setStartDate(newDate);
-                else setEndDate(newDate);
+                if (openPicker === "START_TIME") {
+                  setStartDate(newDate);
+                  // 시작 시간 변경 시 종료 시간이 따라오도록
+                  if (newDate >= endDate) {
+                    const newEndDate = new Date(newDate);
+                    newEndDate.setHours(newDate.getHours() + 1);
+                    setEndDate(newEndDate);
+                  }
+                } else {
+                  // END_TIME
+                  if (newDate <= startDate) {
+                    // 종료 시간을 시작 시간보다 앞으로 설정 시
+                    setEndDate(startDate); // 시작 시간과 같게
+                  } else {
+                    setEndDate(newDate);
+                  }
+                }
               }}
             />
           )}
@@ -395,7 +605,6 @@ export function ScheduleCreateDrawer({
           {/* 색상 팔레트 */}
           {title.trim() && (
             <div className="flex space-x-3 py-2">
-              {" "}
               {scheduleColors.map((color) => (
                 <button
                   key={color.name}
@@ -405,11 +614,14 @@ export function ScheduleCreateDrawer({
                     selectedColor === color.name
                       ? "ring-2 ring-offset-2"
                       : "hover:scale-110",
-                    `ring-[${color.hex}]`
+                    `ring-[${color.hex}]` // (Tailwind JIT가 동적 클래스를 감지 못할 수 있으므로 style 사용)
                   )}
-                  style={{ backgroundColor: color.hex }}
+                  style={{
+                    backgroundColor: color.hex,
+                    borderColor: color.hex,
+                  }}
                 />
-              ))}{" "}
+              ))}
             </div>
           )}
         </main>
@@ -425,7 +637,7 @@ export function ScheduleCreateDrawer({
                 : "bg-purple-600 hover:bg-purple-700"
             )}
           >
-            등록
+            {isEditMode ? "수정" : "등록"}
           </button>
         </DrawerFooter>
       </DrawerContent>
