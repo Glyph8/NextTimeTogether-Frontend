@@ -7,9 +7,10 @@ import { hmacSha256Truncated } from "@/utils/crypto/auth/encrypt-id-img";
 import { hashPassword } from "@/utils/client/crypto/encrypt-password";
 import { deriveMasterKeyPBKDF2 } from "@/utils/crypto/generate-key/derive-masterkey";
 import { login, LoginActionState } from "../action";
-import { storeMasterKey } from "@/utils/client/key-storage";
-import { arrayBufferToBase64 } from "@/utils/client/helper";
+import { getMasterKey, storeMasterKey } from "@/utils/client/key-storage";
+// import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { useAuthStore } from "@/store/auth.store";
+import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 
 export const useLogin = () => {
   // --- 1. 기본 상태 및 훅 ---
@@ -72,10 +73,24 @@ export const useLogin = () => {
           const masterKey = await deriveMasterKeyPBKDF2(id, pw);
           // IndexedDB에 '추출 불가' 키로 저장
           await storeMasterKey(masterKey);
-          
+          const masterCryptoKey = await getMasterKey();
+
+          // 가져온 CryptoKey 객체가 null인 경우
+          if(!masterCryptoKey){
+            router.push(".");
+            return;
+          }
+          const encryptedLoginId = await encryptDataClient(
+            id,
+            masterCryptoKey,
+            "user_id_context" 
+          );
+
           // TODO : 리프레쉬 로직 완성될 떄까지 임시 사용
           localStorage.setItem('access_token', newAccessToken)
-          
+          // TODO : 더 나은 방법있을 시, 개선
+          localStorage.setItem('encrypted_user_id', encryptedLoginId);
+
           // 모든 것이 성공하면 페이지 이동
           router.push("/calendar");
 

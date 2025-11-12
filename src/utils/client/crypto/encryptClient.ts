@@ -2,6 +2,7 @@ import {
   GroupProxyUser_iv,
   User_iv,
   GroupShareKey_iv,
+  UserIdContext_iv,
 } from "@/utils/crypto/iv-value/iv-constants";
 import { arrayBufferToBase64 } from "../helper";
 
@@ -16,6 +17,7 @@ export async function encryptDataClient(
     const iv = () => {
       if (role === "group_iv") return GroupProxyUser_iv;
       else if (role === "user_iv") return User_iv;
+      else if (role === "user_id_context") return UserIdContext_iv;
       else if (role === "group_proxy_user") return GroupProxyUser_iv;
       else if (role === "group_sharekey") return GroupShareKey_iv;
       else return GroupShareKey_iv;
