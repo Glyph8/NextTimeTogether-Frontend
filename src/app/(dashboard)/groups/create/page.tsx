@@ -6,37 +6,34 @@ import X from "@/assets/svgs/icons/x-black.svg";
 import XWhite from "@/assets/svgs/icons/x-white.svg";
 import Plus from "@/assets/svgs/icons/plus-white.svg";
 import { Button } from "@/components/ui/button/Button";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { createGroupAction } from "./action";
 import { useRouter } from "next/navigation";
 // TODO : 임시 기본 이미지
 import FullLogo from "@/assets/pngs/logo-full.png";
+import { useCreateGroup } from "./use-create-group";
 
 export default function CreateGroupPage() {
   const router = useRouter();
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const { mutate: createGroup, isPending } = useCreateGroup();
 
-  const handleCreateGroup = () => {
-    startTransition(async () => {
-      const result = await createGroupAction({
-        groupName: groupName,
-        groupExplain: groupDescription,
-        groupImg: "임시 이미지", 
-        explain: "임시 설명",
-      });
-
-      // 서버 액션의 반환값에 따라 클라이언트에서 다른 동작 수행
-      if (result.success) {
+const handleCreateGroup = () => {
+    createGroup({
+      groupName: groupName,
+      groupExplain: groupDescription,
+      groupImg: "임시 이미지", 
+      explain: "임시 설명",
+    }, {
+      onSuccess: () => {
         // 성공 시
         alert("그룹이 성공적으로 생성되었습니다!");
-        // 성공 후 그룹 목록 페이지나 생성된 그룹 상세 페이지로 이동
         router.push("/groups");
-      } else {
+      },
+      onError: (error: { message: string; }) => {
         // 실패 시
-        alert(`그룹 생성 실패: ${result.error}`);
+        alert(`그룹 생성 실패: ${error.message}`);
       }
     });
   };
