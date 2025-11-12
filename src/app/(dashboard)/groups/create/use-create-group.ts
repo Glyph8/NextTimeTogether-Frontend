@@ -1,17 +1,12 @@
-// app/groups/create/useCreateGroup.ts
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
 import { createGroupInfoAction, createGroupMetadataAction } from "./action";
-
-// --- 이 유틸리티 함수들은 이미 존재한다고 가정합니다 ---
-// (use-group-list.ts에서 사용된 함수들)
 import { getMasterKey } from "@/utils/client/key-storage";
-import encryptDataClient from "@/utils/client/crypto/encryptClient"; 
 import { arrayBufferToBase64 } from "@/utils/client/helper";
-// (마스터키로 복호화된 userId를 가져오는 클라이언트 유틸이라고 가정)
-import { getDecryptedUserId } from "@/utils/client/user-storage"; 
-// --- 가정 끝 ---
+import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
+import { useAuthStore } from "@/store/auth.store";
+
 
 interface CreateGroupParams {
   groupName: string;
@@ -20,13 +15,14 @@ interface CreateGroupParams {
   explain: string;
 }
 
-/**
- * E2EE 그룹 생성을 위한 2단계 API 호출 및 클라이언트 암호화 훅
- * (useMutation 사용)
- */
 export const useCreateGroup = () => {
+  // Race Conditon 문제가 발생할 수 있음. 사용하기 직전에 가져오도록 수정
+  // const { userId } = useAuthStore();
+  
   return useMutation<void, Error, CreateGroupParams>({
     mutationFn: async (groupData) => {
+
+      const userId = useAuthStore.getState().userId;
       console.log("🔵 [E2EE 그룹 생성 1단계] 그룹 '정보' 전송 시작");
       
       // 1. (API 1) E2EE가 아닌 정보(그룹명 등)로 그룹 생성 요청
@@ -41,9 +37,8 @@ export const useCreateGroup = () => {
       console.log("🟡 [E2EE 2단계] 클라이언트 암호화 시작");
 
       // 2. (Client Crypto) 클라이언트에서 키/데이터 암호화
-      const [masterKey, userId, newGroupKey] = await Promise.all([
+      const [masterKey, newGroupKey] = await Promise.all([
         getMasterKey(),
-        getDecryptedUserId(), // (가정) 클라이언트에서 복호화된 userId를 가져옴
         // 새 그룹 키(AES-GCM)를 클라이언트에서 직접 생성
         crypto.subtle.generateKey(
           { name: "AES-GCM", length: 256 },

@@ -37,6 +37,9 @@ export async function login(formData: FormData): Promise<LoginActionState> {
     if (!accessToken || !setCookieHeader) {
       return { error: "메인 백엔드에서 토큰을 받지 못했습니다." };
     }
+
+    console.log("🔥 [BFF 로그인] 백엔드 응답 set-cookie:", setCookieHeader);
+
     const refreshToken = setCookieHeader[0].split(";")[0].split("=")[1];
 
     console.log(`✅ [BFF] 메인 백엔드 인증 성공. 토큰 프록시 시작.`);

@@ -10,7 +10,7 @@ import { login, LoginActionState } from "../action";
 import { getMasterKey, storeMasterKey } from "@/utils/client/key-storage";
 // import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { useAuthStore } from "@/store/auth.store";
-import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
+import { encryptStringToBase64 } from "@/utils/client/crypto/crypto-storage";
 
 export const useLogin = () => {
   // --- 1. 기본 상태 및 훅 ---
@@ -80,10 +80,9 @@ export const useLogin = () => {
             router.push(".");
             return;
           }
-          const encryptedLoginId = await encryptDataClient(
+          const encryptedLoginId = await encryptStringToBase64(
             id,
             masterCryptoKey,
-            "user_id_context" 
           );
 
           // TODO : 리프레쉬 로직 완성될 떄까지 임시 사용

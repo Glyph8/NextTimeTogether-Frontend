@@ -1,4 +1,3 @@
-// hooks/useAuthSession.ts
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,6 +6,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { getMasterKey } from "@/utils/client/key-storage";
 import decryptDataClient from "@/utils/client/crypto/decryptClient";
 import { refreshAccessToken } from "@/app/(auth)/login/refresh.action";
+import { decryptStringFromBase64 } from "@/utils/client/crypto/crypto-storage";
 
 /**
  * 앱 로드 시 세션을 복원/확인하는 훅
@@ -18,11 +18,12 @@ export const useAuthSession = () => {
   // 세션 복원 중임을 알리는 로딩 상태 (e.g., 스플래시 스크린)
   const [isRestoring, setIsRestoring] = useState(true);
 
-  const { accessToken, setAccessToken, setUserId } = useAuthStore();
+  const { accessToken, setAccessToken, userId, setUserId, clearAccessToken } = useAuthStore();
 
   useEffect(() => {
     // 1. 이미 메모리에 세션이 있거나, 로그인 페이지라면 복원 시도 안 함
-    if (accessToken || pathname === "/login") {
+    if ((accessToken && userId) || pathname === "/login") {
+      console.log("이미 세션이 있거나, 로그인이므로 userID 복원하지 않음. 현재 userId : ", userId);
       setIsRestoring(false);
       return;
     }
@@ -34,7 +35,9 @@ export const useAuthSession = () => {
         // 2. IndexedDB에서 MasterKey 가져오기
         const masterKey = await getMasterKey();
         if (!masterKey) {
-          throw new Error("MasterKey가 IndexedDB에 없습니다. 로그인이 필요합니다.");
+          throw new Error(
+            "MasterKey가 IndexedDB에 없습니다. 로그인이 필요합니다."
+          );
         }
         console.log("✅ [AuthSession] MasterKey 로드 성공");
 
@@ -45,14 +48,14 @@ export const useAuthSession = () => {
         }
 
         // 4. MasterKey로 userId 복호화 (핵심 로직)
-        const userId = await decryptDataClient(
+        const userId = await decryptStringFromBase64(
           encryptedUserId,
-          masterKey,
-          "user_id_context" 
+          masterKey
         );
         console.log("✅ [AuthSession] userId 복호화 성공");
 
         // 5. httpOnly RefreshToken으로 새 AccessToken 갱신 (서버 액션 호출)
+        // TODO : RefershToken 검증 필요
         const refreshResult = await refreshAccessToken();
         if (!refreshResult.success || !refreshResult.accessToken) {
           throw new Error(refreshResult.error || "AccessToken 갱신 실패");
@@ -64,10 +67,10 @@ export const useAuthSession = () => {
         setAccessToken(refreshResult.accessToken);
 
         console.log("🎉 [AuthSession] 세션 복원 완료");
-
       } catch (err) {
         console.warn(`[AuthSession] 세션 복원 실패: ${err}`);
         // 세션 복원에 실패하면 로그인 페이지로 (로그인 페이지 자체는 제외)
+        clearAccessToken() // 사용자 데이터 날리기 
         localStorage.removeItem("encrypted_user_id"); // 실패한 데이터 정리
         if (pathname !== "/login") {
           router.replace("/login");
@@ -78,8 +81,7 @@ export const useAuthSession = () => {
     };
 
     restoreSession();
-
-  }, [accessToken, setAccessToken, setUserId, router, pathname]);
+  }, [accessToken, setAccessToken, userId, setUserId, router, pathname, clearAccessToken]);
 
   return { isRestoring };
 };
