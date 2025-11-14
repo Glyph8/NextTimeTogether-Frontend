@@ -4,7 +4,7 @@ import {
   CreateGroup2Request,
   InviteGroup1Request,
   InviteGroup2Request,
-  InviteGroup3Request,
+  // InviteGroup3Request,
   ViewGroup2Request,
   ViewGroup3Request,
 } from "@/apis/generated/Api";
@@ -96,12 +96,13 @@ export const getInviteEncGroupsKeyRequest = async (
 
 /** 그룹 초대 3단계 - redis에 등록할 키와, value가 될 초대 url 전송 하여 초대 url 등록*/
 export const getMakeInviteLink = async (
-  redisKeyAndinviteCode: InviteGroup3Request
+  // TODO : group3request 없어진듯
+  redisKeyAndinviteCode: InviteGroup2Request
 ) => {
   const serverApi = await createServerApi();
 
   return serverApi.api
-    .inviteGroup3(redisKeyAndinviteCode)
+    .inviteGroup2(redisKeyAndinviteCode)
     .then((response) => {
       console.log(
         "그룹 초대 step2 - 초대할 그룹 id와 초대하는 사용자 id 전송, 그룹 키 획득 ",

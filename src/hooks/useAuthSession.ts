@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import { getMasterKey } from "@/utils/client/key-storage";
-import decryptDataClient from "@/utils/client/crypto/decryptClient";
 import { refreshAccessToken } from "@/app/(auth)/login/refresh.action";
 import { decryptStringFromBase64 } from "@/utils/client/crypto/crypto-storage";
 
@@ -22,7 +21,7 @@ export const useAuthSession = () => {
 
   useEffect(() => {
     // 1. 이미 메모리에 세션이 있거나, 로그인 페이지라면 복원 시도 안 함
-    if ((accessToken && userId) || pathname === "/login") {
+    if ((accessToken && userId) || pathname === "/login" || pathname === "/") {
       console.log("이미 세션이 있거나, 로그인이므로 userID 복원하지 않음. 현재 userId : ", userId);
       setIsRestoring(false);
       return;

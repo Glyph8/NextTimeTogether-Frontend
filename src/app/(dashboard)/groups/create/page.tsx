@@ -12,9 +12,11 @@ import { useRouter } from "next/navigation";
 // TODO : 임시 기본 이미지
 import FullLogo from "@/assets/pngs/logo-full.png";
 import { useCreateGroup } from "./use-create-group";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CreateGroupPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const { mutate: createGroup, isPending } = useCreateGroup();
@@ -27,8 +29,9 @@ const handleCreateGroup = () => {
       explain: "임시 설명",
     }, {
       onSuccess: () => {
-        // 성공 시
+        // 성공 시 TODO : Toast로 추후 교체
         alert("그룹이 성공적으로 생성되었습니다!");
+        queryClient.invalidateQueries({ queryKey: ["groupList"] });
         router.push("/groups");
       },
       onError: (error: { message: string; }) => {

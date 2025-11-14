@@ -38,10 +38,11 @@ export async function encryptDataClient(
 
     //  IV와 암호문을 Base64 문자열로 변환하여, 전송/저장 가능한
     // "iv:ciphertext" 형태로 결합
-    const ivBase64 = arrayBufferToBase64(iv().buffer);
+    // const ivBase64 = arrayBufferToBase64(iv().buffer);
     const cipherTextBase64 = arrayBufferToBase64(encryptedBuffer);
 
-    return `${ivBase64}:${cipherTextBase64}`;
+    // return `${ivBase64}:${cipherTextBase64}`;
+    return cipherTextBase64
   } catch (err) {
     console.error(`암호화 실패 (Role: ${role}):`, err);
     throw new Error("데이터 암호화에 실패했습니다.");
