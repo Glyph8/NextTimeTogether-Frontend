@@ -1,9 +1,9 @@
+"use client"; // [추가] window 객체 사용을 위해
+
 import { Button } from "@/components/ui/button/Button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getInviteLinkAction } from "../action";
 
 interface GroupInviteDialogProps {
   isOpen: boolean;
@@ -17,37 +17,13 @@ export const GroupInviteDialog = ({
   groupId,
 }: GroupInviteDialogProps) => {
 
-  const {
-    data: inviteLinkResult, 
-    isPending, 
-    isError,
-    error,
-  } = useQuery({
-    // queryKey를 groupId에 따라 고유하게
-    queryKey: ["inviteCode", groupId],
-    queryFn: async () => {
-      // 서버 액션을 호출
-      const result = await getInviteLinkAction(groupId);
-      // 서버 액션이 실패하면 에러를 throw하여 useQuery가 인지하게
-      if (!result.success) {
-        throw new Error(result.error || "링크를 가져오지 못했습니다.");
-      }
-      // 성공 시 실제 데이터 초대 코드를 반환합니다.
-      return result.data;
-    },
-    // [옵션] 이 다이얼로그가 열려있을 때만 쿼리를 실행합니다.
-    enabled: isOpen,
-    // [옵션] 실패 시 재시도 횟수 (기본값 3)
-    retry: 1,
-  });
-  const hanldeCopyLink = async () => {
-    if (!inviteLinkResult) {
-      toast("아직 링크를 불러오는 중입니다.");
-      return;
-    }
+  // [수정] API 호출 없이 "공개 신청 링크"를 직접 구성합니다.
+  const publicInviteLink = `${window.location.origin}/group/join/${groupId}`;
 
+  const hanldeCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(inviteLinkResult); // [수정]
+      // [수정] 생성된 공개 링크를 복사
+      await navigator.clipboard.writeText(publicInviteLink);
       setIsOpen(false);
       toast("그룹 초대 링크를 클립보드에 복사했어요.");
     } catch (error) {
@@ -69,15 +45,13 @@ export const GroupInviteDialog = ({
           </div>
 
           <div className="block w-full min-w-0 truncate text-sm font-normal leading-snug text-gray-2 ">
-            {isPending && "초대 링크를 불러오는 중..."}
-            {isError && `오류 발생: ${error.message}`}
-            {inviteLinkResult && inviteLinkResult}
+            {publicInviteLink}
           </div>
         </div>
         <DialogFooter className="flex flex-row gap-3.5">
           <Button
             text={"링크 복사"}
-            disabled={false}
+            disabled={false} 
             onClick={hanldeCopyLink}
           />
         </DialogFooter>

@@ -7,7 +7,7 @@ import {
   ViewGroupFirstResponseData,
   ViewGroupSecResponseData,
   ViewGroupThirdResponseData,
-} from "@/api/group";
+} from "@/api/group-view-create";
 
 // E2EE 원칙: BFF는 인증/인가를 API 계층(axiosInstance)에 위임하고,
 // 암호화된 데이터를 그대로 전달(Relay)합니다.

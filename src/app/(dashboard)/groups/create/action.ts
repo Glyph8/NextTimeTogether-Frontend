@@ -1,7 +1,7 @@
 // app/groups/create/action.ts
 "use server";
 
-import { createGroupRequest, createGroupRequest2 } from "@/api/group";
+import { createGroupRequest, createGroupRequest2 } from "@/api/group-view-create";
 import { CreateGroup2Request } from "@/apis/generated/Api";
 // crypto 관련 import 모두 제거
 

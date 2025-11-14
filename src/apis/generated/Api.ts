@@ -1502,6 +1502,23 @@ export class Api<
         format: "json",
         ...params,
       }),
+
+    /**
+     * @description 액세스 토큰을 재발급을 위해 아이디를 검증한다
+     *
+     * @tags auth-check-controller
+     * @name ReissueToken1
+     * @summary 액세스 토큰 재발급 가능 확인
+     * @request GET:/auth/check/refresh
+     * @secure
+     */
+    reissueToken1: (params: RequestParams = {}) =>
+      this.request<BaseResponse, ErrorResponse>({
+        path: `/auth/check/refresh`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
   };
   api = {
     /**

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { getMasterKey } from "@/utils/client/key-storage";
 import { getEncGroupsIdAction, getEncGroupsKeyAction, getGroupsInfoAction } from "./action";
-import { ViewGroupFirstResponseData, ViewGroupSecResponseData, ViewGroupThirdResponseData } from "@/api/group";
+import { ViewGroupFirstResponseData, ViewGroupSecResponseData, ViewGroupThirdResponseData } from "@/api/group-view-create";
 import decryptDataClient from "@/utils/client/crypto/decryptClient";
 import { base64ToArrayBuffer } from "@/utils/client/helper";
 
