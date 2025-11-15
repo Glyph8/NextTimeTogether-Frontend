@@ -1,5 +1,5 @@
 "use client";
-
+// TODO : 초대로직 설명 듣고 고치기
 import { useMutation } from "@tanstack/react-query";
 import { getMasterKey } from "@/utils/client/key-storage";
 import decryptDataClient from "@/utils/client/crypto/decryptClient";

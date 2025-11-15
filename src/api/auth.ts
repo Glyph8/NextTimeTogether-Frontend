@@ -3,32 +3,8 @@
 import { Api, BaseResponse, UserSignUpDTO } from "@/apis/generated/Api";
 
 const api = new Api();
-// const LOGIN_API_URL = "https://meetnow.duckdns.org/auth/login";
-// const LOGIN_API_URL = "http://43.202.154.29:8083/auth/login";
-// 로그인은 별도 구현
-// export const loginRequest = async (
-//   userId: string,
-//   password: string
-// ): Promise<BaseResponse> =>
-//   axios
-//     .post(LOGIN_API_URL, {
-//       userId: userId,
-//       password: password,
-//     })
-//     .then((response) => {
-//       console.log("login api : ", response);
-//       if (response.headers["authorization"]) {
-//         localStorage.setItem("access_token", response.headers["authorization"]);
-//         // return true;
-//         return response.data;
-//       }
-//       console.log("로그인 응답에서 토큰을 찾을 수 없음.");
-//       return response.data;
-//     })
-//     .catch((error) => {
-//       console.error("auth.ts 로그인에서 에러 발생", error);
-//       throw new Error(error);
-//     });
+
+// login은 해당 페이지에서 직접 구현함.
 
 /** sns 로그인 로직이 미완성인듯? */
 export const snsLoginRequest = (userId: string, password: string) =>

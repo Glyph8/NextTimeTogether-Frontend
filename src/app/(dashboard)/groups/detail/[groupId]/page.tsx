@@ -11,6 +11,7 @@ import { GroupMemberItem } from "./(components)/GroupMemberItem";
 import { useState } from "react";
 import { GroupInviteDialog } from "./(components)/GroupInviteDialog";
 import { useParams, useRouter } from "next/navigation";
+import { useViewSchedules } from "./use-view-schedules";
 
 
 export default function DetailGroupPage() {
@@ -23,6 +24,14 @@ export default function DetailGroupPage() {
     const params = useParams<{ groupId: string }>();
     const groupId = params.groupId
     
+    const { fixedYetData, fixedPromise, isPending } = useViewSchedules();
+    
+    if(isPending){
+        return <div>
+            그룹 내 약속 정보 로딩중...
+        </div>
+    }
+
     return (
         <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
             <Header

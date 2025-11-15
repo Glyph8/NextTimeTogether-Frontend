@@ -54,7 +54,6 @@ export const useAuthSession = () => {
         console.log("✅ [AuthSession] userId 복호화 성공");
 
         // 5. httpOnly RefreshToken으로 새 AccessToken 갱신 (서버 액션 호출)
-        // TODO : RefershToken 검증 필요
         const refreshResult = await refreshAccessToken();
         if (!refreshResult.success || !refreshResult.accessToken) {
           throw new Error(refreshResult.error || "AccessToken 갱신 실패");

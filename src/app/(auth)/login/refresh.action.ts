@@ -29,23 +29,19 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
 
   try {
     // 2. 메인 백엔드의 /auth/refresh 엔드포인트로 요청
-      console.log("📤 [BFF] 요청 URL:", `${MAIN_BACKEND_URL}/auth/refresh`);
+    console.log("📤 [BFF] 요청 URL:", `${MAIN_BACKEND_URL}/auth/refresh`);
     console.log("📤 [BFF] 요청 헤더:", {
-      'refresh-token': refreshToken.substring(0, 50) + '...'
+      "refresh-token": refreshToken.substring(0, 50) + "...",
     });
 
     const response = await axios.post(
       `${MAIN_BACKEND_URL}/auth/refresh`,
-     null,
+      null,
       {
         headers: {
-          // TODO : 서버 측에 리프레쉬 로직 문의
-          // 'Refresh-token':`Bearer ${refreshToken}`,
-          //  'refresh-token':`Bearer ${refreshToken}`,
-          // 'refresh-token' : refreshToken,
-            'Refresh-token':refreshToken,
-           'Content-Type': 'application/json',
-           'Accept': 'application/json'
+          "Refresh-token": refreshToken,
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
       }
     );
@@ -59,7 +55,6 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
       console.warn(`❌ [BFF] 백엔드가 갱신을 거부함: ${message}`);
       return { success: false, error: message || "Backend refresh failed." };
     }
-
   } catch (err) {
     console.error("❌ [BFF] Refresh token failed:", err);
     // axios 에러인지 확인하고 안전하게 처리
@@ -70,10 +65,12 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
         console.error("응답 데이터:", err.response.data);
         console.error("응답 헤더:", err.response.headers);
       }
-      
+
       // 400/401 에러 상세 분석
       if (err.response?.status === 400) {
-        console.error("⚠️ 400 에러: 백엔드가 토큰으로 사용자를 찾지 못했습니다.");
+        console.error(
+          "⚠️ 400 에러: 백엔드가 토큰으로 사용자를 찾지 못했습니다."
+        );
         console.error("⚠️ 확인사항:");
         console.error("   1. 토큰이 올바른 환경(dev/prod)에서 발급되었는지");
         console.error("   2. 로그인 시 받은 토큰과 동일한지");
@@ -85,9 +82,11 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
 
       // Refresh가 실패하면 쿠키를 삭제합니다.
       cookieStore.set("refresh_token", "", { maxAge: 0, path: "/" });
-      return { 
-        success: false, 
-        error: err.response?.data?.message || "Session expired. Please log in again." 
+      return {
+        success: false,
+        error:
+          err.response?.data?.message ||
+          "Session expired. Please log in again.",
       };
     }
     // Refresh가 실패하면 (e.g., 만료, 유효하지 않음) 쿠키를 삭제합니다.
