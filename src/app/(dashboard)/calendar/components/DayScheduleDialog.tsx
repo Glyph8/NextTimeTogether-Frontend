@@ -32,6 +32,8 @@ interface Props {
   events: CalendarEvent[];
   // --- 2. '일정 추가' 클릭 시 호출될 콜백 함수 prop 추가 ---
   onAddScheduleClick: (date: Date) => void;
+  // --- 일정 클릭 시 수정 드로워 열기 ---
+  onEventClick: (event: CalendarEvent) => void;
 }
 
 export function DayScheduleDialog({
@@ -40,6 +42,7 @@ export function DayScheduleDialog({
   date,
   events,
   onAddScheduleClick, // 3. prop 받기
+  onEventClick,
 }: Props) {
   // --- 4. useRouter 삭제 ---
   // const router = useRouter();
@@ -90,10 +93,17 @@ export function DayScheduleDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto max-h-[40vh] space-y-4">
+        <div className="overflow-y-auto max-h-[280px] space-y-4">
           {events.length > 0 ? (
             events.map((event) => (
-              <div key={event.id} className="flex">
+              <div
+                key={event.id}
+                className="flex cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                onClick={() => {
+                  onEventClick(event);
+                  setIsOpen(false);
+                }}
+              >
                 {getEventColorDot(event.color)}
                 <div>
                   <p className="font-semibold text-gray-800">{event.title}</p>

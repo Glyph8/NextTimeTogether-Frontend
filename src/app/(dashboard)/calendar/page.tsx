@@ -5,10 +5,10 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction";
 import ArrowLeft from "@/assets/svgs/icons/arrow-left-gray.svg";
 import ArrowRight from "@/assets/svgs/icons/arrow-right-gray.svg";
-import { EventClickArg } from "@fullcalendar/core/index.js";
+
 // useRouter는 현재 사용하지 않으므로 삭제
 // import { useRouter } from "next/navigation";
-import { parseISO, startOfDay, endOfDay } from "date-fns";
+import { parseISO, startOfDay } from "date-fns";
 
 import "./calendar.css";
 import { DayScheduleDialog } from "./components/DayScheduleDialog";
@@ -68,51 +68,8 @@ export default function CalendarPage() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   // ---------------------------------
 
-  // 색상 hex값 매핑
-  const colorHexMap: { [key: string]: string } = {
-    salmon: "#FDB0A8",
-    orange: "#F9B283",
-    yellow: "#FADF84",
-    lightPurple: "#B8B3F9",
-    darkPurple: "#8668F9",
-    blue: "#77ABF8",
-  };
-
-  // 이벤트 데이터에 FullCalendar 색상 속성 추가
-  const [events, setEvents] = useState<CalendarEvent[]>([
-    {
-      id: "1",
-      title: "팀 회의",
-      start: "2025-10-20",
-      color: "blue",
-      allDay: false,
-      startTime: "오후 02:00",
-      endTime: "오후 03:00",
-      backgroundColor: colorHexMap["blue"],
-      borderColor: colorHexMap["blue"],
-      textColor: "#222",
-    },
-    {
-      id: "2",
-      title: "프로젝트 마감",
-      start: "2025-10-25",
-      color: "salmon",
-      allDay: true,
-      backgroundColor: colorHexMap["salmon"],
-      borderColor: colorHexMap["salmon"],
-      textColor: "#222",
-    },
-    {
-      id: "3",
-      title: "멀미공 시험",
-      start: "2025-10-20",
-      color: "orange",
-      allDay: true,
-      backgroundColor: colorHexMap["orange"],
-      borderColor: colorHexMap["orange"],
-      textColor: "#222",
-    },
-  ]);
+  // 이벤트 데이터
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const calendarRef = useRef<FullCalendar>(null);
 
@@ -131,18 +88,10 @@ export default function CalendarPage() {
     setIsScheduleDialogOpen(true); // 작은 모달 열기
   };
 
-  // 이벤트(알약) 클릭 핸들러 (수정 드로워 열기)
-  const handleEventClick = (clickInfo: EventClickArg) => {
-    //
-    // alert(`'${clickInfo.event.title}' 수정 드로워 열기 (구현 필요)`);
-
-    // 전체 events 배열에서 id로 실제 이벤트 객체 찾기
-    const eventToEdit = events.find((e) => e.id === clickInfo.event.id);
-
-    if (eventToEdit) {
-      setEditingEvent(eventToEdit); // 수정할 이벤트 설정
-      setIsCreateDrawerOpen(true); // 드로워 열기 (수정 모드)
-    }
+  // 이벤트 클릭 핸들러 (다이얼로그에서만 사용)
+  const handleEventClickFromDialog = (event: CalendarEvent) => {
+    setEditingEvent(event); // 수정할 이벤트 설정
+    setIsCreateDrawerOpen(true); // 드로워 열기 (수정 모드)
   };
 
   const handleDatesSet = (arg: {
@@ -151,18 +100,22 @@ export default function CalendarPage() {
     setCalendarTitle(arg.view.title);
   };
 
-  // DayScheduleDialog에 전달할 이벤트 필터링 (선택한 날짜가 이벤트의 start~end 범위에 포함될 때도 표시)
+  // DayScheduleDialog에 전달할 이벤트 필터링
   const eventsForSelectedDate = useMemo(() => {
     if (!selectedDate) return [];
+    const selectedDayStart = startOfDay(selectedDate);
+
     return events.filter((event) => {
-      const startDate = parseISO(event.start);
-      // end가 없으면 단일 일정, end가 있으면 범위 일정
-      const endDate = event.end ? parseISO(event.end) : startDate;
-      // 선택한 날짜가 start~end 사이에 포함되는지 확인
-      return (
-        selectedDate >= startOfDay(startDate) &&
-        selectedDate <= endOfDay(endDate)
-      );
+      const eventStart = startOfDay(parseISO(event.start));
+      // FullCalendar의 end는 exclusive이므로 -1일 해야 실제 종료일
+      const eventEnd = event.end
+        ? startOfDay(
+            new Date(parseISO(event.end).getTime() - 24 * 60 * 60 * 1000)
+          )
+        : eventStart;
+
+      // 선택한 날짜가 이벤트 범위에 포함되는지 확인
+      return selectedDayStart >= eventStart && selectedDayStart <= eventEnd;
     });
   }, [selectedDate, events]);
 
@@ -177,6 +130,8 @@ export default function CalendarPage() {
 
   // ScheduleCreateDrawer가 호출할 함수 (이벤트 생성)
   const handleEventCreated = (newEvent: NewEventData) => {
+    console.log("🔵 Received newEvent from drawer:", newEvent);
+
     // 색상 hex값 매핑
     const colorHexMap: { [key: string]: string } = {
       salmon: "#FDB0A8",
@@ -186,14 +141,46 @@ export default function CalendarPage() {
       darkPurple: "#8668F9",
       blue: "#77ABF8",
     };
+    // FullCalendar 표준 형식으로 이벤트 생성
     const eventWithId: CalendarEvent = {
-      ...newEvent,
-      id: Date.now().toString(), // 임시 고유 ID
+      id: Date.now().toString(),
+      title: newEvent.title,
+      start: newEvent.start,
+      end: newEvent.end,
+      allDay: true, // 명시적으로 true 설정
+      color: newEvent.color, // 내부 참조용
+      startTime: newEvent.startTime,
+      endTime: newEvent.endTime,
       backgroundColor: colorHexMap[newEvent.color || "orange"],
       borderColor: colorHexMap[newEvent.color || "orange"],
       textColor: "#222",
     };
-    setEvents([...events, eventWithId]);
+
+    console.log("🟢 Created eventWithId:", eventWithId);
+    console.log("📅 FullCalendar format check:");
+    console.log("  - start:", eventWithId.start);
+    console.log("  - end:", eventWithId.end);
+    console.log("  - allDay:", eventWithId.allDay);
+    console.log("  - backgroundColor:", eventWithId.backgroundColor);
+
+    const newEvents = [...events, eventWithId];
+    console.log("📊 All events:", newEvents);
+    setEvents(newEvents);
+
+    // FullCalendar API로 이벤트 확인
+    setTimeout(() => {
+      const calendarApi = calendarRef.current?.getApi();
+      if (calendarApi) {
+        const fcEvents = calendarApi.getEvents();
+        console.log("🔍 FullCalendar events:", fcEvents);
+        fcEvents.forEach((e) => {
+          console.log(
+            `  Event: ${e.title}, start: ${e.start}, end: ${e.end}, allDay: ${e.allDay}`
+          );
+        });
+      }
+    }, 100);
+
     setIsCreateDrawerOpen(false); // 드로워 닫기
   };
 
@@ -251,13 +238,12 @@ export default function CalendarPage() {
           </div>
           <div className="flex-1 p-4 bg-white">
             <FullCalendar
+              key={events.length}
               ref={calendarRef}
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
-              // initialDate="2025-10-01" // 삭제 (오늘 날짜 기준으로 열림)
               events={events}
-              dateClick={handleDateClick} // 날짜 클릭
-              eventClick={handleEventClick} // 이벤트 클릭
+              dateClick={handleDateClick}
               headerToolbar={false}
               titleFormat={{ year: "numeric", month: "long" }}
               locale="ko"
@@ -266,18 +252,35 @@ export default function CalendarPage() {
                 return dayNames[args.date.getDay()];
               }}
               height="100%"
-              eventDisplay="block"
               displayEventEnd={false}
+              displayEventTime={false}
               dayMaxEvents={3}
               moreLinkClick="popover"
               dayHeaderClassNames="custom-day-header"
               dayCellClassNames="custom-day-cell"
-              eventClassNames="custom-event-pill"
               dayCellContent={(arg) => {
                 const dayNumber = arg.dayNumberText.replace("일", "");
                 return <span className="fc-day-number">{dayNumber}</span>;
               }}
               datesSet={handleDatesSet}
+              eventContent={(eventInfo) => {
+                return (
+                  <div
+                    style={{
+                      backgroundColor: eventInfo.event.backgroundColor,
+                      borderRadius: "4px",
+                      padding: "2px 4px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      fontSize: "0.75rem",
+                      color: "#222",
+                    }}
+                  >
+                    {eventInfo.event.title}
+                  </div>
+                );
+              }}
             />
           </div>
         </div>
@@ -292,6 +295,7 @@ export default function CalendarPage() {
         date={selectedDate}
         events={eventsForSelectedDate}
         onAddScheduleClick={handleOpenCreateDrawer}
+        onEventClick={handleEventClickFromDialog}
       />
 
       {/* '일정 등록/수정' 드로워 */}

@@ -214,7 +214,14 @@ export function ScheduleCreateDrawer({
         // --- 수정 모드 ---
         // editingEvent 데이터로 폼 채우기
         const start = parseISO(editingEvent.start); // "YYYY-MM-DD" -> Date
-        const end = editingEvent.end ? parseISO(editingEvent.end) : start;
+        let end = editingEvent.end ? parseISO(editingEvent.end) : start;
+
+        // allDay 이벤트의 경우 저장 시 +1일 했으므로, 표시할 때는 -1일 해야 원래 종료일
+        if (editingEvent.allDay && editingEvent.end) {
+          const displayEnd = new Date(end);
+          displayEnd.setDate(displayEnd.getDate() - 1);
+          end = displayEnd;
+        }
 
         setTitle(editingEvent.title);
         setSelectedColor(editingEvent.color || scheduleColors[1].name);
@@ -301,10 +308,15 @@ export function ScheduleCreateDrawer({
   // --- 저장 / 수정 핸들러 ---
   const handleSave = () => {
     // 폼 데이터를 CalendarEvent 형식으로 변환
+    // FullCalendar는 end가 exclusive이므로 1일 더해야 함
+    const exclusiveEndDate = new Date(endDate);
+    exclusiveEndDate.setDate(exclusiveEndDate.getDate() + 1);
+
     const eventData = {
       title: title.trim(),
       start: formatDateToISO(startDate), // "YYYY-MM-DD"
-      end: isAllDay ? formatDateToISO(endDate) : formatDateToISO(startDate), // FullCalendar는 allDay:true일 때 end가 exclusive
+      // end는 항상 exclusive (endDate + 1일)
+      end: formatDateToISO(exclusiveEndDate),
       color: selectedColor,
       allDay: isAllDay,
       startTime: isAllDay ? undefined : formatTime(startDate),
