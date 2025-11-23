@@ -1,5 +1,6 @@
 import { GetGroupJoinEmailResponse, InviteGroup1Request, InviteGroup2Request, JoinGroupResponse, SaveGroupMemberRequest } from "@/apis/generated/Api";
-import { createServerApi } from ".";
+import { createServerApi } from "./server-index";
+// import { createServerApi } from ".";
 
 /**
  * [손님 2단계] 그룹 참가 신청 (대기실 등록)

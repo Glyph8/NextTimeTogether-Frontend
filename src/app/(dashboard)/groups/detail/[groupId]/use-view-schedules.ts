@@ -4,45 +4,26 @@ import {
   getScheduleIdListPerPromise,
   getScheduleIdPerFixedPromise,
 } from "@/api/promise-view-create";
+// import { PromiseView2Response } from "@/apis/generated/Api"; // 이제 이거 안 써도 됩니다 (자동 추론됨)
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export interface PromiseInfo {
-  isConfirmed: boolean;
-  promiseId: string;
-  title: string;
-  type: string;
-  startDate: string;
-  endDate: string;
-  managerId: string;
-  promiseImg: string;
-}
-
 export const useViewSchedules = () => {
-  // 1단계 결과
-  const [decryptedPromiseIdList, setDecryptedPromiseIdList] = useState<
-    string[]
-  >([]);
+  const params = useParams<{ groupId: string }>();
+  const groupId = params.groupId;
 
-  // 2단계 결과
-  const [promiseInProgressInfo, setPromiseInProgressInfo] = useState<
-    PromiseInfo[] | null
-  >(null);
-
-  const [fixedPromiseInfo, setFixedPromiseInfo] = useState<
-    PromiseInfo[] | null
-  >(null);
-
+  // 1단계 결과 (복호화된 ID 리스트)
+  const [decryptedPromiseIdList, setDecryptedPromiseIdList] = useState<string[]>([]);
+  
+  // 빈 배열(약속 없음) 조기 종료 플래그
+  const [isEmptyResult, setIsEmptyResult] = useState<boolean>(false);
+  
   // 에러 상태
   const [error, setError] = useState<string | null>(null);
 
-  // 빈 배열 조기 종료 플래그
-  const [isEmptyResult, setIsEmptyResult] = useState<boolean>(false);
-
-  // 1단계 : 왜 파라미터가 없음..? 그룹 id 필요 없나?
-  // promise/view1
   // --- 1단계: 암호화된 약속 리스트 조회 ---
   const {
     data: encPromiseIdList,
@@ -51,243 +32,154 @@ export const useViewSchedules = () => {
   } = useQuery({
     queryKey: ["promiseIdList", "step1", "encPromiseIds"],
     queryFn: async () => {
-      console.log("🔵 [1단계] 암호화된 그룹 ID 조회 시작");
+      console.log("🔵 [1단계] 암호화된 약속 ID 조회 시작");
       const result = await getEncPromiseIdList();
-      console.log("🔵 [1단계] 서버 응답:", result);
-      if (!result || result.result === 0) {
-        console.log("⚠️ [1단계] 데이터가 비어있음 - 조기 종료");
-        return [];
-      }
-      return result.result;
+      // null이나 undefined가 오면 빈 배열로 처리
+      return result || [];
     },
     staleTime: 1000 * 60 * 5,
     retry: 1,
   });
 
-  // --- 1단계 복호화 useEffect ---
+  // --- 1단계 복호화 로직 (useEffect) ---
   useEffect(() => {
-    if (!encPromiseIdList) {
-      console.log("⏸️ [1단계 복호화] 대기 중 -  encPromiseIdList가 없음");
-      return;
-    }
-    // 빈 배열이면 조기 종료 플래그 설정하고 빈 배열로 처리
+    // 1. 데이터가 아직 안 왔으면 대기
+    if (!encPromiseIdList) return;
+
+    // 2. 데이터가 왔는데 빈 배열이면 -> 약속이 없는 그룹임 -> 조기 종료
     if (encPromiseIdList.length === 0) {
-      console.log("✅ [1단계 복호화] 빈 배열 감지 - 조기 종료 처리");
+      console.log("✅ [1단계] 빈 배열 감지 - 조기 종료 처리");
       setIsEmptyResult(true);
       setDecryptedPromiseIdList([]);
       return;
     }
 
+    // 3. 데이터가 있으면 복호화 시작
     const decryptStep1Data = async () => {
       try {
         const masterKey = await getMasterKey();
-        console.log("🟡 [1단계 복호화] 마스터키 로드 완료:", !!masterKey);
-
-        if (!masterKey) {
-          throw new Error("마스터키를 찾을 수 없습니다.");
-        }
-
-        const decryptedPromises = encPromiseIdList.map(
-          async (item: string, index: number) => {
-            const decryptedPromiseId = await decryptDataWithCryptoKey(
-              item,
+        if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
+        
+        const decryptedPromises = await Promise.all(
+          encPromiseIdList.map(async (item) => {
+            if (!item.encPromiseId) throw new Error("유효하지 않은 약속 ID입니다.");
+            return await decryptDataWithCryptoKey(
+              item.encPromiseId,
               masterKey,
               "group_proxy_user"
             );
-            return decryptedPromiseId;
-          }
+          })
         );
 
-        const decrypted = await Promise.all(decryptedPromises);
-        console.log("✅ [1단계 복호화] 전체 완료 - 결과:", decrypted);
+        console.log("✅ [1단계 복호화] 완료:", decryptedPromises);
+        setDecryptedPromiseIdList(decryptedPromises);
+        setIsEmptyResult(false); // 데이터가 있으므로 플래그 false
 
-        setDecryptedPromiseIdList(decrypted);
-        setIsEmptyResult(false); // 정상 데이터가 있으면 플래그 해제
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("🔴 [1단계 복호화] 실패:", err);
-        const errorMessage =
-          err instanceof Error ? err.message : "1단계 복호화 오류";
-        console.error("🔴 [1단계 복호화] 에러 메시지:", errorMessage);
-        setError(errorMessage);
+        setError("1단계 복호화 실패");
       }
     };
 
     decryptStep1Data();
   }, [encPromiseIdList]);
 
-  // --- 2단계: 정하고 있는 약속 평문 데이터 조회 ---
+
+  // ✅ 다음 단계 실행 조건: "빈 결과가 아님" AND "복호화된 ID가 있음"
+  const isStep1Finished = !isEmptyResult && decryptedPromiseIdList.length > 0;
+
+
+  // --- 2단계: 진행 중인 약속 조회 ---
   const {
-    data: promiseInProgressData,
+    data: promiseInProgressData, // useState 대신 이 data를 바로 리턴합니다.
     isPending: isPending2,
     error: queryError2,
   } = useQuery({
-    queryKey: [
-      "promiseInProgressList",
-      "step2",
-      "plainPromiseInProgress",
-      decryptedPromiseIdList,
-    ],
+    queryKey: ["promiseInProgressList", "step2", decryptedPromiseIdList],
     queryFn: async () => {
-      console.log("🔵 [2단계] 암호화된 그룹 키 조회 시작");
-      console.log("🔵 [2단계] 요청 데이터:", decryptedPromiseIdList);
-
+      console.log("🔵 [2단계] 진행 중인 약속 조회 시작");
       const result = await getPromiseInProgress({
+        groupId: groupId,
         promiseIdList: decryptedPromiseIdList,
       });
-      console.log("🔵 [2단계] 서버 응답:", result);
-
-      if (!result.result) {
-        console.error("🔴 [2단계] 에러:", result.message);
-        throw new Error(result.message);
-      }
-
-      console.log("✅ [2단계] 성공 - 데이터 개수:", result.result.length);
-      return result.result;
+      return result || [];
     },
-    // 빈 배열이면 2단계 실행 안 함
-    enabled:
-      !isEmptyResult &&
-      !!decryptedPromiseIdList &&
-      decryptedPromiseIdList.length > 0,
+    enabled: isStep1Finished, // 1단계가 확실히 끝났을 때만 실행
     staleTime: 1000 * 60 * 5,
-    retry: 1,
   });
 
-  // --- 2단계 성공 후 (복호화 필요 없음) useEffect ---
-  useEffect(() => {
-    // 빈 배열 조기 종료 상태면 스킵
-    if (isEmptyResult) {
-      console.log("⏸️ [2단계 복호화] 빈 배열 상태로 스킵");
-      return;
-    }
 
-    if (!promiseInProgressData) {
-      console.log("⏸️ [2단계 복호화] 대기 중 - encKeys가 없음");
-      return;
-    }
-
-    if (promiseInProgressData.length === 0) {
-      console.log("⏸️ [2단계 복호화] 데이터가 비어있음");
-      setDecryptedPromiseIdList([]);
-      return;
-    }
-    setPromiseInProgressInfo(promiseInProgressData);
-  }, [isEmptyResult, promiseInProgressData]);
-
-  // --- 3단계: 정하고 있는 약속 평문 데이터 조회 ---
-
-  // TODO : 이건 어디서 튀어나온거임?
-  const encPromiseKeyList = <string[]>[];
+  // --- 3단계: 스케줄 ID 조회 ---
+  // ⚠️ [Check Point] 원본 코드에 encPromiseKeyList가 빈 배열이었습니다. 로직 확인 필요.
+  const encPromiseKeyList: string[] = []; 
 
   const {
     data: scheduleIdList,
     isPending: isPending3,
     error: queryError3,
   } = useQuery({
-    queryKey: [
-      "scheduleIdList",
-      "step3",
-      "scheduleId",
-      decryptedPromiseIdList, // 1단계 결과
-      promiseInProgressInfo, // 2단계 결과
-    ],
+    queryKey: ["scheduleIdList", "step3", decryptedPromiseIdList],
     queryFn: async () => {
-      console.log("🔵 [3단계] 스케쥴 아이디 리스트 조회 시작");
-      console.log("🔵 [3단계] 요청 데이터:", encPromiseKeyList);
-
+      console.log("🔵 [3단계] 스케쥴 ID 리스트 조회");
       const result = await getScheduleIdListPerPromise({
-        encPromiseKeyList: encPromiseKeyList,
+        promiseIdList: encPromiseKeyList,
       });
-      console.log("🔵 [3단계] 서버 응답:", result);
-
-      if (!result.result) {
-        console.error("🔴 [3단계] 에러:", result.message);
-        throw new Error(result.message);
-      }
-
-      console.log("✅ [3단계] 성공 - 데이터 개수:", result.result.length);
-      return result.result;
+      return result || [];
     },
-    // 빈 배열이면 3단계 실행 안 함
-    enabled:
-      !isEmptyResult &&
-      !!decryptedPromiseIdList &&
-      decryptedPromiseIdList.length > 0,
+    // encPromiseKeyList가 비어있으면 실행 안 함 (필요시 조건 수정)
+    enabled: isStep1Finished && encPromiseKeyList.length > 0, 
     staleTime: 1000 * 60 * 5,
-    retry: 1,
   });
 
-  // --- 4단계: 완료된 약속(스케쥴?) 평문 데이터 조회 ---
+
+  // --- 4단계: 확정된 약속 조회 ---
   const {
-    data: fixedScheduleInfo,
+    data: fixedScheduleInfo, // useState 대신 이 data를 바로 리턴합니다.
     isPending: isPending4,
     error: queryError4,
   } = useQuery({
-    queryKey: [
-      "fixedScheduleInfo",
-      "step4",
-      decryptedPromiseIdList, // 1단계 결과
-      promiseInProgressInfo, // 2단계 결과
-      scheduleIdList, // 3단계 결과
-    ],
+    queryKey: ["fixedScheduleInfo", "step4", scheduleIdList],
     queryFn: async () => {
-      console.log("🔵 [4단계] 확정 완료된 스케쥴 데이터 리스트 조회 시작");
-      console.log("🔵 [4단계] 요청 데이터:", scheduleIdList);
+      console.log("🔵 [4단계] 확정된 스케쥴 조회");
+      
+      // 3단계 결과에서 ID만 추출 (매핑)
+      const extractedIds = scheduleIdList
+        ?.map((item) => item.scheduleId)
+        .filter((id): id is string => !!id); // undefined 제거
+
+      if (!extractedIds || extractedIds.length === 0) return [];
 
       const result = await getScheduleIdPerFixedPromise({
-        sheduleIdList: scheduleIdList,
+        scheduleIdList: extractedIds,
       });
-      console.log("🔵 [4단계] 서버 응답:", result);
-
-      if (!result.result) {
-        console.error("🔴 [4단계] 에러:", result.message);
-        throw new Error(result.message);
-      }
-
-      console.log("✅ [4단계] 성공 - 데이터 개수:", result.result.length);
-      setFixedPromiseInfo(fixedScheduleInfo);
-      return result.result;
+      return result || [];
     },
-    // 빈 배열이면 4단계 실행 안 함
-    enabled:
-      !isEmptyResult &&
-      !!decryptedPromiseIdList &&
-      decryptedPromiseIdList.length > 0,
+    // 1단계 완료 && 3단계 결과(스케줄ID)가 있어야 실행
+    enabled: isStep1Finished && !!scheduleIdList && scheduleIdList.length > 0,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
   });
 
-  useEffect(() => {
-    if (queryError1) {
-      console.error("🔴 [Query Error 1]:", queryError1);
-      setError(queryError1.message);
-    }
-    if (queryError2) {
-      console.error("🔴 [Query Error 2]:", queryError2);
-      setError(queryError2.message);
-    }
-    if (queryError3) {
-      console.error("🔴 [Query Error 3]:", queryError3);
-      setError(queryError3.message);
-    }
-    if (queryError4) {
-      console.error("🔴 [Query Error 4]:", queryError4);
-      setError(queryError4.message);
-    }
-  }, [queryError1, queryError2, queryError3, queryError4]);
 
-  // 빈 배열 조기 종료 케이스 처리
+  // --- 최종 리턴 ---
   return {
-    fixedYetData: isEmptyResult ? [] : promiseInProgressInfo,
-    fixedPromise: fixedPromiseInfo,
-    isPending:
-      isPending1 ||
-      (isEmptyResult ? false : isPending2 || isPending3) ||
-      isPending4,
+    // 1. 데이터: 상태(State)가 아니라 쿼리 결과(Data)를 바로 내보냅니다.
+    fixedYetData: isEmptyResult ? [] : (promiseInProgressData || []),
+    fixedPromise: isEmptyResult ? [] : (fixedScheduleInfo || []),
+    
+    // 2. 로딩 상태: 빈 결과(isEmptyResult)라면 뒤쪽 로딩은 무시합니다. (무한 로딩 해결)
+    isPending: 
+      isPending1 || 
+      // 데이터는 왔는데 아직 복호화 중인 찰나의 순간 처리
+      (!isEmptyResult && encPromiseIdList && decryptedPromiseIdList.length === 0) ||
+      // 1단계 결과가 비어있지 않다면, 2,3,4단계 로딩 상태를 반영
+      (!isEmptyResult && (isPending2 || isPending3 || isPending4)),
+      
+    // 3. 에러 통합
     error:
       error ||
       queryError1?.message ||
       queryError2?.message ||
-      queryError3?.message,
+      queryError3?.message ||
+      queryError4?.message,
   };
 };

@@ -5,7 +5,7 @@ import {
   ViewGroup2Request,
   ViewGroup3Request,
 } from "@/apis/generated/Api";
-import { ApiResponse, createServerApi } from ".";
+import { ApiResponse, createServerApi } from "./server-index";
 
 
 export interface ViewGroupFirstResponseData {

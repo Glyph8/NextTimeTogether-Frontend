@@ -27,7 +27,7 @@ export const GroupMemberItem = ({ marker, image, name, selectable = false, isSel
                     )
                     }
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col items-center gap-2">
                     <div>
                         {image ?? <DefaultImg />}
                     </div>

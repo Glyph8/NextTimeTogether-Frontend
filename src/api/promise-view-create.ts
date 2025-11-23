@@ -1,5 +1,5 @@
-import { Promiseview2Request, PromiseView3Request, PromiseView4Request } from "@/apis/generated/Api";
-import { clientBaseApi } from ".";
+import { PromiseView1Response, Promiseview2Request, PromiseView2Response, PromiseView3Request, PromiseView3Response, PromiseView4Request, PromiseView4Response } from "@/apis/generated/Api";
+import { BackendResponse, clientBaseApi } from ".";
 
 /** promise/view1 */
 export const getEncPromiseIdList = () =>{
@@ -9,7 +9,9 @@ export const getEncPromiseIdList = () =>{
     .promise.view1()
     .then((response) => {
       console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
-      return response.data;
+      const realData = response.data as unknown as BackendResponse<PromiseView1Response[]>;
+      // return response.data;
+      return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -37,7 +39,9 @@ export const getPromiseInProgress = (data:Promiseview2Request) =>{
     .promise.view2(data)
     .then((response) => {
       console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
-      return response.data;
+       const realData = response.data as unknown as BackendResponse<PromiseView2Response[]>;
+      // return response.data;
+       return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -65,7 +69,9 @@ export const getScheduleIdListPerPromise = (data: PromiseView3Request) =>{
     .promise.view3(data)
     .then((response) => {
       console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
-      return response.data;
+      const realData = response.data as unknown as BackendResponse<PromiseView3Response[]>;
+      // return response.data;
+       return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -93,7 +99,9 @@ export const getScheduleIdPerFixedPromise = (data: PromiseView4Request) =>{
     .promise.view4(data)
     .then((response) => {
       console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
-      return response.data;
+      const realData = response.data as unknown as BackendResponse<PromiseView4Response[]>;
+      // return response.data;
+       return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
