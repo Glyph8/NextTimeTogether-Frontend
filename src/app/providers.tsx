@@ -1,9 +1,9 @@
 'use client'; 
 
-import { AuthInitializer } from '@/components/shared/Auth/AuthInitializer';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from "@/components/ui/sonner";
+import { useAuthSession } from '@/hooks/useAuthSession';
 
 // 1. Providers가 받을 props 타입을 정의합니다.
 interface ProvidersProps {
@@ -13,6 +13,7 @@ interface ProvidersProps {
 
 // 2. props로 { children, nonce }를 받습니다.
 export function Providers({ children, nonce }: ProvidersProps) {
+  const { isRestoring } = useAuthSession();
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -20,9 +21,13 @@ export function Providers({ children, nonce }: ProvidersProps) {
       })
   );
 
+  if (isRestoring) {
+    return <div>
+      userID 복원 중
+    </div>; 
+  }
   return (
     <QueryClientProvider client={queryClient}>
-       <AuthInitializer />
       {children}
       {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       {/* TODO : nonce 호환 되는 toast 라이브러리 찾아서 대체하기 */}

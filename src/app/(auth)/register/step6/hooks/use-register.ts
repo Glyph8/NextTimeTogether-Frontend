@@ -64,7 +64,6 @@ export const useRegister = () => {
           emailIv: hashedEmail.iv,       // 이메일 복호화용 IV
           telephone: hashedTelephone.ciphertext,
           phoneIv: hashedTelephone.iv,
-          // (주의) 그 외 민감하지 않은 정보는 원본(Plaintext)으로 전송
           nickname: formData.nickname || "", 
           age: formData.age || "",
           gender: formData.gender || undefined,

@@ -10,18 +10,31 @@
  * ---------------------------------------------------------------
  */
 
+export interface TimestampReqDTO {
+  dates?: string[];
+}
+
+export interface BaseResponse {
+  /**
+   * 결과 코드
+   * @format int32
+   * @example 200
+   */
+  code?: number;
+  /**
+   * 메시지
+   * @example "요청에 성공했습니다."
+   */
+  message?: string;
+  /** 응답 데이터 */
+  result?: any;
+}
+
 export interface TimeSlotReqDTO {
   /** @format date */
   date?: string;
   time?: string;
   userIds?: string[];
-}
-
-export interface BaseResponseObject {
-  /** @format int32 */
-  code?: number;
-  message?: string;
-  result?: any;
 }
 
 export interface UserTimeSlotDTO {
@@ -42,45 +55,158 @@ export interface UserTimeSlotReqDTO {
   dateTime?: UserTimeSlotDTO[];
 }
 
-export interface BaseResponseString {
-  /** @format int32 */
-  code?: number;
-  message?: string;
-  result?: string;
-}
-
-export interface ScheduleConfirmReqDTO {
-  promiseId?: string;
-  scheduleId?: string;
-  /** @format int32 */
-  placeId?: number;
-  title?: string;
-  purpose?: string;
-}
-
-export interface PromiseView4Request {
-  sheduleIdList?: string[];
-}
-
-export interface BaseResponse {
-  /** @format int32 */
-  code?: number;
-  message?: string;
-  result?: any;
-}
-
 export interface ErrorResponse {
   /** @format int32 */
   code?: number;
   message?: string;
 }
 
+export interface BaseResponseString {
+  /**
+   * 결과 코드
+   * @format int32
+   * @example 200
+   */
+  code?: number;
+  /**
+   * 메시지
+   * @example "요청에 성공했습니다."
+   */
+  message?: string;
+  /** 응답 데이터 */
+  result?: string;
+}
+
+export interface ScheduleConfirmReqDTO {
+  promiseId?: string;
+  scheduleId?: string;
+  encTimeStamp?: string;
+  /** @format date */
+  timeStampInfo?: string;
+  /** @format int32 */
+  placeId?: number;
+  title?: string;
+  purpose?: string;
+  userList?: string[];
+}
+
+export interface PromiseView4Request {
+  /**
+   * 스케줄 ID 리스트
+   * @example ["61a4c8e6-ea48-47d3-9523-9cf09dd6aae4"]
+   */
+  scheduleIdList?: string[];
+}
+
+export interface PromiseView4Response {
+  /**
+   * 약속 확정 여부
+   * @example true
+   */
+  isConfirmed?: boolean;
+  /**
+   * 스케줄 ID
+   * @example "61a4c8e6-ea48-47d3-9523-9cf09dd6aae4"
+   */
+  scheduleId?: string;
+  /**
+   * 제목
+   * @example "61a4c8e6-ea48-47d3-9523-9cf09dd6aae4"
+   */
+  title?: string;
+  /**
+   * 내용
+   * @example "초콜릿다음엔?"
+   */
+  content?: string;
+  /**
+   * 목적
+   * @example "초콜릿초콜릿"
+   */
+  purpose?: string;
+  /**
+   * 장소 ID
+   * @format int64
+   * @example 1
+   */
+  placeId?: number;
+  /**
+   * 그룹 ID
+   * @example "d71ac3eb-fc61-4cff-92c7-478a0e092936"
+   */
+  groupId?: string;
+}
+
 export interface PromiseView3Request {
-  encPromiseKeyList?: string[];
+  /**
+   * 약속 ID 리스트
+   * @example ["e3f971e9-0e41-48b2-bb2e-b7594b98e170"]
+   */
+  promiseIdList?: string[];
+}
+
+export interface PromiseView3Response {
+  /**
+   * 스케줄 ID
+   * @example "61a4c8e6-ea48-47d3-9523-9cf09dd6aae4"
+   */
+  scheduleId?: string;
 }
 
 export interface Promiseview2Request {
+  /**
+   * 그룹 아이디
+   * @example "d71ac3eb-fc61-4cff-92c7-478a0e092936"
+   */
+  groupId?: string;
+  /**
+   * 조회할 약속 아이디 리스트
+   * @example ["e3f971e9-0e41-48b2-bb2e-b7594b98e170"]
+   */
   promiseIdList?: string[];
+}
+
+export interface PromiseView2Response {
+  /**
+   * 약속 확정 여부
+   * @example false
+   */
+  isConfirmed?: boolean;
+  /**
+   * 약속 ID
+   * @example "e3f971e9-0e41-48b2-bb2e-b7594b98e170"
+   */
+  promiseId?: string;
+  /**
+   * 약속 제목
+   * @example "초콜릿모임"
+   */
+  title?: string;
+  /**
+   * 약속 타입
+   * @example "스터디"
+   */
+  type?: string;
+  /**
+   * 시작 날짜
+   * @example "2025-11-14"
+   */
+  startDate?: string;
+  /**
+   * 종료 날짜
+   * @example "2025-11-19"
+   */
+  endDate?: string;
+  /**
+   * 약속 생성자 ID
+   * @example "makerid"
+   */
+  managerId?: string;
+  /**
+   * 약속 대표 이미지
+   * @example "빼빼로만들기-초콜릿"
+   */
+  promiseImg?: string;
 }
 
 export interface JoinPromise1Request {
@@ -101,6 +227,7 @@ export interface InvitePromise1Request {
 
 export interface InvitePromise1Response {
   whichEmailIn?: string[];
+  message?: string;
 }
 
 export interface GetPromiseBatchReqDTO {
@@ -133,19 +260,41 @@ export interface CreatePromise1Request {
 }
 
 export interface PlaceRegisterDTO {
-  placeName: string;
-  placeAddress: string;
   placeId?: string;
+  placeName: string;
+  placeAddress?: string;
   placeInfo?: string;
   aiPlace?: boolean;
 }
 
+export interface UserBoardReqDTO {
+  pseudoId?: string;
+  /** @format int32 */
+  rating?: number;
+}
+
+export interface BaseResponseObject {
+  /**
+   * 결과 코드
+   * @format int32
+   * @example 200
+   */
+  code?: number;
+  /**
+   * 메시지
+   * @example "요청에 성공했습니다."
+   */
+  message?: string;
+  /** 응답 데이터 */
+  result?: any;
+}
+
 export interface UserAIInfoReqDTO {
+  pseudoId?: string;
   /** @format double */
   latitude?: number;
   /** @format double */
   longitude?: number;
-  preferredCategories?: string[];
 }
 
 export interface UserSignUpDTO {
@@ -226,6 +375,18 @@ export interface CreateGroup1Request {
   explain?: string;
 }
 
+export interface SaveGroupMemberRequest {
+  groupId?: string;
+  encGroupKey?: string;
+  encUserId?: string;
+  encGroupId?: string;
+  encencGroupMemberId?: string;
+}
+
+export interface JoinGroupResponse {
+  message?: string;
+}
+
 export interface LeaveGroup2Request {
   isManager?: boolean;
   encGroupId?: string;
@@ -240,29 +401,6 @@ export interface LeaveGroup1Response {
 export interface LeavGroup1Request {
   groupId?: string;
   encGroupId?: string;
-}
-
-export interface JoinGroupRequest {
-  encryptedValue?: string;
-  groupId?: string;
-  encGroupId?: string;
-  encGroupKey?: string;
-  encUserId?: string;
-  encencGroupMemberId?: string;
-}
-
-export interface JoinGroupResponse {
-  result?: string;
-}
-
-export interface InviteGroup3Request {
-  encryptedValue?: string;
-  encryptedEmail?: string;
-}
-
-export interface InviteGroup3Response {
-  inviteCode?: string;
-  explain?: string;
 }
 
 export interface InviteGroup2Request {
@@ -341,32 +479,8 @@ export interface CalendarViewRequest2 {
   scheduleIdList?: string[];
 }
 
-export interface BaseResponseListCalendarViewResponse2 {
-  /** @format int32 */
-  code?: number;
-  message?: string;
-  result?: CalendarViewResponse2[];
-}
-
-export interface CalendarViewResponse2 {
-  title?: string;
-  content?: string;
-  encStartTimeAndEndTime?: string;
-}
-
 export interface CalendarViewRequest1 {
-  encPromiseKeyList?: string[];
-}
-
-export interface BaseResponseCalendarViewResponse1 {
-  /** @format int32 */
-  code?: number;
-  message?: string;
-  result?: CalendarViewResponse1;
-}
-
-export interface CalendarViewResponse1 {
-  scheduleIdList?: string[];
+  timeStampInfoList?: string[];
 }
 
 export interface CalendarRewriteRequest1 {
@@ -376,14 +490,24 @@ export interface CalendarRewriteRequest1 {
   purpose?: string;
   placeName?: string;
   placeAddr?: string;
+  placeInfo?: string;
   encPromiseKey?: string;
   encUserId?: string;
 }
 
 export interface BaseResponseCalendarRewriteResponse1 {
-  /** @format int32 */
+  /**
+   * 결과 코드
+   * @format int32
+   * @example 200
+   */
   code?: number;
+  /**
+   * 메시지
+   * @example "요청에 성공했습니다."
+   */
   message?: string;
+  /** 응답 데이터 */
   result?: CalendarRewriteResponse1;
 }
 
@@ -396,33 +520,39 @@ export interface CalendarRewriteResponse1 {
   placeAddr?: string;
 }
 
+export interface CalendarCreateRequest2 {
+  encStartTimeAndEndTime?: string;
+  /** @format date */
+  timeStampInfo?: string;
+}
+
 export interface CalendarCreateRequest1 {
   title?: string;
   content?: string;
   purpose?: string;
   placeName?: string;
   placeAddr?: string;
-  encStartTimeAndEndTime?: string;
-  encPromiseKey?: string;
-  encUserId?: string;
+  placeInfo?: string;
 }
 
-export interface BaseResponseCalendarCreateResponse1 {
-  /** @format int32 */
-  code?: number;
-  message?: string;
-  result?: CalendarCreateResponse1;
-}
-
-export interface CalendarCreateResponse1 {
-  scheduleId?: string;
-  title?: string;
-  content?: string;
-  encStartTimeAndEndTime?: string;
+export interface PromiseView1Response {
+  /**
+   * 개인키로 암호화된 약속 아이디
+   * @example "0cL0PM....=="
+   */
+  encPromiseId?: string;
 }
 
 export interface UserIdsResDTO {
   userIds?: string[];
+}
+
+export interface TestDTO {
+  result?: string;
+}
+
+export interface GetGroupJoinEmailResponse {
+  message?: string;
 }
 
 export interface ExitPromiseReqDTO {
@@ -430,8 +560,9 @@ export interface ExitPromiseReqDTO {
   encPromiseKey?: string;
 }
 
-export interface TestDTO {
-  result?: string;
+export interface DispersePromiseReqDTO {
+  promiseId?: string;
+  userIds?: string[];
 }
 
 export interface LeaveGroup3Request {
@@ -630,92 +761,127 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<
   SecurityDataType extends unknown,
 > extends HttpClient<SecurityDataType> {
+  timestamp = {
+    /**
+     * @description 타임스탬프를 조회한다
+     *
+     * @tags 타임스탬프
+     * @name GetTimeStampList
+     * @summary 타임스탬프 조회
+     * @request POST:/timestamp/get
+     * @secure
+     */
+    getTimeStampList: (data: TimestampReqDTO, params: RequestParams = {}) =>
+      this.request<BaseResponse, any>({
+        path: `/timestamp/get`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
   time = {
     /**
-     * No description
+     * @description 약속의 시간을 확인한다
      *
-     * @tags time-controller
+     * @tags 시간
      * @name ViewTimeBoard
+     * @summary 시간보드
      * @request GET:/time/{promiseId}
+     * @secure
      */
     viewTimeBoard: (promiseId: string, params: RequestParams = {}) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/time/${promiseId}`,
         method: "GET",
+        secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 약속 시간을 선택했을때 가능한 / 불가능한 사람을 확인한다
      *
-     * @tags time-controller
+     * @tags 시간
      * @name ViewUsersByTime
+     * @summary 가능한 시간 조회
      * @request POST:/time/{promiseId}
+     * @secure
      */
     viewUsersByTime: (
       promiseId: string,
       data: TimeSlotReqDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, any>({
         path: `/time/${promiseId}`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 약속에 내 시간을 업데이트한다
      *
-     * @tags time-controller
+     * @tags 시간
      * @name UpdateUserTime
+     * @summary 내 시간표 업데이트
      * @request POST:/time/my/{promiseId}
+     * @secure
      */
     updateUserTime: (
       promiseId: string,
       data: UserTimeSlotReqDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, any>({
         path: `/time/my/${promiseId}`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 약속 시간을 확정한다
      *
-     * @tags time-controller
+     * @tags 시간
      * @name ConfirmDateTime
+     * @summary 약속 시간 확정
      * @request POST:/time/confirm/{promiseId}
+     * @secure
      */
     confirmDateTime: (
       promiseId: string,
       data: string,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/time/confirm/${promiseId}`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 개인 시간표로부터 스케줄을 로드한다(스케쥴 아이디 반환)
      *
-     * @tags time-controller
+     * @tags 시간
      * @name LoadUserSchedule
+     * @summary 스케줄 로드
      * @request GET:/time/my/schedule/{promiseId}
+     * @secure
      */
     loadUserSchedule: (promiseId: string, params: RequestParams = {}) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/time/my/schedule/${promiseId}`,
         method: "GET",
+        secure: true,
         ...params,
       }),
   };
@@ -736,28 +902,31 @@ export class Api<
   };
   schedule = {
     /**
-     * No description
+     * @description 약속 일정을 확정한다
      *
-     * @tags schedule-controller
+     * @tags 약속 확정
      * @name ConfirmSchedule
+     * @summary 약속 일정 확정
      * @request POST:/schedule/confirm/{groupId}
+     * @secure
      */
     confirmSchedule: (
       groupId: string,
       data: ScheduleConfirmReqDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/schedule/confirm/${groupId}`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
   };
   promise = {
     /**
-     * @description 사용자가 속한 그룹 내 확정 완료된 약속별 scheduleId 조회 - 요청: 사용자 인증 (UserPrincipal) + PromiseView4Request (encPromiseKey 리스트) - 처리: PromiseShareKey에서 encPromiseKey로 scheduleId 조회 - 반환: scheduleId 리스트
+     * @description 사용자가 속한 그룹 내 확정 완료된 약속(=스케줄)의 scheduleId 조회 - 요청: 사용자 인증 (UserPrincipal) + ScheduleIdListRequest - 처리: 스케줄 ID로 확정된 약속 정보 조회 - 반환: 확정된 약속 정보 리스트
      *
      * @tags 약속
      * @name View4
@@ -766,7 +935,7 @@ export class Api<
      * @secure
      */
     view4: (data: PromiseView4Request, params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<PromiseView4Response, ErrorResponse>({
         path: `/promise/view4`,
         method: "POST",
         body: data,
@@ -777,7 +946,7 @@ export class Api<
       }),
 
     /**
-     * @description 사용자가 속한 그룹 내 (정하는중 + 확정완료) 약속별 scheduleId 조회 - 요청: 사용자 인증 (UserPrincipal) + PromiseView3Request (encPromiseKey 리스트) - 처리: PromiseShareKey에서 encPromiseKey로 scheduleId 조회 - 반환: scheduleId 리스트
+     * @description 사용자가 속한 그룹 내 약속별 scheduleId 조회 - 요청: 사용자 인증 (UserPrincipal) + promiseIdList - 처리: PromiseShareKey에서 encPromiseKey로 scheduleId 조회 - 반환: scheduleId 리스트 - 이후 작업: 다음 요청에서 scheduleId 리스트 필요함
      *
      * @tags 약속
      * @name View3
@@ -786,7 +955,7 @@ export class Api<
      * @secure
      */
     view3: (data: PromiseView3Request, params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<PromiseView3Response, ErrorResponse>({
         path: `/promise/view3`,
         method: "POST",
         body: data,
@@ -797,7 +966,7 @@ export class Api<
       }),
 
     /**
-     * @description 사용자가 속한 그룹 내 (정하는중) 약속 정보를 조회합니다. - 요청: 사용자 인증 (UserPrincipal) + Promiseview2Request (encPromiseId 리스트) - 처리: Promise, PromiseCheck 테이블에서 약속 확정 여부 조회 - 반환: 약속 정보 리스트
+     * @description 사용자가 속한 그룹 내 정하는 중인 약속 정보를 조회합니다. - 요청: 사용자 인증 (UserPrincipal) + groupId, promiseIdList - 처리: Promise, PromiseCheck 테이블에서 약속 확정 여부 조회 - 반환: 정하는 중인 약속이 존재하면, 해당 약속 정보 반환 - 이후 작업: 반환된 약속 정보중 promiseId를 리스트 형태로 이후에 요청해야함
      *
      * @tags 약속
      * @name View2
@@ -806,7 +975,7 @@ export class Api<
      * @secure
      */
     view2: (data: Promiseview2Request, params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<PromiseView2Response, ErrorResponse>({
         path: `/promise/view2`,
         method: "POST",
         body: data,
@@ -857,40 +1026,46 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description 약속일정을 조회한다
      *
-     * @tags schedule-query-controller
+     * @tags 약속일정 및 히스토리 조회
      * @name GetPromiseView1
+     * @summary 약속일정 조회
      * @request POST:/promise/get
+     * @secure
      */
     getPromiseView1: (
       data: GetPromiseBatchReqDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, any>({
         path: `/promise/get`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 그룹별 약속일정을 조회한다
      *
-     * @tags schedule-query-controller
+     * @tags 약속일정 및 히스토리 조회
      * @name GetPromiseView2
+     * @summary 그룹별 약속일정 조회
      * @request POST:/promise/get/{groupId}
+     * @secure
      */
     getPromiseView2: (
       groupId: string,
       data: GetPromiseBatchReqDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/promise/get/${groupId}`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
@@ -976,7 +1151,7 @@ export class Api<
       }),
 
     /**
-     * @description 로그인한 사용자가 속한 그룹 내 약속을 조회합니다. - 요청: 사용자 인증 (UserPrincipal) - 처리: PromiseProxyUser에서 encPromiseId(개인키로 암호화된 약속 아이디) 조회 - 반환: 개인키로 암호화된 약속 아이디 리스트
+     * @description 로그인한 사용자가 속한 약속 아이디를 모두 조회합니다. - 요청: accesstoken -> 사용자 인증 (UserPrincipal) - 처리: PromiseProxyUser에서 encPromiseId(개인키로 암호화된 약속 아이디) 조회 - 반환: 개인키로 암호화된 약속 아이디 리스트 - 이후 작업: 개인키로 복호화해 약속 아이디 리스트 얻음
      *
      * @tags 약속
      * @name View1
@@ -985,7 +1160,7 @@ export class Api<
      * @secure
      */
     view1: (params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<PromiseView1Response, ErrorResponse>({
         path: `/promise/view1`,
         method: "GET",
         secure: true,
@@ -994,11 +1169,13 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description 약속일정을 검색한다
      *
-     * @tags schedule-query-controller
+     * @tags 약속일정 및 히스토리 조회
      * @name SearchPromiseView
+     * @summary 약속일정 검색
      * @request GET:/promise/search
+     * @secure
      */
     searchPromiseView: (
       query: {
@@ -1007,197 +1184,293 @@ export class Api<
       },
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, any>({
         path: `/promise/search`,
         method: "GET",
         query: query,
+        secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 약속원에 대한 정보를 조회한다
      *
      * @tags 약속
      * @name GetUsersByPromiseTime2
+     * @summary 약속원 정보 조회
      * @request GET:/promise/mem/s2/{promiseId}
+     * @secure
      */
     getUsersByPromiseTime2: (
       promiseId: string,
       data: UserIdsResDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, any>({
         path: `/promise/mem/s2/${promiseId}`,
         method: "GET",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 암호화된 약속원들의 아이디를 조회한다
      *
      * @tags 약속
      * @name GetUsersByPromiseTime1
+     * @summary 암호화된 약속원들의 아이디 조회
      * @request GET:/promise/mem/s1/{promiseId}
+     * @secure
      */
     getUsersByPromiseTime1: (promiseId: string, params: RequestParams = {}) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, any>({
         path: `/promise/mem/s1/${promiseId}`,
         method: "GET",
+        secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 약속일정을 상세 조회한다
      *
-     * @tags schedule-query-controller
+     * @tags 약속일정 및 히스토리 조회
      * @name GetPromiseDetailView
+     * @summary 약속일정 상세 조회
      * @request GET:/promise/get/{scheduleId}/detail
+     * @secure
      */
     getPromiseDetailView: (scheduleId: string, params: RequestParams = {}) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/promise/get/${scheduleId}/detail`,
         method: "GET",
+        secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 약속을 나갈 경우 약속관련 테이블을 삭제한다
      *
      * @tags 약속
      * @name ExitPromise
-     * @request GET:/promise/exit
+     * @summary 약속 나가기
+     * @request DELETE:/promise/exit
+     * @secure
      */
     exitPromise: (data: ExitPromiseReqDTO, params: RequestParams = {}) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, any>({
         path: `/promise/exit`,
-        method: "GET",
+        method: "DELETE",
         body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description 약속을 해산할 경우 약속관련 테이블을 모두 삭제한다
+     *
+     * @tags 약속
+     * @name DispersePromise
+     * @summary 약속 해산하기
+     * @request DELETE:/promise/disperse
+     * @secure
+     */
+    dispersePromise: (
+      data: DispersePromiseReqDTO,
+      params: RequestParams = {},
+    ) =>
+      this.request<BaseResponse, any>({
+        path: `/promise/disperse`,
+        method: "DELETE",
+        body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
   };
   place = {
     /**
-     * No description
+     * @description 공유된 장소를 투표한다(무조건 1번 가능)
      *
-     * @tags place-controller
+     * @tags 장소
      * @name VotePlace
+     * @summary 공유된 장소 투표
      * @request POST:/place/vote/{promiseId}/{placeId}
+     * @secure
      */
     votePlace: (
       promiseId: string,
       placeId: number,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/place/vote/${promiseId}/${placeId}`,
         method: "POST",
+        secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 장소를 등록한다
      *
-     * @tags place-controller
+     * @tags 장소
      * @name RegisterPlace
+     * @summary 장소 등록
      * @request POST:/place/register/{promiseId}
+     * @secure
      */
     registerPlace: (
       promiseId: string,
       data: PlaceRegisterDTO[],
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/place/register/${promiseId}`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 사용자의 장소 평점을 업데이트한다
      *
-     * @tags place-controller
+     * @tags 장소
+     * @name UpdatePlaceRating
+     * @summary 장소 평점 업데이트
+     * @request POST:/place/rating/{placeId}
+     * @secure
+     */
+    updatePlaceRating: (
+      placeId: number,
+      data: UserBoardReqDTO,
+      params: RequestParams = {},
+    ) =>
+      this.request<BaseResponse, ErrorResponse>({
+        path: `/place/rating/${placeId}`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description 방장일 시 장소를 확정한다
+     *
+     * @tags 장소
      * @name ConfirmedPlace
+     * @summary 장소 확정
      * @request POST:/place/confirm/{promiseId}/{placeId}
+     * @secure
      */
     confirmedPlace: (
       promiseId: string,
       placeId: number,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/place/confirm/${promiseId}/${placeId}`,
         method: "POST",
+        secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 개발 환경에서만 AI 학습을 수동으로 트리거한다
      *
-     * @tags place-controller
-     * @name CheckAiPlace
-     * @request POST:/place/check/ai/{promiseId}
+     * @tags 장소
+     * @name TrainPlace
+     * @summary [DEV ONLY] AI 학습 트리거
+     * @request POST:/place/ai/train
+     * @secure
      */
-    checkAiPlace: (
+    trainPlace: (params: RequestParams = {}) =>
+      this.request<BaseResponseObject, any>({
+        path: `/place/ai/train`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description 사용자 맞춤형 장소를 추천한다
+     *
+     * @tags 장소
+     * @name RecommendPlace
+     * @summary AI로 장소 추천
+     * @request POST:/place/ai/recommend/{promiseId}
+     * @secure
+     */
+    recommendPlace: (
       promiseId: string,
       data: UserAIInfoReqDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
-        path: `/place/check/ai/${promiseId}`,
+      this.request<BaseResponse, ErrorResponse>({
+        path: `/place/ai/recommend/${promiseId}`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 공유된 장소를 확인한다
      *
-     * @tags place-controller
+     * @tags 장소
      * @name ViewPlaceBoard
+     * @summary 장소보드
      * @request GET:/place/{promiseId}/{page}
+     * @secure
      */
     viewPlaceBoard: (
       promiseId: string,
       page: number,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/place/${promiseId}/${page}`,
         method: "GET",
+        secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 내가 공유한 장소를 삭제한다
      *
-     * @tags place-controller
+     * @tags 장소
      * @name DeletePlace
+     * @summary 공유된 장소 삭제
      * @request DELETE:/place/{placeId}
+     * @secure
      */
     deletePlace: (placeId: number, params: RequestParams = {}) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/place/${placeId}`,
         method: "DELETE",
+        secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description 공유된 장소에 대한 투표를 취소한다
      *
-     * @tags place-controller
+     * @tags 장소
      * @name CancelVotePlace
+     * @summary 공유된 장소 투표 취소
      * @request DELETE:/place/vote/{placeId}
+     * @secure
      */
     cancelVotePlace: (placeId: number, params: RequestParams = {}) =>
-      this.request<BaseResponseObject, any>({
+      this.request<BaseResponse, ErrorResponse>({
         path: `/place/vote/${placeId}`,
         method: "DELETE",
+        secure: true,
         ...params,
       }),
   };
@@ -1349,6 +1622,23 @@ export class Api<
         format: "json",
         ...params,
       }),
+
+    /**
+     * @description 액세스 토큰을 재발급을 위해 아이디를 검증한다
+     *
+     * @tags auth-check-controller
+     * @name ReissueToken1
+     * @summary 액세스 토큰 재발급 가능 확인
+     * @request GET:/auth/check/refresh
+     * @secure
+     */
+    reissueToken1: (params: RequestParams = {}) =>
+      this.request<BaseResponse, ErrorResponse>({
+        path: `/auth/check/refresh`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
   };
   api = {
     /**
@@ -1432,6 +1722,29 @@ export class Api<
       }),
 
     /**
+     * @description 가공된 정보들을 받아 GroupProxyUser와 GroupShareKey 테이블에 저장합니다. 그룹 참여가 완료되면 성공 메시지를 반환합니다.
+     *
+     * @tags 그룹
+     * @name SaveGroupMember
+     * @summary 그룹 멤버 저장
+     * @request POST:/api/v1/group/member/save
+     * @secure
+     */
+    saveGroupMember: (
+      data: SaveGroupMemberRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<JoinGroupResponse, ErrorResponse>({
+        path: `/api/v1/group/member/save`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description 서버에서 그룹에서 나가겠냐는 메시지를 반환합니다. 사용자 확인 후, 나가기 전 메시지를 안내합니다.
      *
      * @tags 그룹
@@ -1463,46 +1776,6 @@ export class Api<
     leaveGroup1: (data: LeavGroup1Request, params: RequestParams = {}) =>
       this.request<LeaveGroup1Response, ErrorResponse>({
         path: `/api/v1/group/leave1`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description 초대코드를 사용하여 그룹에 참여합니다. 서버는 Redis에서 초대코드 유효성을 확인하고, 시도 횟수를 1 증가시킵니다. 검증 후 데이터베이스에 그룹 참여 정보를 저장합니다.
-     *
-     * @tags 그룹
-     * @name JoinGroup
-     * @summary 그룹 초대받기 - Step1
-     * @request POST:/api/v1/group/join
-     * @secure
-     */
-    joinGroup: (data: JoinGroupRequest, params: RequestParams = {}) =>
-      this.request<JoinGroupResponse, ErrorResponse>({
-        path: `/api/v1/group/join`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description 개인키로 그룹키를 획득 후, 그룹키, 그룹아이디, 랜덤 UUID, 초대할 유저 이메일을 랜덤 6자리 초대암호로 암호화하여 서버에 전달합니다. 서버는 Redis에 TTL 적용 후 저장하며, 초대 링크 유효성을 확인할 수 있습니다.
-     *
-     * @tags 그룹
-     * @name InviteGroup3
-     * @summary 그룹 초대 - Step3
-     * @request POST:/api/v1/group/invite3
-     * @secure
-     */
-    inviteGroup3: (data: InviteGroup3Request, params: RequestParams = {}) =>
-      this.request<InviteGroup3Response, ErrorResponse>({
-        path: `/api/v1/group/invite3`,
         method: "POST",
         body: data,
         secure: true,
@@ -1609,34 +1882,40 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description scheduleId 리스트로 스케줄 정보와 장소 정보를 조회한다
      *
-     * @tags calendar-manage-controller
+     * @tags 캘린더 관리
      * @name ViewCalendar2
+     * @summary 개인 일정 조회 Step2
      * @request POST:/api/v1/calendar/view2
+     * @secure
      */
     viewCalendar2: (data: CalendarViewRequest2, params: RequestParams = {}) =>
-      this.request<BaseResponseListCalendarViewResponse2, any>({
+      this.request<BaseResponse, any>({
         path: `/api/v1/calendar/view2`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * No description
+     * @description timeStampInfo 리스트로 encTimeStamp 리스트를 조회한다
      *
-     * @tags calendar-manage-controller
+     * @tags 캘린더 관리
      * @name ViewCalendar1
+     * @summary 개인 일정 조회 Step1
      * @request POST:/api/v1/calendar/view1
+     * @secure
      */
     viewCalendar1: (data: CalendarViewRequest1, params: RequestParams = {}) =>
-      this.request<BaseResponseCalendarViewResponse1, any>({
+      this.request<BaseResponse, any>({
         path: `/api/v1/calendar/view1`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -1645,9 +1924,10 @@ export class Api<
     /**
      * No description
      *
-     * @tags calendar-manage-controller
+     * @tags 캘린더 관리
      * @name RewriteCalendar1
      * @request POST:/api/v1/calendar/rewrite1
+     * @secure
      */
     rewriteCalendar1: (
       data: CalendarRewriteRequest1,
@@ -1657,26 +1937,53 @@ export class Api<
         path: `/api/v1/calendar/rewrite1`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * No description
+     * @description 개인 일정의 시간 정보(encStartTimeAndEndTime, timeStampInfo)를 저장한다
      *
-     * @tags calendar-manage-controller
+     * @tags 캘린더 관리
+     * @name CreateCalendar2
+     * @summary 일정 등록 Step2
+     * @request POST:/api/v1/calendar/create2
+     * @secure
+     */
+    createCalendar2: (
+      data: CalendarCreateRequest2,
+      params: RequestParams = {},
+    ) =>
+      this.request<BaseResponse, any>({
+        path: `/api/v1/calendar/create2`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description 일정 기본 정보(제목, 내용, 목적, 장소)를 등록한다
+     *
+     * @tags 캘린더 관리
      * @name CreateCalendar1
+     * @summary 일정 등록 Step1
      * @request POST:/api/v1/calendar/create1
+     * @secure
      */
     createCalendar1: (
       data: CalendarCreateRequest1,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponseCalendarCreateResponse1, any>({
+      this.request<BaseResponse, any>({
         path: `/api/v1/calendar/create1`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -1694,6 +2001,24 @@ export class Api<
     viewGroup1: (params: RequestParams = {}) =>
       this.request<BaseResponse, ErrorResponse>({
         path: `/api/v1/group/view1`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description 그룹 참가 URL에 접속한 후 로그인한 사용자의 이메일을 반환합니다.
+     *
+     * @tags 그룹
+     * @name GetGroupJoinEmail
+     * @summary 그룹 참가 - 이메일 조회
+     * @request GET:/api/v1/group/join/{groupId}
+     * @secure
+     */
+    getGroupJoinEmail: (groupId: string, params: RequestParams = {}) =>
+      this.request<GetGroupJoinEmailResponse, ErrorResponse>({
+        path: `/api/v1/group/join/${groupId}`,
         method: "GET",
         secure: true,
         format: "json",

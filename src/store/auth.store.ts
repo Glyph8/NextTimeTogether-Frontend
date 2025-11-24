@@ -5,11 +5,13 @@ import { create } from 'zustand';
  */
 interface AuthState {
   accessToken: string | null;     // 메모리에 저장될 AccessToken
+  userId: string | null;
   isAuthenticated: boolean;     // 인증 여부 (AT 유무로 파생)
   isLoading: boolean;           // (중요) 앱 로드 시 토큰 갱신 중인지 여부
   
   // 상태를 변경하는 액션
   setAccessToken: (token: string) => void;
+  setUserId: (userId: string) => void;
   clearAccessToken: () => void;
   setIsLoading: (loading: boolean) => void;
 }
@@ -21,6 +23,7 @@ interface AuthState {
  */
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
+  userId: null,
   isAuthenticated: false,
   isLoading: true, // <-- 앱 로드 시, 토큰 확인 전까지 로딩 상태
   
@@ -34,11 +37,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     isLoading: false 
   }),
 
+  setUserId: (userId) => set({
+    userId: userId
+  }),
   /**
    * 로그아웃 또는 세션 만료 시 토큰을 제거합니다.
    */
   clearAccessToken: () => set({ 
     accessToken: null, 
+    userId: null,
     isAuthenticated: false, 
     isLoading: false 
   }),
