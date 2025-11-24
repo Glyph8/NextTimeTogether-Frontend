@@ -13,8 +13,7 @@ export interface BackendResponse<T> {
 export const clientBaseApi = new Api({
   baseURL: MAIN_BACKEND_URL,
   securityWorker: () => {
-    // const token = localStorage.getItem("access_token");
-     // 2. localStorage 대신 Zustand의 .getState()로 토큰을 직접 읽습니다.
+     // Zustand의 .getState()로 토큰
     const token = useAuthStore.getState().accessToken;
     if (!token) {
       console.warn("No access token found in Zustand store.");

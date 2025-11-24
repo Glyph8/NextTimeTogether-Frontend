@@ -21,7 +21,6 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
   // 1. Base64URL을 표준 Base64로 변환
   // '-' -> '+'
   // '_' -> '/'
-  console.log("base64toArrayBuffer에 입력 : ", base64)
   let normalizedBase64 = base64.replace(/-/g, '+').replace(/_/g, '/');
 
   // 2. 패딩('=')이 생략된 경우 복원

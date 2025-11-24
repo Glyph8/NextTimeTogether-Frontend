@@ -84,9 +84,6 @@ export const useLogin = () => {
             id,
             masterCryptoKey,
           );
-
-          // TODO : 리프레쉬 로직 완성될 떄까지 임시 사용
-          localStorage.setItem('access_token', newAccessToken)
           // TODO : 더 나은 방법있을 시, 개선
           localStorage.setItem('encrypted_user_id', encryptedLoginId);
 

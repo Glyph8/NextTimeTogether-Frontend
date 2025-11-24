@@ -1,5 +1,3 @@
-// TODO : 추후 보안을 위해서 localStorage가 아닌 cookie로 토큰 관리할 수도 있음.
-// import axios from "axios";
 import { Api, BaseResponse, UserSignUpDTO } from "@/apis/generated/Api";
 
 const api = new Api();

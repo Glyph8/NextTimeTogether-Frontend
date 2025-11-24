@@ -4,7 +4,6 @@ import {
   getScheduleIdListPerPromise,
   getScheduleIdPerFixedPromise,
 } from "@/api/promise-view-create";
-// import { PromiseView2Response } from "@/apis/generated/Api"; // 이제 이거 안 써도 됩니다 (자동 추론됨)
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { useQuery } from "@tanstack/react-query";
@@ -16,11 +15,13 @@ export const useViewSchedules = () => {
   const groupId = params.groupId;
 
   // 1단계 결과 (복호화된 ID 리스트)
-  const [decryptedPromiseIdList, setDecryptedPromiseIdList] = useState<string[]>([]);
-  
+  const [decryptedPromiseIdList, setDecryptedPromiseIdList] = useState<
+    string[]
+  >([]);
+
   // 빈 배열(약속 없음) 조기 종료 플래그
   const [isEmptyResult, setIsEmptyResult] = useState<boolean>(false);
-  
+
   // 에러 상태
   const [error, setError] = useState<string | null>(null);
 
@@ -59,10 +60,11 @@ export const useViewSchedules = () => {
       try {
         const masterKey = await getMasterKey();
         if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
-        
+
         const decryptedPromises = await Promise.all(
           encPromiseIdList.map(async (item) => {
-            if (!item.encPromiseId) throw new Error("유효하지 않은 약속 ID입니다.");
+            if (!item.encPromiseId)
+              throw new Error("유효하지 않은 약속 ID입니다.");
             return await decryptDataWithCryptoKey(
               item.encPromiseId,
               masterKey,
@@ -74,20 +76,20 @@ export const useViewSchedules = () => {
         console.log("✅ [1단계 복호화] 완료:", decryptedPromises);
         setDecryptedPromiseIdList(decryptedPromises);
         setIsEmptyResult(false); // 데이터가 있으므로 플래그 false
-
       } catch (err: unknown) {
         console.error("🔴 [1단계 복호화] 실패:", err);
         setError("1단계 복호화 실패");
+        // pending 중지하도록 처리 추가
+        setIsEmptyResult(true);
+        setDecryptedPromiseIdList([]);
       }
     };
 
     decryptStep1Data();
   }, [encPromiseIdList]);
 
-
   // ✅ 다음 단계 실행 조건: "빈 결과가 아님" AND "복호화된 ID가 있음"
   const isStep1Finished = !isEmptyResult && decryptedPromiseIdList.length > 0;
-
 
   // --- 2단계: 진행 중인 약속 조회 ---
   const {
@@ -108,11 +110,7 @@ export const useViewSchedules = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-
   // --- 3단계: 스케줄 ID 조회 ---
-  // ⚠️ [Check Point] 원본 코드에 encPromiseKeyList가 빈 배열이었습니다. 로직 확인 필요.
-  const encPromiseKeyList: string[] = []; 
-
   const {
     data: scheduleIdList,
     isPending: isPending3,
@@ -122,15 +120,14 @@ export const useViewSchedules = () => {
     queryFn: async () => {
       console.log("🔵 [3단계] 스케쥴 ID 리스트 조회");
       const result = await getScheduleIdListPerPromise({
-        promiseIdList: encPromiseKeyList,
+        promiseIdList: decryptedPromiseIdList,
       });
       return result || [];
     },
     // encPromiseKeyList가 비어있으면 실행 안 함 (필요시 조건 수정)
-    enabled: isStep1Finished && encPromiseKeyList.length > 0, 
+    enabled: isStep1Finished && decryptedPromiseIdList.length > 0,
     staleTime: 1000 * 60 * 5,
   });
-
 
   // --- 4단계: 확정된 약속 조회 ---
   const {
@@ -141,7 +138,7 @@ export const useViewSchedules = () => {
     queryKey: ["fixedScheduleInfo", "step4", scheduleIdList],
     queryFn: async () => {
       console.log("🔵 [4단계] 확정된 스케쥴 조회");
-      
+
       // 3단계 결과에서 ID만 추출 (매핑)
       const extractedIds = scheduleIdList
         ?.map((item) => item.scheduleId)
@@ -159,21 +156,22 @@ export const useViewSchedules = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-
   // --- 최종 리턴 ---
   return {
     // 1. 데이터: 상태(State)가 아니라 쿼리 결과(Data)를 바로 내보냅니다.
-    fixedYetData: isEmptyResult ? [] : (promiseInProgressData || []),
-    fixedPromise: isEmptyResult ? [] : (fixedScheduleInfo || []),
-    
+    fixedYetData: isEmptyResult ? [] : promiseInProgressData || [],
+    fixedPromise: isEmptyResult ? [] : fixedScheduleInfo || [],
+
     // 2. 로딩 상태: 빈 결과(isEmptyResult)라면 뒤쪽 로딩은 무시합니다. (무한 로딩 해결)
-    isPending: 
-      isPending1 || 
+    isPending:
+      isPending1 ||
       // 데이터는 왔는데 아직 복호화 중인 찰나의 순간 처리
-      (!isEmptyResult && encPromiseIdList && decryptedPromiseIdList.length === 0) ||
+      (!isEmptyResult &&
+        encPromiseIdList &&
+        decryptedPromiseIdList.length === 0) ||
       // 1단계 결과가 비어있지 않다면, 2,3,4단계 로딩 상태를 반영
       (!isEmptyResult && (isPending2 || isPending3 || isPending4)),
-      
+
     // 3. 에러 통합
     error:
       error ||

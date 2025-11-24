@@ -77,7 +77,7 @@ export const getInviteEncENcNewMemberId = async (
       const realData =
       response.data as unknown as BackendResponse<InviteGroup1Response>;
       // return response.data;
-      return realData.result || {};
+      return realData.result || null
     })
     .catch((error) => {
       if (error.response) {
@@ -111,7 +111,7 @@ export const getInviteEncGroupsKeyRequest = async (
       const realData =
       response.data as unknown as BackendResponse<InviteGroup2Response>;
       // return response.data;
-      return realData.result || {};
+      return realData.result || null
     })
     .catch((error) => {
       if (error.response) {

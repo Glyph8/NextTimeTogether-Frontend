@@ -28,12 +28,6 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
   }
 
   try {
-    // 2. 메인 백엔드의 /auth/refresh 엔드포인트로 요청
-    console.log("📤 [BFF] 요청 URL:", `${MAIN_BACKEND_URL}/auth/refresh`);
-    console.log("📤 [BFF] 요청 헤더:", {
-      "refresh-token": refreshToken.substring(0, 50) + "...",
-    });
-
     const response = await axios.post(
       `${MAIN_BACKEND_URL}/auth/refresh`,
       null,

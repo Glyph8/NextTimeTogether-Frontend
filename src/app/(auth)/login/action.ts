@@ -15,8 +15,6 @@ export async function login(formData: FormData): Promise<LoginActionState> {
   const hashedUserId = formData.get("hashedUserId") as string;
   const hashedPassword = formData.get("hashedPassword") as string;
 
-  console.log('id : ',hashedUserId , 'pw', hashedPassword )
-
   if (!hashedUserId || !hashedPassword) {
     return { error: "잘못된 요청입니다." };
   }
@@ -43,8 +41,6 @@ export async function login(formData: FormData): Promise<LoginActionState> {
 
     const cookieStore = await cookies(); // 3. (BFF -> Client) RefreshToken은 httpOnly 쿠키에 저장 //    (이 쿠키는 오직 /api/auth/refresh 같은 BFF 엔드포인트에서만 사용됨)
     
-    console.log("리프레쉬 토큰 : ", refreshToken)
-
     cookieStore.set("refresh_token", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
