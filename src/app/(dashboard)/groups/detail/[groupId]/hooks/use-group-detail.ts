@@ -9,7 +9,7 @@ import {
 } from "@/api/group-view-create";
 import decryptDataClient from "@/utils/client/crypto/decryptClient";
 import { base64ToArrayBuffer } from "@/utils/client/helper";
-import { getEncGroupsIdAction, getEncGroupsKeyAction, getGroupsInfoAction } from "../../action";
+import { getEncGroupsIdAction, getEncGroupsKeyAction, getGroupsInfoAction } from "../../../action";
 
 // 기존 타입 재사용
 interface GroupInfoData {

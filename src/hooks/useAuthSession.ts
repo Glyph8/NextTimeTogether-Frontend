@@ -21,7 +21,7 @@ export const useAuthSession = () => {
 
   useEffect(() => {
     // 1. 이미 메모리에 세션이 있거나, 로그인 페이지라면 복원 시도 안 함
-    if ((accessToken && userId) || pathname === "/login" || pathname === "/") {
+    if ((accessToken && userId) || pathname === "/login" || pathname.includes("/register") || pathname === "/") {
       console.log("이미 세션이 있거나, 로그인이므로 userID 복원하지 않음. 현재 userId : ", userId);
       setIsRestoring(false);
       return;

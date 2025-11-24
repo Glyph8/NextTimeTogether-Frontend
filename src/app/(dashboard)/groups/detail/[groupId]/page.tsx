@@ -11,8 +11,8 @@ import { GroupMemberItem } from "./(components)/GroupMemberItem";
 import { useState } from "react";
 import { GroupInviteDialog } from "./(components)/GroupInviteDialog";
 import { useParams, useRouter } from "next/navigation";
-import { useViewSchedules } from "./use-view-schedules";
-import { useGroupDetail } from "./use-group-detail";
+import { useViewSchedules } from "./hooks/use-view-schedules";
+import { useGroupDetail } from "./hooks/use-group-detail";
 
 
 export default function DetailGroupPage() {
@@ -86,7 +86,7 @@ export default function DetailGroupPage() {
                             )}
                         </div>
                     ) : (
-                        <p>정하고 있는 약속이 없어요!</p>
+                        <p className="text-center">정하고 있는 약속이 없어요!</p>
                     )}
                     
                     {/* {openOngoing && (                        
@@ -127,7 +127,7 @@ export default function DetailGroupPage() {
                                 place="카페온더플랜"
                             /> */}
                         </div>
-                    ): <p>확정된 약속이 없어요!</p>}
+                    ): <p className="text-center">확정된 약속이 없어요!</p>}
                 </div>
             </div>
 
@@ -156,7 +156,7 @@ export default function DetailGroupPage() {
                     groupDetail?.userIds
                 } */}
                 </p>
-                <div className="flex p-4 bg-white gap-2 rounded-[20px]">
+                <div className="flex p-4 bg-white gap-3 rounded-[20px]">
                     {
                         (groupDetail?.userIds ?? []).map((member) => (
                             <GroupMemberItem key={member} name={member} marker={
