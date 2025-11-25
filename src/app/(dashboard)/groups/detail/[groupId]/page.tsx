@@ -13,6 +13,7 @@ import { GroupInviteDialog } from "./(components)/GroupInviteDialog";
 import { useParams, useRouter } from "next/navigation";
 import { useViewSchedules } from "./hooks/use-view-schedules";
 import { useGroupDetail } from "./hooks/use-group-detail";
+import { useGroupStore } from "@/store/group-detail.store";
 
 export default function DetailGroupPage() {
   const router = useRouter();
@@ -23,12 +24,17 @@ export default function DetailGroupPage() {
   // TODO: 추후 url query의 groupId도 암호화-복호화 필요
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
-
+  const setGroup = useGroupStore((state) => state.setGroup);
   const { fixedYetData, fixedPromise, isPending } = useViewSchedules();
 
   // TODO : 약속 조회 말고, 해당 그룹 내부 정보만 따로 주는 API가 있는게..
   const { data: groupDetail, isPending: isGroupFetching } =
     useGroupDetail(groupId);
+
+  const handleNavtoCreateSchedule = () => {
+    setGroup(groupDetail!);
+    router.push("/schedules/create");
+  };
 
   if (isPending || isGroupFetching) {
     return <div>그룹 내 약속 정보 로딩중...</div>;
@@ -57,7 +63,7 @@ export default function DetailGroupPage() {
           <div className="justify-start text-black-1 text-lg font-medium leading-tight px-1">
             내 약속
           </div>
-          <button onClick={() => router.push("/schedules/create")}>
+          <button onClick={handleNavtoCreateSchedule}>
             <Plus />
           </button>
         </div>
