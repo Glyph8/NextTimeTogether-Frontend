@@ -10,9 +10,7 @@ export default function GroupsPageLayout({
 }>) {
 
     const pathName = usePathname();
-
     const showBottomNav = pathName === "/groups";
-
     return (
         <div className="flex flex-col min-h-screen bg-white">
             <main className="flex-1 flex flex-col overflow-y-auto">

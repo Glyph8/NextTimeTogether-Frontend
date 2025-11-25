@@ -6,11 +6,13 @@ import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg"
 import ArrowDown from "@/assets/svgs/icons/arrow-down-gray.svg"
 import ArrowUp from "@/assets/svgs/icons/arrow-up-gray.svg";
 import Plus from "@/assets/svgs/icons/plus-gray.svg"
-import { GroupScheduleItem } from "./GroupScheduleItem";
-import { GroupMemberItem } from "./GroupMemberItem";
+import { GroupScheduleItem } from "./(components)/GroupScheduleItem";
+import { GroupMemberItem } from "./(components)/GroupMemberItem";
 import { useState } from "react";
-import { GroupInviteDialog } from "./GroupInviteDialog";
-import { useRouter } from "next/navigation";
+import { GroupInviteDialog } from "./(components)/GroupInviteDialog";
+import { useParams, useRouter } from "next/navigation";
+import { useViewSchedules } from "./hooks/use-view-schedules";
+import { useGroupDetail } from "./hooks/use-group-detail";
 
 
 export default function DetailGroupPage() {
@@ -19,6 +21,21 @@ export default function DetailGroupPage() {
     const [openOngoing, setOpenOngoing] = useState(true);
     const [openFixed, setOpenFixed] = useState(true);
     const [inviteModal, setInviteModal] = useState(false);
+    // TODO: 추후 url query의 groupId도 암호화-복호화 필요
+    const params = useParams<{ groupId: string }>();
+    const groupId = params.groupId
+    
+    const { fixedYetData, fixedPromise, isPending } = useViewSchedules();
+    
+    // TODO : 약속 조회 말고, 해당 그룹 내부 정보만 따로 주는 API가 있는게..
+    const {data: groupDetail, isPending:isGroupFetching} = useGroupDetail(groupId)
+
+
+    if(isPending || isGroupFetching){
+        return <div>
+            그룹 내 약속 정보 로딩중...
+        </div>
+    }
 
     return (
         <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
@@ -29,14 +46,13 @@ export default function DetailGroupPage() {
                     </Link>
                 }
                 title={
-                        "소프트웨어공학 2조"
+                       groupDetail?.groupName
                 } />
             <div className="flex flex-col justify-center items-center gap-5 text-black-1 pt-7 pb-5">
-                {/* <Image src={"https://placehold.co/64x64"} alt="팀" width={64} height={64}
-                                    className="border-gray-1 rounded-[8px]" /> */}
                 <div className="w-16 h-16 bg-amber-500 border-gray-1 rounded-[8px]" />
                 <span className="text-gray-1 text-sm font-normal leading-tight">
-                    소프트웨어공학 2조
+                    {/* TODO : 그룹 설명 내용 좀 필요.. */}
+                    {groupDetail?.groupName}
                 </span>
             </div>
 
@@ -58,13 +74,21 @@ export default function DetailGroupPage() {
                         }
                     </button>
 
-                    {openOngoing && (
+
+                     {openOngoing && fixedYetData && fixedYetData.length > 0 ? (
                         <div className="flex flex-col gap-2">
-                            <GroupScheduleItem category={"스터디"} title={"주제 정하기"} place="학교" />
-                            <GroupScheduleItem category={"스터디"} title={"내용 정하기"} time="10/12 (토)  09:00~12:00" attendees="온라인" />
-                            <GroupScheduleItem category={"식사"} title={"하기"} time="10/12 (토)  09:00~12:00" attendees="오프라인" place="카페온더플랜" />
+                            {fixedYetData.map((onProgressPromise)=>
+                            <GroupScheduleItem key={onProgressPromise.promiseId}
+                            category={onProgressPromise.type ?? ''} title={onProgressPromise.title ?? ''}/>
+                            )}
                         </div>
-                    )}
+                     ) : openOngoing ? (
+                        <p className="text-center">정하고 있는 약속이 없어요!</p>
+                     ) : null}
+                    
+                    {/* {openOngoing && (                        
+                            <GroupScheduleItem category={"스터디"} title={"내용 정하기"} time="10/12 (토)  09:00~12:00" attendees="온라인" />
+                    )} */}
 
                 </div>
 
@@ -76,24 +100,30 @@ export default function DetailGroupPage() {
                          openFixed ? <ArrowDown /> : <ArrowUp/>
                         }
                     </button>
-                    {openFixed && (
+                    {openFixed && fixedPromise && fixedPromise.length > 0 ? (
                         <div className="flex flex-col gap-2">
-                            <GroupScheduleItem category={"스터디"} title={"주제 정하기"} place="학교" />
-                            <GroupScheduleItem
-                                category={"스터디"}
-                                title={"내용 정하기"}
-                                time="10/12 (토) 09:00~12:00"
-                                attendees="온라인"
-                            />
-                            <GroupScheduleItem
+                            {
+                                fixedPromise.map((schedule)=>
+                                <GroupScheduleItem key={schedule.scheduleId} 
+                                category={schedule.purpose ?? ''} 
+                                title={schedule.title ?? ''}
+                                time={schedule.content}
+                                // place={schedule.placeId ?? ''}
+                                attendees={schedule.content}
+                                />)
+                            }
+                            {/* <GroupScheduleItem
                                 category={"식사"}
                                 title={"하기"}
                                 time="10/12 (토) 09:00~12:00"
                                 attendees="오프라인"
                                 place="카페온더플랜"
-                            />
+                            /> */}
                         </div>
-                    )}
+                          ) : openOngoing ? (
+                    <p className="text-center">확정된 약속이 없어요!</p>
+                    
+                    ) : null}
                 </div>
             </div>
 
@@ -104,22 +134,39 @@ export default function DetailGroupPage() {
                             그룹원
                         </div>
                         <span className="text-gray-2 text-sm font-medium leading-tight">
-                            8 / 30
+                            {groupDetail?.userIds.length} / 30
                         </span>
                     </div>
                     <button onClick={() => setInviteModal(true)}>
                         <Plus />
                     </button>
                 </div>
-
-                <div className="flex p-4 bg-white gap-2 rounded-[20px]">
-                    <GroupMemberItem marker={["사용자"]} name={"김나박이"} />
+                 <p>
+                {/* TODO : managerId는 평문인가 아닌가, 무엇으로 암복호화되는가 */}
+                {/* {
+                   groupDetail?.managerId
+                }
+                </p>
+                <p>
+                {
+                    groupDetail?.userIds
+                } */}
+                </p>
+                <div className="flex p-4 bg-white gap-3 rounded-[20px]">
+                    {
+                        (groupDetail?.userIds ?? []).map((member) => (
+                            <GroupMemberItem key={member} name={member} marker={
+                                groupDetail?.managerId === member ? ["그룹장"] : undefined
+                            } />
+                        ))
+                    }
+                    {/* <GroupMemberItem marker={["사용자"]} name={"김나박이"} />
                     <GroupMemberItem marker={["그룹장"]} name={"가나다람바사아자차카파타하"} />
                     <GroupMemberItem marker={["사용자", "그룹장"]} name="둘다" />
-                    <GroupMemberItem name={"먼데이"} />
+                    <GroupMemberItem name={"먼데이"} /> */}
                 </div>
             </div>
-            <GroupInviteDialog isOpen={inviteModal} setIsOpen={setInviteModal} />
+            <GroupInviteDialog isOpen={inviteModal} setIsOpen={setInviteModal} groupId={groupId ?? 'error'}/>
         </div>
     )
 }

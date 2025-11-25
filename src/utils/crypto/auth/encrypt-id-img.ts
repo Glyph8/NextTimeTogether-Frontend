@@ -1,3 +1,4 @@
+/** iv를 사용하지 않도록 작성한 id 암호화 함수 - 확인필요 */
 export async function hmacSha256Truncated(
   key: ArrayBuffer | string,
   keyword: string,
@@ -31,7 +32,6 @@ export async function hmacSha256Truncated(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
-
 
 // TODO : 이거 맞냐..? img-iv를 보내줘야해서 내가 추가함.
 export async function hmacSha256TruncatedWithIv(

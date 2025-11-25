@@ -10,7 +10,7 @@ function generateGroupJoinURL(groupKey: string, groupId: string): string {
   // 이렇게 직렬화 한 경우 decode-invite-code.ts에서 사용시, 수정 필요.
   // https://github.com/Glyph8/NextTimeTogether-Frontend/pull/16#discussion_r2426258318
 
-  const url = `http://localhost:8080/group/join?token=${encodeURIComponent(token)}`;
+  const url = `http://localhost:8080/groups/join?token=${encodeURIComponent(token)}`;
   return url;
 }
 
