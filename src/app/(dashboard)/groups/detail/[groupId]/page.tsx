@@ -33,7 +33,7 @@ export default function DetailGroupPage() {
 
   const handleNavtoCreateSchedule = () => {
     setGroup(groupDetail!);
-    router.push("/schedules/create");
+    router.push(`/schedules/create/${groupId}`);
   };
 
   if (isPending || isGroupFetching) {

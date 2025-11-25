@@ -16,7 +16,7 @@ export default function GroupsPage() {
   const [isOpenEnterDialog, setIsOpenEnterDialog] = useState(false);
 
   const { data, isPending } = useDecryptedGroupList();
-
+  
   const handleCreateBtn = () => {
     router.push("/groups/create");
   };
@@ -48,12 +48,6 @@ export default function GroupsPage() {
           그룹 만들기
         </button>
 
-        <button
-          className="inline-flex w-[50%] px-5 py-2.5 mx-2 bg-main rounded-[8px] text-center justify-center text-white text-base font-medium leading-tight"
-          onClick={handleJoinBtn}
-        >
-          임시 초대 수락
-        </button>
       </div>
 
       {isPending ? (

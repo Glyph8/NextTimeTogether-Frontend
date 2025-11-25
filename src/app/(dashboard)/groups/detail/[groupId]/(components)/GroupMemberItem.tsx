@@ -51,13 +51,13 @@ export const GroupMemberItem = ({
       {selectable ? (
         <>
           {isSelected ? (
-            <button className="w-4.5">
+            <div className="w-4.5">
               <Checked />
-            </button>
+            </div>
           ) : (
-            <button className="w-4.5">
+            <div className="w-4.5">
               <Unchecked />
-            </button>
+            </div>
           )}
         </>
       ) : null}
