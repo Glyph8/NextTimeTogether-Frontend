@@ -2,28 +2,24 @@
 
 import Header from "@/components/ui/header/Header";
 import X from "@/assets/svgs/icons/x-black.svg";
-import XWhite from "@/assets/svgs/icons/x-white.svg";
+import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { GroupMemberItem } from "../../../groups/detail/[groupId]/(components)/GroupMemberItem";
+import { SetStateAction, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button/Button";
-import { RadioButton } from "@/components/shared/Input/RadioButton";
 import { useGroupStore } from "@/store/group-detail.store";
 import { useGroupDetail } from "../../../groups/detail/[groupId]/hooks/use-group-detail";
-import { createPromise } from "@/api/promise-view-create";
-import { useAuthStore } from "@/store/auth.store";
-
-type PurposeType = "study" | "meal";
+import PromiseCreateInfo from "./components/PromiseCreateInfo";
+import { useCreatePromise } from "./hooks/use-create-promise";
+import SelectSchedule from "./components/SelectTimeOnline";
+import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
+import { PromiseSummary } from "./components/PromiseSummary";
 
 export default function CreateSchedulePage() {
   const params = useParams<{ groupId: string }>();
   const groupIdFromUrl = params.groupId;
   const router = useRouter();
   const [progress, setProgress] = useState(1);
-  const [topic, setTopic] = useState("");
-  const [purpose, setPurpose] = useState<PurposeType>("study");
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-
+  const [isOpen, setIsOpen] = useState(false);
   // 약속 생성 1단계 - 암호화된 그룹 아이디 제공 ➡️ 이중암호화된 멤버 아이디 획득
   // 약속 생성 2단계 - 암호화된 그룹 아이디, 암호화된 멤버 아이디 제공 ➡️ 암호화된 그룹 키 획득
   // 약속 생성 3단계 - 평문 그룹 아이디 제공 ➡️ 평문 그룹 아이디, 평문 그룹 이름, 그룹 이미지, 그룹장 아이디, 암호화된 멤버 아이디 획득
@@ -41,7 +37,8 @@ export default function CreateSchedulePage() {
     isPending,
     error,
   } = useGroupDetail(targetIdForFetch);
-
+  const promiseForm = useCreatePromise(groupIdFromUrl);
+  const { values, actions } = promiseForm;
   // 4. 새로고침으로 데이터를 다시 가져왔다면, 스토어 동기화 (선택사항, 추후 이동 대비)
   useEffect(() => {
     if (fetchedGroup) {
@@ -50,160 +47,80 @@ export default function CreateSchedulePage() {
     console.log(fetchedGroup);
   }, [fetchedGroup, setGroup]);
 
-  const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("선택된 값:", event.target.value);
-    setPurpose(event.target.value as PurposeType);
-  };
-  const isSelected = (userId: string) => selectedMembers.includes(userId);
-  const handleMemberChange = (userId: string) => {
-    if (isSelected(userId)) {
-      setSelectedMembers(
-        selectedMembers.filter((memberId) => memberId !== userId)
-      );
-    } else {
-      setSelectedMembers([...selectedMembers, userId]);
-    }
-  };
-
-  const handleCreatePromise = async () => {
-    const userId = useAuthStore.getState().userId;
-    if(!userId){
-      console.log("약속 생성 중 사용자의 아이디를 불러오는데 실패했습니다")
-      return;
-    }
-    // TODO : 일단 약속장은 생성한 사람이 되도록 처리
-    const promiseInfo = {
-      groupId: groupIdFromUrl,
-      title: topic,
-      type: purpose,
-      promiseImg: "이미지",
-      managerId: userId,
-      // startDate: "123",
-      // endDate: "123",
-    };
-    const createResult = await createPromise(promiseInfo)
-    alert(createResult.promiseId);
-  };
+  const isStep1 = progress === 1;
 
   // 그룹 정보 획득한 경우
   const activeGroup = selectedGroup || fetchedGroup;
 
   if (activeGroup) {
     return (
-      <div className="bg-white">
+      <div className="bg-white h-dvh flex flex-col">
+        <YesNoDialog isOpen={isOpen} setIsOpen={setIsOpen} 
+        title={
+          <PromiseSummary
+              topic={values.topic}
+              purpose={values.purpose}
+              schedule={values.schedule}
+              members={activeGroup.userIds}
+              selectedMemberIds={values.selectedMembers}
+            />
+        } 
+        acceptedTitle={"약속을 성공적으로 만들었어요."} 
+        rejectText={"취소"} 
+        acceptText={"만들기"} 
+        extraHandleReject={()=>setIsOpen(false)} 
+        extraHandleAccept={actions.submitPromise}/>
         <Header
           leftChild={
-            <button onClick={() => router.back()}>
-              <X />
-            </button>
+            isStep1 ? (
+              <button onClick={() => router.back()}>
+                <X />
+              </button>
+            ) : (
+              <button onClick={() => setProgress(1)}>
+                <LeftArrow />
+              </button>
+            )
           }
           title={"약속 만들기"}
         />
-        <div className="w-full px-4">
-          <div className="w-full h-16 py-7 relative">
-            <div
-              className="h-2 bg-main rounded-[20px] transition-all duration-300 z-10 absolute"
-              style={{
-                width: `${(progress / 6) * 100}%`,
-              }}
-            />
-            <div className="w-full h-2 bg-gray-3 rounded-[20px] z-1" />
-          </div>
+        <div className="w-full h-16 py-7 relative px-4">
+          <div className="w-full h-2 bg-gray-3 rounded-[20px] z-1" />
+          <div
+            className="h-2 bg-main rounded-[20px] transition-all duration-300 z-10 relative bottom-2"
+            style={{
+              width: `${(progress / 2) * 100}%`,
+            }}
+          />
+        </div>
 
-
-
-          <nav className="text-black-1 text-xl font-medium leading-loose">
-            약속 정보를 입력해주세요.
-          </nav>
-
-          <div className="py-4">
-            <span className="text-gray-1 text-sm font-normal leading-tight">
-              주제
-            </span>
-            <div className="w-full flex justify-between relative">
-              <input
-                placeholder="약속 이름을 입력해주세요."
-                className="w-full py-2.5 text-black-1 text-base font-medium leading-tight border-b-1 focus:border-b-main"
-                onChange={(e) => setTopic(e.target.value)}
-                value={topic}
-              />
-              {topic !== "" && (
-                <button
-                  className="absolute right-1 top-3 w-5 h-5 bg-gray-3 rounded-full flex justify-center items-center"
-                  onClick={() => setTopic("")}
-                >
-                  <XWhite />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 py-4">
-            <div className="flex justify-between py-2 gap-2 items-center text-gray-2 text-sm font-medium leading-tight">
-              <div>참여 그룹원</div>
-              <span>
-                {selectedMembers.length} / {selectedGroup?.userIds.length}
-              </span>
-            </div>
-
-            <div className="flex p-4 bg-[#F9F9F9] gap-3 rounded-[20px]">
-              {selectedGroup?.userIds.map((member) => (
-                <GroupMemberItem
-                  key={member}
-                  name={member}
-                  selectable={true}
-                  isSelected={isSelected(member)}
-                  onClick={() => handleMemberChange(member)}
-                  marker={
-                    fetchedGroup?.managerId === member ? ["그룹장"] : undefined
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="py-4">
-            <span className="text-gray-1 text-sm font-normal leading-tight">
-              목적
-            </span>
-            <div className="flex gap-3">
-              <RadioButton
-                id="study"
-                name="purpose"
-                value="study"
-                label="스터디"
-                checked={purpose === "study"}
-                handleChange={handleOptionChange}
-              />
-              <RadioButton
-                id="meal"
-                name="purpose"
-                value="meal"
-                label="식사"
-                checked={purpose === "meal"}
-                handleChange={handleOptionChange}
-              />
-            </div>
-          </div>
-          <div className="pt-11 pb-5">
-            <Button
-              text={"다음"}
-              disabled={false}
-              onClick={() => {
-                // setProgress(2);
-                handleCreatePromise()
-              }}
-            />
-          </div>
+        <div className="flex flex-col flex-1 px-4">
+          {isStep1 ? (
+            <PromiseCreateInfo form={promiseForm} groupData={activeGroup} />
+          ) : (
+            <SelectSchedule 
+           schedule={values.schedule}
+           onScheduleChange={actions.handleScheduleChange}
+        />
+          )}
+        </div>
+        <div className="pt-11 pb-5 px-4 w-full flex justify-center">
+          <Button
+            text={isStep1 ? "다음" : "약속 만들기"}
+            disabled={false}
+            onClick={() => {
+              if (isStep1) {
+                setProgress(2);
+              }
+              else{
+                setIsOpen(true)
+              }
+            }}
+          />
         </div>
       </div>
     );
   }
-
-
-
-
-
 
   if (isPending) {
     return (
