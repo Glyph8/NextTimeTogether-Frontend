@@ -103,7 +103,7 @@ export const useGroupDetail = (targetGroupId: string | null) => {
         groupKeyArrayBuffer,
         { name: "AES-GCM" },
         false,
-        ["decrypt"]
+        ["decrypt", "encrypt"]
       );
     },
     // 1단계 데이터(groupMetadata)가 준비되어야 실행
@@ -157,6 +157,7 @@ export const useGroupDetail = (targetGroupId: string | null) => {
 
   return {
     data: finalGroupData,
+    groupKey: groupKey,
     isPending,
     error: error
       ? error instanceof Error

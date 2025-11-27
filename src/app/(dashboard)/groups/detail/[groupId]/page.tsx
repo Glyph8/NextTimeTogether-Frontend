@@ -28,12 +28,18 @@ export default function DetailGroupPage() {
   const { fixedYetData, fixedPromise, isPending } = useViewSchedules();
 
   // TODO : 약속 조회 말고, 해당 그룹 내부 정보만 따로 주는 API가 있는게..
-  const { data: groupDetail, isPending: isGroupFetching } =
-    useGroupDetail(groupId);
+  const {
+    data: groupDetail,
+    groupKey,
+    isPending: isGroupFetching,
+  } = useGroupDetail(groupId);
 
   const handleNavtoCreateSchedule = () => {
-    setGroup(groupDetail!);
-    router.push(`/schedules/create/${groupId}`);
+    if (groupDetail && groupKey) {
+      setGroup(groupDetail, groupKey);
+      router.push(`/schedules/create/${groupId}`);
+    }
+    alert("그룹 정보 혹은 그룹키 로딩에 실패")
   };
 
   if (isPending || isGroupFetching) {

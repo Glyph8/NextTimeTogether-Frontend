@@ -3,6 +3,8 @@ import { useAuthStore } from "@/store/auth.store";
 import { createPromise } from "@/api/promise-view-create";
 import { convertToISO } from "../utils/date-converter";
 import { useRouter } from "next/navigation";
+import { invitePromiseService } from "../utils/join-promise";
+import { useGroupStore } from "@/store/group-detail.store";
 
 export type PurposeType = "study" | "meal";
 
@@ -20,13 +22,12 @@ export type SchedulePeriod = {
   end: DateTimeValue;
 };
 
-
 export const useCreatePromise = (groupId: string | undefined) => {
-  const router = useRouter()
+  const router = useRouter();
 
   // TODO : 임시 날짜 UI 데이터. 추후 디자인 확정 시 수정
   const now = new Date();
-const defaultDateTime: DateTimeValue = {
+  const defaultDateTime: DateTimeValue = {
     year: String(now.getFullYear()),
     month: String(now.getMonth() + 1).padStart(2, "0"),
     day: String(now.getDate()).padStart(2, "0"),
@@ -45,14 +46,15 @@ const defaultDateTime: DateTimeValue = {
   const [purpose, setPurpose] = useState<PurposeType>("study");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
+  const { groupKey } = useGroupStore();
 
   // 멤버 선택 로직
   const isSelected = (userId: string) => selectedMembers.includes(userId);
   const handleMemberChange = (userId: string) => {
     if (isSelected(userId)) {
-      setSelectedMembers(prev => prev.filter(id => id !== userId));
+      setSelectedMembers((prev) => prev.filter((id) => id !== userId));
     } else {
-      setSelectedMembers(prev => [...prev, userId]);
+      setSelectedMembers((prev) => [...prev, userId]);
     }
   };
 
@@ -60,7 +62,10 @@ const defaultDateTime: DateTimeValue = {
     setPurpose(event.target.value as PurposeType);
   };
 
-  const handleScheduleChange = (type: "start" | "end", newValue: DateTimeValue) => {
+  const handleScheduleChange = (
+    type: "start" | "end",
+    newValue: DateTimeValue
+  ) => {
     setSchedule((prev) => ({
       ...prev,
       [type]: newValue,
@@ -73,7 +78,7 @@ const defaultDateTime: DateTimeValue = {
 
     const startIso = convertToISO(schedule.start);
     const endIso = convertToISO(schedule.end);
-    
+
     const promiseInfo = {
       groupId,
       title: topic,
@@ -81,19 +86,25 @@ const defaultDateTime: DateTimeValue = {
       promiseImg: "default_image.png", // 이미지 처리가 안되어 있다면 기본값 혹은 빈값
       managerId: userId,
       startDate: startIso,
-       endDate: endIso
+      endDate: endIso,
     };
 
-    console.log(
-      promiseInfo
-    )
+    console.log(promiseInfo);
 
     try {
       const createResult = await createPromise(promiseInfo);
       // 성공 처리 로직 (예: 페이지 이동)
       alert(`약속 생성 완료: ${createResult.promiseId}`);
-      if(createResult.promiseId){
-        router.push('schedules/detail') 
+      if (createResult.promiseId) {
+        const joinResult = await invitePromiseService(
+          userId,
+          createResult.promiseId,
+          groupKey
+        );
+        if (joinResult) {
+          alert(`약속 참가 성공 : ${joinResult.message}`);
+          router.push("schedules/detail");
+        }
       }
     } catch (e) {
       console.error(e);
@@ -103,13 +114,13 @@ const defaultDateTime: DateTimeValue = {
   // 뷰에서 필요한 모든 것들을 하나의 객체로 리턴합니다.
   return {
     values: { topic, purpose, selectedMembers, schedule },
-    actions: { 
-      setTopic, 
-      handleOptionChange, 
-      handleMemberChange, 
+    actions: {
+      setTopic,
+      handleOptionChange,
+      handleMemberChange,
       handleScheduleChange,
-      submitPromise 
+      submitPromise,
     },
-    helpers: { isSelected }
+    helpers: { isSelected },
   };
 };

@@ -4,7 +4,7 @@ import Header from "@/components/ui/header/Header";
 import X from "@/assets/svgs/icons/x-black.svg";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import { useParams, useRouter } from "next/navigation";
-import { SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button/Button";
 import { useGroupStore } from "@/store/group-detail.store";
 import { useGroupDetail } from "../../../groups/detail/[groupId]/hooks/use-group-detail";
@@ -34,6 +34,7 @@ export default function CreateSchedulePage() {
 
   const {
     data: fetchedGroup,
+    groupKey,
     isPending,
     error,
   } = useGroupDetail(targetIdForFetch);
@@ -41,11 +42,11 @@ export default function CreateSchedulePage() {
   const { values, actions } = promiseForm;
   // 4. 새로고침으로 데이터를 다시 가져왔다면, 스토어 동기화 (선택사항, 추후 이동 대비)
   useEffect(() => {
-    if (fetchedGroup) {
-      setGroup(fetchedGroup);
+    if (fetchedGroup && groupKey) {
+      setGroup(fetchedGroup, groupKey);
     }
     console.log(fetchedGroup);
-  }, [fetchedGroup, setGroup]);
+  }, [fetchedGroup, groupKey, setGroup]);
 
   const isStep1 = progress === 1;
 
