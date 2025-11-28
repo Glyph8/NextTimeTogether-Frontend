@@ -27,8 +27,6 @@ export default function CreateSchedulePage() {
 
   // 약속 생성 4단계 - 평문 그룹 아이디, 약속 제목, 약속 타입, 약속 이미지, 약속장 아이디, 시작과 종료 날짜
   const { selectedGroup, setGroup } = useGroupStore();
-  // 메모리에 데이터가 이미 있다면(selectedGroup 존재), 훅에 null을 넘겨 요청을 원천 차단합니다.
-  // 메모리에 데이터가 없다면(새로고침 등), URL의 groupId를 넘겨 3-step 요청을 시작합니다.
   const targetIdForFetch =
     selectedGroup?.groupId === groupIdFromUrl ? null : groupIdFromUrl;
 

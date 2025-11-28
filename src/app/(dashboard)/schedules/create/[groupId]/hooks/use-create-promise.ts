@@ -39,7 +39,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
   // 통합된 상태
   const [schedule, setSchedule] = useState<SchedulePeriod>({
     start: defaultDateTime,
-    end: defaultDateTime, // 실제로는 1시간 뒤 등으로 설정하면 더 좋습니다.
+    end: defaultDateTime,
   });
 
   const [topic, setTopic] = useState("");

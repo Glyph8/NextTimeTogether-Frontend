@@ -15,6 +15,7 @@ export const invitePromiseService = async (
   }
 
   // 약속 공유키 생성
+  // TODO : promiseKey를 join에서 생성하는게 맞나? 그리고 그룹처럼 promiseKey를 응답하는 API가 있는 것인가?
   const promiseKey = await testGenerateKey();
 
   // TODO : 메일 보내기 생략. 추후 로직 정립 후 적용

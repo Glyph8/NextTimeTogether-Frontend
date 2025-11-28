@@ -39,7 +39,7 @@ export default function DetailGroupPage() {
       setGroup(groupDetail, groupKey);
       router.push(`/schedules/create/${groupId}`);
     }
-    alert("그룹 정보 혹은 그룹키 로딩에 실패")
+    alert("그룹 정보 혹은 그룹키 로딩에 실패");
   };
 
   if (isPending || isGroupFetching) {
@@ -84,13 +84,22 @@ export default function DetailGroupPage() {
 
           {openOngoing && fixedYetData && fixedYetData.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {fixedYetData.map((onProgressPromise) => (
-                <GroupScheduleItem
-                  key={onProgressPromise.promiseId}
-                  category={onProgressPromise.type ?? ""}
-                  title={onProgressPromise.title ?? ""}
-                />
-              ))}
+              {fixedYetData.map((onProgressPromise) => {
+                const { promiseId, type, title, startDate, endDate } =
+                  onProgressPromise;
+
+                // TODO: startDate가 시간표로 확정한 시간이 와야되는 거 아닌가?
+                // TODO : 장소 데이터가 없는 이유는 장소 확정되면 fixed되서 스케쥴이 되기 떄문?
+                return (
+                  <GroupScheduleItem
+                    key={promiseId}
+                    id={promiseId ?? ""}
+                    category={type ?? ""}
+                    title={title ?? ""}
+                    time={`${startDate} ~ ${endDate}`}
+                  />
+                );
+              })}
             </div>
           ) : openOngoing ? (
             <p className="text-center">정하고 있는 약속이 없어요!</p>
@@ -111,16 +120,21 @@ export default function DetailGroupPage() {
           </button>
           {openFixed && fixedPromise && fixedPromise.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {fixedPromise.map((schedule) => (
-                <GroupScheduleItem
-                  key={schedule.scheduleId}
-                  category={schedule.purpose ?? ""}
-                  title={schedule.title ?? ""}
-                  time={schedule.content}
-                  // place={schedule.placeId ?? ''}
-                  attendees={schedule.content}
-                />
-              ))}
+              {fixedPromise.map((schedule) => {
+                const {scheduleId, purpose, title, content, placeId} = schedule
+                return (
+                  <GroupScheduleItem
+                    key={scheduleId}
+                    id={scheduleId ?? ""}
+                    category={purpose ?? ""}
+                    title={title ?? ""}
+                    time={content}
+                    // TODO : placeID로 주는 이유는? 이걸 어떻게 장소로 봄?
+                    place={placeId?.toString()}
+                    attendees={content}
+                  />
+                );
+              })}
               {/* <GroupScheduleItem
                                 category={"식사"}
                                 title={"하기"}
