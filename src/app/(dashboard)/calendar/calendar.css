@@ -1,0 +1,366 @@
+/* --- 1. FullCalendar 메인 페이지 스타일 (`page.tsx`) --- */
+
+.custom-calendar-container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  /* FullCalendar가 기본으로 a 태그에 주는 밑줄 제거 */
+  --fc-list-event-hover-bg-color: none;
+}
+.custom-calendar-container a {
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+/* 요일 헤더 (일, 월, 화...) */
+.custom-day-header {
+  background-color: white !important;
+  border: none !important;
+  line-height: 2.5rem; /* h-9.5 */
+  font-size: 0.875rem; /* text-xs */
+  color: #6b7280; /* text-gray-500 */
+  font-weight: 500; /* font-medium */
+  padding: 4px 0;
+  text-align: center;
+}
+
+/* 날짜 셀 */
+.custom-day-cell {
+  border-color: #f3f4f6 !important; /* border-gray-100 */
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 4px;
+  vertical-align: top; /* 날짜 숫자가 위쪽에 붙도록 */
+}
+.custom-day-cell:hover {
+  background-color: #f9fafb; /* hover:bg-gray-50 */
+}
+
+/* 날짜 셀 프레임 높이 고정 */
+.fc-daygrid-day-frame {
+  min-height: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* 날짜 셀 이벤트 영역 */
+.fc-daygrid-day-events {
+  flex: 1;
+  overflow: visible !important; /* 여러 날짜 이벤트 표시를 위해 visible로 변경 */
+  position: relative;
+}
+
+/* 이벤트가 날짜 경계를 넘어갈 수 있도록 */
+.fc-daygrid-event-harness {
+  overflow: visible !important;
+}
+
+/* 날짜 숫자 (1, 2, 3...) */
+.fc-daygrid-day-number {
+  /* FullCalendar v5+ */
+  padding: 4px;
+  display: inline-block;
+  position: relative; /* 상대 위치 지정 (다른 달 숨김 처리용) */
+  z-index: 1; /* 다른 달 숨김 처리용 */
+}
+
+/* 오늘 날짜 (동그라미) */
+.fc-day-today {
+  background-color: transparent !important; /* FullCalendar 기본 배경 제거 */
+}
+.fc-day-today .fc-daygrid-day-number {
+  background-color: #6d28d9; /* purple-700 */
+  color: white !important; /* 글자색 흰색 강제 */
+  border-radius: 9999px; /* rounded-full */
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-weight: 600;
+}
+
+/* FullCalendar가 내부에 span(.fc-day-number)을 추가하기 때문에
+   .fc-day-today에서 숫자 스팬에 명시적으로 흰색을 적용합니다. */
+.fc-day-today .fc-daygrid-day-number .fc-day-number {
+  color: white !important;
+}
+
+/* 일요일/토요일 날짜 색상 */
+.fc-day-sun .fc-daygrid-day-number {
+  color: #ef4444 !important; /* text-red-500 */
+}
+.fc-day-sat .fc-daygrid-day-number {
+  color: #3b82f6 !important; /* text-blue-500 */
+}
+
+/* 다른 달 날짜 (연하게) */
+.fc-day-other .fc-daygrid-day-number {
+  color: #d1d5db !important; /* text-gray-300 */
+}
+
+/* 이벤트 알약 기본 스타일 */
+.custom-event-pill {
+  cursor: default !important;
+  pointer-events: none !important;
+  margin-bottom: 2px;
+  padding: 2px 4px !important;
+  font-size: 0.75rem;
+  border-radius: 3px;
+}
+.custom-event-pill:hover {
+  opacity: 1;
+}
+
+/* 여러 날짜에 걸친 이벤트가 제대로 표시되도록 */
+.fc-daygrid-event {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* +N more link */
+.fc-daygrid-more-link {
+  font-size: 0.75rem; /* text-xs */
+  color: #6b7280; /* text-gray-500 */
+  padding-left: 6px;
+  font-weight: 500;
+  margin-top: 2px;
+  display: inline-block;
+}
+
+/* 팝오버 (more 링크 클릭 시) */
+.fc-popover {
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border: 1px solid #e5e7eb; /* border-gray-200 */
+}
+.fc-popover-header {
+  background-color: #f9fafb; /* bg-gray-50 */
+  font-weight: 600;
+  border-radius: 0.5rem 0.5rem 0 0;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+/* 팝오버 알약 스타일 */
+.fc-popover-body .fc-daygrid-event-harness {
+  padding: 2px 4px;
+}
+.fc-popover-body .custom-event-pill {
+  margin-bottom: 4px; /* 팝오버 내 간격 */
+}
+
+/* --- 2. 드로워 내부 캘린더 스타일 (미니멀 + 범위 선택 디자인) --- */
+
+/* 캘린더 뷰 전체 (선 없음) */
+.minimal-calendar-view .fc-scrollgrid, /* v5+ */
+.minimal-calendar-view .fc-daygrid-body, /* v5+ */
+.minimal-calendar-view .fc-col-header /* v5+ */ {
+  border: none !important;
+}
+.minimal-calendar-view table {
+  /* 테이블 기본 테두리 제거 */
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* 드로워 내부 요일 헤더 셀 (미니멀) */
+.inline-calendar-container .minimal-calendar-header {
+  border: none !important;
+  background-color: transparent !important;
+  font-size: 0.875rem; /* text-sm */
+  color: #9ca3af; /* text-gray-400 */
+  text-align: center;
+  padding: 10px 4px; /* 헤더 패딩 조정 */
+  font-weight: 500; /* medium */
+}
+.inline-calendar-container .minimal-calendar-header a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+/* 드로워 내부 날짜 셀 (선 없음, 모바일 디자인) */
+.inline-calendar-container .minimal-calendar-cell {
+  border: none !important;
+  padding: 0 !important;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  background: transparent;
+}
+.inline-calendar-container .minimal-calendar-cell .date-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  font-weight: 500;
+  color: #222;
+  font-size: 1.1rem;
+  position: relative;
+  z-index: 2;
+  margin: 2px auto;
+  background: transparent;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* 범위 내 날짜 배경 (연한 보라) */
+/* dayCellDidMount에서 .in-range 클래스 추가 */
+.inline-calendar-container .minimal-calendar-cell.in-range::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 2px; /* 상하 여백 */
+  left: 0;
+  right: 0;
+  background-color: #ede9fe; /* purple-100 */
+  z-index: 1; /* 숫자 뒤에 오도록 */
+}
+/* 범위 시작 날짜 배경 (왼쪽 반만 연한 보라) */
+/* dayCellDidMount에서 .range-start 클래스 추가 */
+.inline-calendar-container .minimal-calendar-cell.range-start::before {
+  left: 50%;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+/* 범위 끝 날짜 배경 (오른쪽 반만 연한 보라) */
+/* dayCellDidMount에서 .range-end 클래스 추가 */
+.inline-calendar-container .minimal-calendar-cell.range-end::before {
+  right: 50%;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/* 시작 날짜 = 종료 날짜 (범위 배경 없음) */
+/* dayCellDidMount에서 .single-date 클래스 추가 */
+.inline-calendar-container .minimal-calendar-cell.single-date::before {
+  display: none;
+}
+
+/* 선택된 날짜/범위 (진한 보라 동그라미 + 흰색 숫자) */
+.inline-calendar-container .minimal-calendar-cell.range-start .date-number,
+.inline-calendar-container .minimal-calendar-cell.range-end .date-number,
+.inline-calendar-container .minimal-calendar-cell.single-date .date-number,
+.inline-calendar-container .minimal-calendar-cell.selected .date-number {
+  background: #7c3aed;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px 0 rgba(124, 58, 237, 0.08);
+}
+
+/* 범위 내에 있으면서 시작/끝이 아닌 날짜 (연한 보라, 진한 글씨) */
+.inline-calendar-container
+  .minimal-calendar-cell.in-range:not(.range-start):not(.range-end)
+  .date-number {
+  background: #ede9fe;
+  color: #5b21b6;
+  font-weight: 600;
+}
+
+/* 날짜 셀 hover 효과 (연한 회색 동그라미) - 범위 밖일 때만 */
+.inline-calendar-container
+  .minimal-calendar-cell:not(.in-range):hover
+  .date-number {
+  background: #f3f4f6;
+}
+
+/* --- FullCalendar 헤더 툴바 스타일 (드로워 내부) - 미니멀 --- */
+.inline-calendar-container .fc-header-toolbar {
+  margin-bottom: 0.75rem !important; /* mb-3 */
+  padding: 0 0.5rem; /* px-2 */
+  display: flex;
+  justify-content: space-between; /* 양 끝 정렬 */
+  align-items: center;
+}
+/* 헤더 제목 (YYYY년 M월) */
+.inline-calendar-container .fc-toolbar-title {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* font-semibold */
+  color: #1f2937; /* text-gray-800 */
+}
+/* 헤더 이전/다음 버튼 그룹 */
+.inline-calendar-container .fc-button-group {
+  display: inline-flex;
+}
+/* 헤더 이전/다음 버튼 개별 */
+.inline-calendar-container .fc-prev-button,
+.inline-calendar-container .fc-next-button {
+  background-color: transparent !important;
+  border: none !important;
+  color: #374151 !important; /* text-gray-700 */
+  padding: 0.25rem !important; /* p-1 */
+  box-shadow: none !important;
+  margin: 0 0.25rem; /* mx-1 */
+}
+.inline-calendar-container .fc-prev-button .fc-icon,
+.inline-calendar-container .fc-next-button .fc-icon {
+  font-size: 1.5rem; /* 아이콘 크기 키움 */
+}
+.inline-calendar-container .fc-button:hover {
+  background-color: #f3f4f6 !important; /* hover:bg-gray-100 */
+  border-radius: 9999px; /* rounded-full */
+}
+/* 헤더 버튼 포커스 시 테두리 제거 */
+.inline-calendar-container .fc-button:focus {
+  box-shadow: none !important;
+}
+
+/* --- 3. react-mobile-picker 스타일 (드로워 내부 시간 휠) --- */
+
+.time-wheel-picker-container {
+  background-color: #f9fafb; /* bg-gray-50 */
+  border-radius: 0.5rem; /* rounded-lg */
+  position: relative;
+  height: 160px; /* 피커 높이 (itemHeight * 4) */
+  overflow: hidden;
+  /* 위아래 흐릿하게 */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 20%,
+    black 80%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 20%,
+    black 80%,
+    transparent
+  );
+}
+/* 드로워 달력에서 오늘 날짜 스타일 완전 제거 */
+.inline-calendar-container .fc-day-today .date-number,
+.inline-calendar-container .fc-day-today .fc-daygrid-day-number {
+  background: transparent !important;
+  color: #222 !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+
+/* 휠 피커의 중앙 하이라이트 바 (선택된 영역) */
+.time-wheel-picker-container .picker-highlight {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  height: 40px; /* itemHeight와 동일 */
+  background-color: rgba(0, 0, 0, 0.03);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  pointer-events: none; /* 스크롤 방해 안 함 */
+  z-index: 10;
+}
+
+/* 휠의 각 항목 (숫자, 글자) */
+.time-wheel-picker-container .picker-item {
+  font-size: 1.25rem; /* text-xl */
+  color: #1f2937; /* text-gray-800 */
+  height: 40px !important; /* itemHeight와 동일 */
+  line-height: 40px !important;
+  text-align: center;
+  font-weight: 500;
+}
