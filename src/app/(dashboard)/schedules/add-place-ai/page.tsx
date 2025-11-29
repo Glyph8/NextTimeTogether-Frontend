@@ -57,7 +57,7 @@ export default function AddPlaceAIPage() {
       placeName: selectedPlace.place_name,
     }).toString();
 
-    router.push(`/schedules/add-place-ai/loading?${queryParams}`);
+    router.push(`/schedules/add-place-ai/result?${queryParams}`);
   };
 
   return (

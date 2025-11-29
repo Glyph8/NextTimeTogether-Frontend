@@ -3,7 +3,6 @@ import Checked from "@/assets/svgs/icons/checked.svg"
 import Unchecked from "@/assets/svgs/icons/unchecked.svg"
 import X from "@/assets/svgs/icons/x-gray.svg"
 
-
 interface PlaceCardProps{
     placeInfo:PlaceBoardItem, 
     totalMemberCount:number
