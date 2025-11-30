@@ -10,6 +10,7 @@ interface GroupMemberItemProps {
   name: string;
   selectable?: boolean;
   isSelected?: boolean;
+  onClick?: () => void;
 }
 
 export const GroupMemberItem = ({
@@ -18,9 +19,17 @@ export const GroupMemberItem = ({
   name,
   selectable = false,
   isSelected = false,
+  onClick,
 }: GroupMemberItemProps) => {
+  const isInteractive = selectable || !!onClick;
+  const Tag = isInteractive ? "button" : "div";
+
   return (
-    <div className="w-13 flex flex-col justify-between items-center">
+    <Tag
+      className="w-13 flex flex-col justify-between items-center"
+      type={isInteractive ? "button" : undefined}
+      onClick={onClick}
+    >
       <div className="w-full flex flex-col gap-0.5 justify-between items-center">
         <div className="w-full flex justify-center items-center">
           {marker ? (
@@ -29,7 +38,7 @@ export const GroupMemberItem = ({
               {marker.includes("그룹장") ? <MasterMark /> : null}
             </>
           ) : (
-            <div className="bg-white w-4 h-4" />
+            <div className="w-4 h-4" />
           )}
         </div>
         <div className="flex flex-col items-center gap-2">
@@ -42,16 +51,16 @@ export const GroupMemberItem = ({
       {selectable ? (
         <>
           {isSelected ? (
-            <button>
+            <div className="w-4.5">
               <Checked />
-            </button>
+            </div>
           ) : (
-            <button>
+            <div className="w-4.5">
               <Unchecked />
-            </button>
+            </div>
           )}
         </>
       ) : null}
-    </div>
+    </Tag>
   );
 };

@@ -68,7 +68,9 @@ export const useViewSchedules = () => {
             return await decryptDataWithCryptoKey(
               item.encPromiseId,
               masterKey,
-              "group_proxy_user"
+              // TODO : 어떤 iv를 써야하는 지 명시 없음.. 약속 생성 시와 일치 시킬 것
+               "promise_proxy_user"
+              // "group_proxy_user"
             );
           })
         );

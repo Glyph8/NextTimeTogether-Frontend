@@ -130,35 +130,3 @@ export const getInviteEncGroupsKeyRequest = async (
       throw error;
     });
 };
-
-// /** 그룹 초대 3단계 - redis에 등록할 키와, value가 될 초대 url 전송 하여 초대 url 등록*/
-// export const getMakeInviteLink = async (
-//   // TODO : group3request 없어진듯
-//   redisKeyAndinviteCode: InviteGroup2Request
-// ) => {
-//   return clientBaseApi.api
-//     .inviteGroup2(redisKeyAndinviteCode)
-//     .then((response) => {
-//       console.log(
-//         "그룹 초대 step2 - 초대할 그룹 id와 초대하는 사용자 id 전송, 그룹 키 획득 ",
-//         response.data
-//       );
-//       return response.data;
-//     })
-//     .catch((error) => {
-//       if (error.response) {
-//         // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-//         console.error("API Error Response Data:", error.response.data);
-//         console.error("API Error Response Status:", error.response.status);
-//         console.error("API Error Response Headers:", error.response.headers);
-//       } else if (error.request) {
-//         // 요청이 전송되었지만, 응답을 받지 못한 경우
-//         console.error("API Error Request:", error.request);
-//       } else {
-//         // 요청을 설정하는 중에 에러가 발생한 경우
-//         console.error("API Error Message:", error.message);
-//       }
-//       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
-//       throw error;
-//     });
-// };
