@@ -6,6 +6,8 @@ import { AIRecommandItem } from "./components/AIRecommandItem";
 import { useSelection } from "@/hooks/useSelection";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
 import { useMemo, useState } from "react";
+import { useRecommandList } from "./use-recommand-list";
+import { AIRecommandResponse } from "@/api/where2meet";
 
 export default function AiSearchLoadingPage() {
     const router = useRouter();
@@ -15,6 +17,18 @@ export default function AiSearchLoadingPage() {
   const selectedPlaces = useMemo(() => {
     return dummyAISearchResult.filter((place) => selectedItems.has(place.id));
   }, [dummyAISearchResult, selectedItems]);
+
+  const promiseId = 'cf41e9f8-bd3b-424c-a856-e8deff2d2cb3';
+  const pseudoId  = "123";
+
+  
+  const latitude  = 123;
+  const longitude = 123;
+
+  const {
+    recommandList,
+    isPending,
+    error,} = useRecommandList(promiseId, pseudoId, latitude, longitude)
 
   const handleAiRecommand = () => {
     setOpenEnroll((prev) => !prev);
@@ -29,13 +43,13 @@ export default function AiSearchLoadingPage() {
   return (
     <div className="flex flex-col w-full flex-1 bg-white justify-between pb-5">
       <div className="flex flex-col gap-2 py-3">
-        {dummyAISearchResult.map((place) => (
+        {recommandList.map((place:AIRecommandResponse) => (
           <AIRecommandItem
             placeName={place.placeName}
-            placeAddress={place.placeAddress}
-            key={place.id}
-            isChecked={selectedItems.has(place.id)}
-            handleToggle={() => toggleItem(place.id)}
+            placeAddress={place.placeAddr}
+            key={place.placeId}
+            isChecked={selectedItems.has(place.placeId)}
+            handleToggle={() => toggleItem(place.placeId)}
           />
         ))}
       </div>
