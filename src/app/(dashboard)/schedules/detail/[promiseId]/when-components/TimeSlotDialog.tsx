@@ -40,8 +40,12 @@ export default function TimeSlotDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-lg rounded-2xl p-0">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+      <DialogContent
+        className="w-[90vw] max-w-lg rounded-2xl p-0"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         {/* Header */}
         <DialogHeader className="pt-6 pb-4 px-6">
           <DialogTitle className="text-center text-lg font-semibold">

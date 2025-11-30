@@ -77,7 +77,14 @@ export const TimeTableGrid = ({
     }
   }, [mySelection]);
 
-  const handleMouseDown = (day: number, time: number) => {
+  const handlePointerDown = (
+    day: number,
+    time: number,
+    e: React.PointerEvent
+  ) => {
+    // 이벤트 전파 방지 (Dialog로 이벤트가 전파되는 것을 막음)
+    e.stopPropagation();
+
     // view 모드에서는 클릭 핸들러 호출
     if (mode === "view") {
       if (onCellClick) {
@@ -89,17 +96,21 @@ export const TimeTableGrid = ({
     // select 모드
     // 비활성화된 셀은 선택 불가
     if (disabledSlots && disabledSlots[day] && disabledSlots[day][time]) return;
+
+    // 터치 스크롤과의 충돌 방지
+    e.preventDefault();
+
     setIsDragging(true);
     setStartCell({ day, time });
     setCurrentCell({ day, time });
   };
 
-  const handleMouseEnter = (day: number, time: number) => {
+  const handlePointerEnter = (day: number, time: number) => {
     if (mode !== "select" || !isDragging) return;
     setCurrentCell({ day, time });
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = () => {
     if (mode !== "select" || !isDragging || !startCell || !currentCell) return;
 
     // Apply changes
@@ -129,29 +140,6 @@ export const TimeTableGrid = ({
     setIsDragging(false);
     setStartCell(null);
     setCurrentCell(null);
-  };
-
-  // Touch event handlers for mobile
-  const handleTouchStart = (day: number, time: number) => {
-    handleMouseDown(day, time);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (mode !== "select" || !isDragging) return;
-
-    const touch = e.touches[0];
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (element) {
-      const dayIndex = element.getAttribute("data-day");
-      const timeIndex = element.getAttribute("data-time");
-      if (dayIndex !== null && timeIndex !== null) {
-        setCurrentCell({ day: parseInt(dayIndex), time: parseInt(timeIndex) });
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    handleMouseUp();
   };
 
   // Calculate background color
@@ -210,10 +198,8 @@ export const TimeTableGrid = ({
   return (
     <div
       className="w-full select-none"
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
     >
       {/* Header Dates */}
       <div className="flex pl-10 mb-2">
@@ -250,11 +236,8 @@ export const TimeTableGrid = ({
                 }}
                 data-day={dayIndex}
                 data-time={timeIndex}
-                onMouseDown={() => handleMouseDown(dayIndex, timeIndex)}
-                onMouseEnter={() => handleMouseEnter(dayIndex, timeIndex)}
-                onTouchStart={() => handleTouchStart(dayIndex, timeIndex)}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
+                onPointerDown={(e) => handlePointerDown(dayIndex, timeIndex, e)}
+                onPointerEnter={() => handlePointerEnter(dayIndex, timeIndex)}
               />
             ))}
           </div>

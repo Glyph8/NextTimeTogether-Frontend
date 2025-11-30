@@ -204,7 +204,7 @@ export const WhenConfirmDrawer = ({
     recommendStep === "result" ? calculateRecommendations() : [];
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={setOpen} modal={true}>
       <DrawerContent className="h-[70vh] bg-white px-6 pb-8 flex flex-col">
         <DrawerDescription className="sr-only">
           약속 일시를 확정하는 화면입니다. 날짜와 시간을 선택할 수 있습니다.

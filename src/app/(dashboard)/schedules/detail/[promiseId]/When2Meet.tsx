@@ -80,7 +80,10 @@ export const When2Meet = ({ promiseId, timeData }: When2MeetProps) => {
     // 데이터가 있을 때만 다이얼로그 열기 (count > 0인 시간대만)
     if (userData) {
       setSelectedSlot({ dayIndex, timeIndex });
-      setDialogOpen(true);
+      // 약간의 지연을 두어 클릭 이벤트가 완전히 처리된 후 Dialog 열기
+      setTimeout(() => {
+        setDialogOpen(true);
+      }, 50);
     }
   };
 

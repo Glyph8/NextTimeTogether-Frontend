@@ -6,17 +6,14 @@ import Menu from "@/assets/svgs/icons/menu-black.svg";
 import { useState } from "react";
 import { When2Meet } from "./When2Meet";
 import { Where2Meet } from "./Where2Meet";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ScheduleDrawer } from "./components/ScheduleDrawer";
 import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
 import { dummyTimeData } from "./when-components/types";
 
-export default function ScheduleDetailPage({
-  params,
-}: {
-  params: { promiseId: string };
-}) {
-  const { promiseId } = params;
+export default function ScheduleDetailPage() {
+  const params = useParams<{ promiseId: string }>();
+  const promiseId = params.promiseId;
   const router = useRouter();
   const [tab, setTab] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);

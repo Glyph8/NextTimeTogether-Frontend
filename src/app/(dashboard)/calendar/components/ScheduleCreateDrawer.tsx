@@ -372,7 +372,7 @@ export function ScheduleCreateDrawer({
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+    <Drawer open={isOpen} onOpenChange={setIsOpen} modal={true}>
       <DrawerContent className="h-dvh max-h-dvh flex flex-col bg-white">
         <DrawerHeader className="flex items-center justify-between p-4 h-16 border-b border-gray-100 flex-shrink-0">
           <DrawerClose asChild>

@@ -33,7 +33,7 @@ export const ScheduleDrawer = ({
   }));
 
   return (
-    <Drawer open={open} onOpenChange={setOpen} direction="right">
+    <Drawer open={open} onOpenChange={setOpen} direction="right" modal={true}>
       <DrawerContent className="flex flex-col justify-start w-[65%] max-h-[77vh] bg-[#EEF1F3] p-5 after:hidden">
         <DrawerDescription className="sr-only">
           약속 관리 메뉴입니다. 일시/장소 확정, 참여 인원 확인, 약속 해산/나가기
