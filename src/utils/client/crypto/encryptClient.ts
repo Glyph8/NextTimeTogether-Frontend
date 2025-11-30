@@ -3,6 +3,8 @@ import {
   User_iv,
   GroupShareKey_iv,
   UserIdContext_iv,
+  PromiseProxyUser_iv,
+  PromiseShareKey_iv,
 } from "@/utils/crypto/iv-value/iv-constants";
 import { arrayBufferToBase64, base64ToArrayBuffer } from "../helper";
 
@@ -41,6 +43,8 @@ export async function encryptDataClient(
       else if (role === "user_id_context") return UserIdContext_iv;
       else if (role === "group_proxy_user") return GroupProxyUser_iv;
       else if (role === "group_sharekey") return GroupShareKey_iv;
+      else if (role === "promise_proxy_user") return PromiseProxyUser_iv;
+      else if (role === "promise_sharekey") return PromiseShareKey_iv;
       else return GroupShareKey_iv;
     };
 

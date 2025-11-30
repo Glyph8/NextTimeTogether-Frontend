@@ -9,28 +9,23 @@ import {
 } from "@/api/group-view-create";
 import decryptDataClient from "@/utils/client/crypto/decryptClient";
 import { base64ToArrayBuffer } from "@/utils/client/helper";
-import { getEncGroupsIdAction, getEncGroupsKeyAction, getGroupsInfoAction } from "../../../action";
-
-// 기존 타입 재사용
-interface GroupInfoData {
-  groupId: string;
-  groupName: string;
-  groupImg: string;
-  managerId: string;
-  encUserId: string[];
-}
-
-export interface DecryptedGroupInfo extends Omit<GroupInfoData, "encUserId"> {
-  userIds: string[];
-}
+import {
+  getEncGroupsIdAction,
+  getEncGroupsKeyAction,
+  getGroupsInfoAction,
+} from "../../../action";
+import { DecryptedGroupInfo } from "../../../use-group-list";
 
 /**
  * 특정 그룹(targetGroupId) 하나의 정보를 3단계 E2EE 과정을 거쳐 조회하는 훅
  */
 export const useGroupDetail = (targetGroupId: string | null) => {
-  
   // --- 1단계: 전체 암호화 그룹 ID 목록 조회 후 Target 찾기 & 복호화 ---
-  const { data: groupMetadata, isPending: isStep1Pending, error: errorStep1 } = useQuery({
+  const {
+    data: groupMetadata,
+    isPending: isStep1Pending,
+    error: errorStep1,
+  } = useQuery({
     queryKey: ["groupDetail", "step1", targetGroupId],
     queryFn: async () => {
       if (!targetGroupId) throw new Error("GroupId가 필요합니다.");
@@ -45,7 +40,7 @@ export const useGroupDetail = (targetGroupId: string | null) => {
       // [성장 포인트] 서버에서 필터링해주지 않는다면, 클라이언트에서 찾아야 합니다.
       // E2EE 특성상 식별자(ID)도 암호화되어 있을 수 있어, 복호화하며 대조합니다.
       const list = result.data as ViewGroupFirstResponseData[];
-      
+
       for (const item of list) {
         const decryptedGroupId = await decryptDataClient(
           item.encGroupId,
@@ -59,7 +54,7 @@ export const useGroupDetail = (targetGroupId: string | null) => {
             masterKey,
             "group_proxy_user"
           );
-          
+
           // 찾은 그룹의 메타데이터 반환
           return {
             groupId: decryptedGroupId,
@@ -67,7 +62,7 @@ export const useGroupDetail = (targetGroupId: string | null) => {
           };
         }
       }
-      
+
       throw new Error("해당 그룹을 찾을 수 없거나 접근 권한이 없습니다.");
     },
     enabled: !!targetGroupId, // groupId가 있을 때만 실행
@@ -75,15 +70,20 @@ export const useGroupDetail = (targetGroupId: string | null) => {
   });
 
   // --- 2단계: 해당 그룹의 암호화 키(Group Key) 조회 & 복호화 ---
-  const { data: groupKey, isPending: isStep2Pending, error: errorStep2 } = useQuery({
+  const {
+    data: groupKey,
+    isPending: isStep2Pending,
+    error: errorStep2,
+  } = useQuery({
     queryKey: ["groupDetail", "step2", targetGroupId],
     queryFn: async () => {
       // API가 배열을 요구하므로 배열로 감싸서 전달
       const result = await getEncGroupsKeyAction([groupMetadata!]);
-      
+
       if (result.error) throw new Error(result.error);
       const data = result.data as ViewGroupSecResponseData[];
-      if (!data || data.length === 0) throw new Error("그룹 키를 찾을 수 없습니다.");
+      if (!data || data.length === 0)
+        throw new Error("그룹 키를 찾을 수 없습니다.");
 
       const masterKey = await getMasterKey();
       if (!masterKey) throw new Error("마스터키 에러");
@@ -96,14 +96,14 @@ export const useGroupDetail = (targetGroupId: string | null) => {
       );
 
       const groupKeyArrayBuffer = base64ToArrayBuffer(groupKeyString);
-      
+
       // CryptoKey 객체 생성 및 반환
       return await crypto.subtle.importKey(
         "raw",
         groupKeyArrayBuffer,
         { name: "AES-GCM" },
         false,
-        ["decrypt"]
+        ["decrypt", "encrypt"]
       );
     },
     // 1단계 데이터(groupMetadata)가 준비되어야 실행
@@ -112,18 +112,22 @@ export const useGroupDetail = (targetGroupId: string | null) => {
   });
 
   // --- 3단계: 그룹 정보(멤버 포함) 조회 & 멤버 목록 복호화 ---
-  const { data: finalGroupData, isPending: isStep3Pending, error: errorStep3 } = useQuery<DecryptedGroupInfo | null>({
+  const {
+    data: finalGroupData,
+    isPending: isStep3Pending,
+    error: errorStep3,
+  } = useQuery<DecryptedGroupInfo | null>({
     queryKey: ["groupDetail", "step3", targetGroupId],
     queryFn: async () => {
       // API가 배열 형태를 요구하므로 형식 맞춰줌
       const payload = [{ groupId: groupMetadata!.groupId }];
-      
+
       const result = await getGroupsInfoAction(payload);
       if (result.error) throw new Error(result.error);
-      
+
       const dataList = result.data as ViewGroupThirdResponseData[];
       if (!dataList || dataList.length === 0) return null;
-      
+
       const targetGroup = dataList[0];
 
       // 멤버 ID들 복호화 (Promise.all 사용)
@@ -153,7 +157,12 @@ export const useGroupDetail = (targetGroupId: string | null) => {
 
   return {
     data: finalGroupData,
+    groupKey: groupKey,
     isPending,
-    error: error ? (error instanceof Error ? error.message : "그룹 정보를 불러오는데 실패했습니다.") : null,
+    error: error
+      ? error instanceof Error
+        ? error.message
+        : "그룹 정보를 불러오는데 실패했습니다."
+      : null,
   };
 };
