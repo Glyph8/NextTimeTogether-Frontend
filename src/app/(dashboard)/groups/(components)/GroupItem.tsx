@@ -1,6 +1,7 @@
-import Image from "next/image";
+// import Image from "next/image";
 import Trashcan from "@/assets/svgs/icons/trashcan.svg";
 import { useRouter } from "next/navigation";
+import { CldImage } from "next-cloudinary";
 
 interface GroupItemProps {
   groupId: string;
@@ -35,12 +36,20 @@ export const GroupItem = ({
       className="w-full flex flex-row bg-white gap-3 px-4 py-3 border-gray-3 border-1 rounded-[8px]"
       onClick={handleToDetail}
     >
-      <Image
+      {/* <Image
         src={image}
         alt="image"
         width={64}
         height={64}
         className="border-gray-1 rounded-[8px]"
+      /> */}
+      <CldImage
+        src={image} // 전체 URL을 넣어도 되고, 파일 ID만 넣어도 됨
+        alt="image"
+        width="64" // 문자열로 넣어도 됨
+        height="64"
+        className="border-gray-1 rounded-[8px]"
+        crop="fill" // 이미지가 꽉 차게 자동 크롭 (선택사항)
       />
       <div className="w-full flex flex-col gap-1.5">
         <div className="flex justify-between items-center">

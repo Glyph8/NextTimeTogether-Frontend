@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from "@/components/ui/sonner";
 import { useAuthSession } from '@/hooks/useAuthSession';
+import DefaultLoading from '@/components/ui/Loading/DefaultLoading';
 
 // 1. Providers가 받을 props 타입을 정의합니다.
 interface ProvidersProps {
@@ -22,9 +23,7 @@ export function Providers({ children, nonce }: ProvidersProps) {
   );
 
   if (isRestoring) {
-    return <div>
-      userID 복원 중
-    </div>; 
+    return <DefaultLoading/>
   }
   return (
     <QueryClientProvider client={queryClient}>

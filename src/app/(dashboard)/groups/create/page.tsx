@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import FullLogo from "@/assets/pngs/logo-full.png";
 import { useCreateGroup } from "./use-create-group";
 import { useQueryClient } from "@tanstack/react-query";
+// import ImageUpload from "@/components/shared/Cloudinary/ImageUpload";
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -21,24 +22,33 @@ export default function CreateGroupPage() {
   const [groupDescription, setGroupDescription] = useState("");
   const { mutate: createGroup, isPending } = useCreateGroup();
 
-const handleCreateGroup = () => {
-    createGroup({
-      groupName: groupName,
-      groupExplain: groupDescription,
-      groupImg: "임시 이미지", 
-      explain: "임시 설명",
-    }, {
-      onSuccess: () => {
-        // 성공 시 TODO : Toast로 추후 교체
-        alert("그룹이 성공적으로 생성되었습니다!");
-        queryClient.invalidateQueries({ queryKey: ["groupList"] });
-        router.push("/groups");
+  // const handleImageUpload = (url: string) => {
+  //   // 여기서 백엔드 API를 호출해서 DB에 url을 저장하면 됩니다.
+  //   console.log("DB에 저장할 URL:", url);
+  //   // await fetch('/api/user/profile', { method: 'POST', body: JSON.stringify({ image: url }) })
+  // };
+
+  const handleCreateGroup = () => {
+    createGroup(
+      {
+        groupName: groupName,
+        groupExplain: groupDescription,
+        groupImg: "임시 이미지",
+        explain: "임시 설명",
       },
-      onError: (error: { message: string; }) => {
-        // 실패 시
-        alert(`그룹 생성 실패: ${error.message}`);
+      {
+        onSuccess: () => {
+          // 성공 시 TODO : Toast로 추후 교체
+          alert("그룹이 성공적으로 생성되었습니다!");
+          queryClient.invalidateQueries({ queryKey: ["groupList"] });
+          router.push("/groups");
+        },
+        onError: (error: { message: string }) => {
+          // 실패 시
+          alert(`그룹 생성 실패: ${error.message}`);
+        },
       }
-    });
+    );
   };
 
   if (isPending) {
@@ -58,12 +68,8 @@ const handleCreateGroup = () => {
 
       <div className="w-full flex justify-center items-center px-4 md:px-40 pt-5 pb-3.5 relative">
         <div className="w-16 h-16 rounded-[8px] border border-[#E4E4E4] bg-gray-3 relative">
-          <Image
-            src={FullLogo}
-            alt="프로필"
-            width={64}
-            height={64}
-          />
+          <Image src={FullLogo} alt="프로필" width={64} height={64} />
+          {/* <ImageUpload onUpload={handleImageUpload} /> */}
           <button
             type="button"
             className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center
@@ -124,7 +130,7 @@ const handleCreateGroup = () => {
         <div className="w-full flex justify-center">
           <Button
             text={"그룹 만들기"}
-            disabled={isPending || !groupName || !groupDescription} 
+            disabled={isPending || !groupName || !groupDescription}
             onClick={handleCreateGroup}
           />
         </div>

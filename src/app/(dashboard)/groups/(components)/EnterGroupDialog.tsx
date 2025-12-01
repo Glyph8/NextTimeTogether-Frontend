@@ -45,8 +45,6 @@ export const EnterGroupDialog = ({ isOpen, setIsOpen }: EnterGroupDialogProps) =
                         <>
                             <div className="flex flex-col justify-center items-center gap-3 text-black-1">
 
-                                {/* <Image src={"https://placehold.co/64x64"} alt="팀" width={64} height={64}
-                                    className="border-gray-1 rounded-[8px]" /> */}
                                 <div className="w-16 h-16 bg-amber-500 border-gray-1 rounded-[8px]"/>
 
                                 <div className="flex flex-col justify-center items-center gap-1.5">

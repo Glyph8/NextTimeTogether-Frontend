@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "placehold.co",
+        hostname: 'res.cloudinary.com',
+        pathname: '/:dg1apjunc/**', // 내 클라우드 네임 아래의 경로만 허용
       },
     ],
   },

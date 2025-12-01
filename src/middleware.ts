@@ -22,6 +22,8 @@ export function middleware(request: NextRequest) {
   // 통신 예외가 될 API URL, 추후 웹소켓 사용할 경우 추가 필요.
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const connectSrcPolicy = `'self' ${apiBaseUrl || ""}`.trim();
+// Cloudinary 도메인만 허용
+  const cloudinaryDomain = "https://res.cloudinary.com";
 
   // CSP 정책 모음
   const cspHeader = `
@@ -29,7 +31,7 @@ export function middleware(request: NextRequest) {
     connect-src ${connectSrcPolicy};
     script-src ${scriptSrcPolicy}; 
     style-src ${styleSrcPolicy};
-    img-src 'self' blob: data:;
+    img-src 'self' blob: data: ${cloudinaryDomain};
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
