@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button/Button";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { dummyAISearchResult } from "../../constants";
 import { AIRecommandItem } from "./components/AIRecommandItem";
 import { useSelection } from "@/hooks/useSelection";
@@ -8,9 +8,11 @@ import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
 import { useMemo, useState } from "react";
 import { useRecommandList } from "./use-recommand-list";
 import { AIRecommandResponse } from "@/api/where2meet";
+import Loading from "./loading";
 
 export default function AiSearchLoadingPage() {
-    const router = useRouter();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   /** id:number로 선택 관리함. */
   const { selectedItems, toggleItem } = useSelection();
   const [openEnroll, setOpenEnroll] = useState(false);
@@ -18,17 +20,16 @@ export default function AiSearchLoadingPage() {
     return dummyAISearchResult.filter((place) => selectedItems.has(place.id));
   }, [dummyAISearchResult, selectedItems]);
 
-  const promiseId = 'cf41e9f8-bd3b-424c-a856-e8deff2d2cb3';
-  const pseudoId  = "123";
+  // const promiseId = 'cf41e9f8-bd3b-424c-a856-e8deff2d2cb3';
+  const promiseId = searchParams.get("promiseId") ?? "";
+  const latitude = Number(searchParams.get("lat"));
+  const longitude = Number(searchParams.get("lng"));
 
-  
-  const latitude  = 123;
-  const longitude = 123;
-
-  const {
-    recommandList,
-    isPending,
-    error,} = useRecommandList(promiseId, pseudoId, latitude, longitude)
+  const { recommandList, isPending, error } = useRecommandList(
+    promiseId,
+    latitude,
+    longitude
+  );
 
   const handleAiRecommand = () => {
     setOpenEnroll((prev) => !prev);
@@ -40,10 +41,14 @@ export default function AiSearchLoadingPage() {
   const labelClass =
     "flex gap-5 text-gray-2 text-base font-normal leading-loose";
 
+  if (isPending) {
+    return <Loading />;
+  }
+
   return (
     <div className="flex flex-col w-full flex-1 bg-white justify-between pb-5">
       <div className="flex flex-col gap-2 py-3">
-        {recommandList.map((place:AIRecommandResponse) => (
+        {(recommandList ?? []).map((place: AIRecommandResponse) => (
           <AIRecommandItem
             placeName={place.placeName}
             placeAddress={place.placeAddr}

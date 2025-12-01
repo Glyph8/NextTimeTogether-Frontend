@@ -1,25 +1,15 @@
 import { getAIRecommand } from "@/api/where2meet";
+import { useAuthStore } from "@/store/auth.store";
+import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
+import { getMasterKey } from "@/utils/client/key-storage";
 import { useQuery } from "@tanstack/react-query";
 
 export const useRecommandList = (
   promiseId: string,
-  pseudoId: string,
   latitude: number,
   longitude: number
 ) => {
-  // export interface UserAIInfoReqDTO {
-  //   pseudoId?: string;
-  //   /** @format double */
-  //   latitude?: number;
-  //   /** @format double */
-  //   longitude?: number;
-  // }
-
-  const data = {
-    pseudoId  : pseudoId,
-    latitude  : latitude,
-    longitude  : longitude,
-  };
+  const userId = useAuthStore((state) => state.userId);
 
   const {
     data: recommandList,
@@ -28,8 +18,22 @@ export const useRecommandList = (
   } = useQuery({
     queryKey: ["recommand", "placeBoard", promiseId],
     queryFn: async () => {
+      const masterKey = await getMasterKey();
+
+      if (!userId || !masterKey) {
+        console.error("사용자 아이디 혹은 마스터키 오류");
+        throw new Error("Auth Failed");
+      }
+      const pseudoId  = await encryptDataClient(userId, masterKey, "user_iv")
+
+      const requestBody = {
+        pseudoId: pseudoId,
+        latitude: latitude,
+        longitude: longitude,
+      };
+
       console.log("🔵 약속 장소 게시판 조회");
-      const result = await getAIRecommand(promiseId, data);
+      const result = await getAIRecommand(promiseId, requestBody);
       console.log("🔵 장소 게시판 서버 응답:", result);
 
       if (!result) {
@@ -39,6 +43,7 @@ export const useRecommandList = (
 
       return result;
     },
+    enabled: !!promiseId && !!latitude && !!longitude && !!userId,
     staleTime: 1000 * 60 * 5,
     retry: 1,
   });

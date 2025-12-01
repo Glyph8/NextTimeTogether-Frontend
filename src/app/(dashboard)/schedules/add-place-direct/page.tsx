@@ -4,16 +4,32 @@ import { TextInput } from "@/components/shared/Input/TextInput";
 import { useState } from "react";
 import { Button } from "@/components/ui/button/Button";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useAddPlaceDirect } from "./use-add-place-direct";
 
 export default function AddPlaceDirectPage() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const promiseId = searchParams.get("promiseId");
+
+  const {mutate} = useAddPlaceDirect(promiseId)
+
   const [placeName, setPlaceName] = useState("");
+  const [placeAddr, setPlaceAddr] = useState("");
   const [placeDescription, setPlaceDescription] = useState("");
   const [openEnroll, setOpenEnroll] = useState(false);
 
   const handleReturnToBoard = () => {
-    router.back();
+    if (!promiseId) return;
+
+    const data = [
+      {
+        placeName: placeName,
+        placeAddress: placeAddr,
+        placeInfo: placeDescription,
+        aiPlace: false,
+      },
+    ];
+    mutate(data);
   };
 
   const labelClass =
@@ -33,6 +49,13 @@ export default function AddPlaceDirectPage() {
             data={placeName}
             setData={setPlaceName}
             placeholder={"장소 이름을 입력해주세요"}
+          />
+          <TextInput
+            label={"장소주소"}
+            name="placeAddr"
+            data={placeAddr}
+            setData={setPlaceAddr}
+            placeholder={"장소 주소를 입력해주세요"}
           />
           <TextInput
             label={"어떤 장소인가요? (선택)"}
@@ -55,7 +78,9 @@ export default function AddPlaceDirectPage() {
                 </span>
                 <span className={labelClass}>
                   설명
-                  <span className="text-black-1">{placeDescription === "" ? "-" : placeDescription}</span>
+                  <span className="text-black-1">
+                    {placeDescription === "" ? "-" : placeDescription}
+                  </span>
                 </span>
               </div>
 

@@ -14,6 +14,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useViewSchedules } from "./hooks/use-view-schedules";
 import { useGroupDetail } from "./hooks/use-group-detail";
 import { useGroupStore } from "@/store/group-detail.store";
+import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 export default function DetailGroupPage() {
   const router = useRouter();
@@ -38,12 +39,11 @@ export default function DetailGroupPage() {
     if (groupDetail && groupKey) {
       setGroup(groupDetail, groupKey);
       router.push(`/schedules/create/${groupId}`);
-    }
-    alert("그룹 정보 혹은 그룹키 로딩에 실패");
+    }    
   };
 
   if (isPending || isGroupFetching) {
-    return <div>그룹 내 약속 정보 로딩중...</div>;
+    return <DefaultLoading/>
   }
 
   return (

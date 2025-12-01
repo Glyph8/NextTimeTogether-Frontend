@@ -1,19 +1,19 @@
 export const teamList = [
     {
         title: "팀팀1",
-        image: "https://placehold.co/600x400"
+        image: "https://res.cloudinary.com/dg1apjunc/image/upload/v1764595919/samples/cloudinary-icon.png"
     },
     {
         title: "팀팀2",
-        image: "https://placehold.co/600x400"
+        image: "https://res.cloudinary.com/dg1apjunc/image/upload/v1764595919/samples/cloudinary-icon.png"
     },
     {
         title: "팀팀3",
-        image: "https://placehold.co/600x400"
+        image: "https://res.cloudinary.com/dg1apjunc/image/upload/v1764595919/samples/cloudinary-icon.png"
     },
     {
         title: "팀팀4",
-        image: "https://placehold.co/600x400"
+        image: "https://res.cloudinary.com/dg1apjunc/image/upload/v1764595919/samples/cloudinary-icon.png"
     },
 ]
 

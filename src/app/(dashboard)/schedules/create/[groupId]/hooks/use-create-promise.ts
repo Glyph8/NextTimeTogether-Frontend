@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { createPromise } from "@/api/promise-view-create";
 import { convertToISO } from "../utils/date-converter";
-import { useRouter } from "next/navigation";
 import { invitePromiseService } from "../utils/join-promise";
 import { useGroupStore } from "@/store/group-detail.store";
 
@@ -23,9 +22,7 @@ export type SchedulePeriod = {
 };
 
 export const useCreatePromise = (groupId: string | undefined) => {
-  const router = useRouter();
-
-  // TODO : 임시 날짜 UI 데이터. 추후 디자인 확정 시 수정
+  // 현재 시간 기준 초기값 설정
   const now = new Date();
   const defaultDateTime: DateTimeValue = {
     year: String(now.getFullYear()),
@@ -33,10 +30,9 @@ export const useCreatePromise = (groupId: string | undefined) => {
     day: String(now.getDate()).padStart(2, "0"),
     ampm: now.getHours() >= 12 ? "오후" : "오전",
     hour: String(now.getHours() % 12 || 12).padStart(2, "0"),
-    minute: "00", // 편의상 00분으로 시작
+    minute: "00",
   };
 
-  // 통합된 상태
   const [schedule, setSchedule] = useState<SchedulePeriod>({
     start: defaultDateTime,
     end: defaultDateTime,
@@ -45,11 +41,14 @@ export const useCreatePromise = (groupId: string | undefined) => {
   const [topic, setTopic] = useState("");
   const [purpose, setPurpose] = useState<PurposeType>("study");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  
+  // [Portfolio] 생성 완료 상태 관리 (즉시 리다이렉트 하지 않음)
+  const [createdPromiseId, setCreatedPromiseId] = useState<string | null>(null);
 
   const { groupKey } = useGroupStore();
 
-  // 멤버 선택 로직
   const isSelected = (userId: string) => selectedMembers.includes(userId);
+  
   const handleMemberChange = (userId: string) => {
     if (isSelected(userId)) {
       setSelectedMembers((prev) => prev.filter((id) => id !== userId));
@@ -62,14 +61,8 @@ export const useCreatePromise = (groupId: string | undefined) => {
     setPurpose(event.target.value as PurposeType);
   };
 
-  const handleScheduleChange = (
-    type: "start" | "end",
-    newValue: DateTimeValue
-  ) => {
-    setSchedule((prev) => ({
-      ...prev,
-      [type]: newValue,
-    }));
+  const handleScheduleChange = (type: "start" | "end", newValue: DateTimeValue) => {
+    setSchedule((prev) => ({ ...prev, [type]: newValue }));
   };
 
   const submitPromise = async () => {
@@ -83,37 +76,37 @@ export const useCreatePromise = (groupId: string | undefined) => {
       groupId,
       title: topic,
       type: purpose,
-      promiseImg: "default_image.png", // 이미지 처리가 안되어 있다면 기본값 혹은 빈값
+      promiseImg: "default_image.png",
       managerId: userId,
       startDate: startIso,
       endDate: endIso,
     };
 
-    console.log(promiseInfo);
-
     try {
+      // 1. 약속 생성 API 호출
       const createResult = await createPromise(promiseInfo);
-      // 성공 처리 로직 (예: 페이지 이동)
-      alert(`약속 생성 완료: ${createResult.promiseId}`);
+      
       if (createResult.promiseId) {
+        // 2. 생성자(나)를 약속에 자동 참여시킴 (초대 로직 재사용)
         const joinResult = await invitePromiseService(
           userId,
           createResult.promiseId,
           groupKey
         );
+        
         if (joinResult) {
-          alert(`약속 참가 성공 : ${joinResult.message}`);
-          router.push("schedules/detail");
+          // 3. 페이지 이동 대신, 생성된 ID를 상태에 저장 -> 공유 화면 표출 트리거
+          setCreatedPromiseId(createResult.promiseId);
         }
       }
     } catch (e) {
       console.error(e);
+      alert("약속 생성 중 오류가 발생했습니다.");
     }
   };
 
-  // 뷰에서 필요한 모든 것들을 하나의 객체로 리턴합니다.
   return {
-    values: { topic, purpose, selectedMembers, schedule },
+    values: { topic, purpose, selectedMembers, schedule, createdPromiseId },
     actions: {
       setTopic,
       handleOptionChange,
