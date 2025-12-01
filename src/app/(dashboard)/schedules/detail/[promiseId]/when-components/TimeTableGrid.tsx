@@ -8,15 +8,36 @@ interface TimeTableGridProps {
   mySelection?: boolean[][]; // [dayIndex][timeIndex] -> isSelected
   onChange?: (selection: boolean[][]) => void;
   maxMembers?: number;
+  dates?: string[]; // ["11/29", "11/30", ...]
+  days?: string[]; // ["금", "토", ...]
+  disabledSlots?: boolean[][]; // [dayIndex][timeIndex] -> true = 비활성화 (내 일정 있음)
+  onCellClick?: (dayIndex: number, timeIndex: number) => void; // view 모드에서 셀 클릭 시
 }
 
-const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
-const DATES = ["10/7", "10/8", "10/9", "10/10", "10/11", "10/12", "10/13"]; // Mock dates
+const DEFAULT_DAYS = ["월", "화", "수", "목", "금", "토", "일"];
+const DEFAULT_DATES = [
+  "10/7",
+  "10/8",
+  "10/9",
+  "10/10",
+  "10/11",
+  "10/12",
+  "10/13",
+];
 const START_TIME = 9;
 const END_TIME = 24;
-const HOURS = Array.from(
-  { length: END_TIME - START_TIME },
-  (_, i) => START_TIME + i
+// 30분 단위로 분할 (9:00, 9:30, 10:00, ...)
+const TIME_SLOTS = Array.from(
+  { length: (END_TIME - START_TIME) * 2 },
+  (_, i) => {
+    const hour = START_TIME + Math.floor(i / 2);
+    const minute = i % 2 === 0 ? 0 : 30;
+    return {
+      hour,
+      minute,
+      label: `${hour}:${minute.toString().padStart(2, "0")}`,
+    };
+  }
 );
 
 export const TimeTableGrid = ({
@@ -25,7 +46,13 @@ export const TimeTableGrid = ({
   mySelection,
   onChange,
   maxMembers = 5,
+  dates = DEFAULT_DATES,
+  days = DEFAULT_DAYS,
+  disabledSlots,
+  onCellClick,
 }: TimeTableGridProps) => {
+  const DAYS = days;
+  const DATES = dates;
   const [isDragging, setIsDragging] = useState(false);
   const [startCell, setStartCell] = useState<{
     day: number;
@@ -41,7 +68,7 @@ export const TimeTableGrid = ({
     mySelection ||
       Array(7)
         .fill(null)
-        .map(() => Array(HOURS.length).fill(false))
+        .map(() => Array(TIME_SLOTS.length).fill(false))
   );
 
   useEffect(() => {
@@ -50,19 +77,40 @@ export const TimeTableGrid = ({
     }
   }, [mySelection]);
 
-  const handleMouseDown = (day: number, time: number) => {
-    if (mode !== "select") return;
+  const handlePointerDown = (
+    day: number,
+    time: number,
+    e: React.PointerEvent
+  ) => {
+    // 이벤트 전파 방지 (Dialog로 이벤트가 전파되는 것을 막음)
+    e.stopPropagation();
+
+    // view 모드에서는 클릭 핸들러 호출
+    if (mode === "view") {
+      if (onCellClick) {
+        onCellClick(day, time);
+      }
+      return;
+    }
+
+    // select 모드
+    // 비활성화된 셀은 선택 불가
+    if (disabledSlots && disabledSlots[day] && disabledSlots[day][time]) return;
+
+    // 터치 스크롤과의 충돌 방지
+    e.preventDefault();
+
     setIsDragging(true);
     setStartCell({ day, time });
     setCurrentCell({ day, time });
   };
 
-  const handleMouseEnter = (day: number, time: number) => {
+  const handlePointerEnter = (day: number, time: number) => {
     if (mode !== "select" || !isDragging) return;
     setCurrentCell({ day, time });
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = () => {
     if (mode !== "select" || !isDragging || !startCell || !currentCell) return;
 
     // Apply changes
@@ -80,6 +128,8 @@ export const TimeTableGrid = ({
 
     for (let d = minDay; d <= maxDay; d++) {
       for (let t = minTime; t <= maxTime; t++) {
+        // 비활성화된 셀은 건너뛸
+        if (disabledSlots && disabledSlots[d] && disabledSlots[d][t]) continue;
         newSelection[d][t] = newValue;
       }
     }
@@ -94,7 +144,16 @@ export const TimeTableGrid = ({
 
   // Calculate background color
   const getCellStyle = (day: number, time: number) => {
+    // 비활성화된 슬롯은 회색으로 표시
+    const isDisabled =
+      disabledSlots && disabledSlots[day] && disabledSlots[day][time];
+
     if (mode === "view") {
+      if (isDisabled) {
+        return {
+          backgroundColor: "#E5E5E5", // 회색 (내 일정 있음)
+        };
+      }
       const count = data ? data[day][time] : 0;
       const opacity = count === 0 ? 0 : count / maxMembers;
       return {
@@ -103,6 +162,13 @@ export const TimeTableGrid = ({
       };
     } else {
       // Select mode
+      if (isDisabled) {
+        return {
+          backgroundColor: "#E5E5E5", // 회색 (내 일정 있음)
+          cursor: "not-allowed",
+        };
+      }
+
       let isSelected = internalSelection[day][time];
 
       // Apply drag preview
@@ -132,8 +198,8 @@ export const TimeTableGrid = ({
   return (
     <div
       className="w-full select-none"
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
     >
       {/* Header Dates */}
       <div className="flex pl-10 mb-2">
@@ -150,23 +216,28 @@ export const TimeTableGrid = ({
 
       {/* Grid */}
       <div className="relative border-t border-gray-200">
-        {HOURS.map((hour, timeIndex) => (
+        {TIME_SLOTS.map((slot, timeIndex) => (
           <div
-            key={hour}
-            className="flex h-8 border-b border-gray-100 border-dashed"
+            key={timeIndex}
+            className="flex h-8 border-b border-gray-100 border-dashed last:border-b"
           >
-            {/* Time Label */}
+            {/* Time Label - 정시만 표시 (30분은 빈값) */}
             <div className="w-10 -mt-2 text-[10px] text-gray-400 text-right pr-2">
-              {hour}:00
+              {slot.minute === 0 ? `${slot.hour}:00` : ""}
             </div>
             {/* Cells */}
             {DAYS.map((_, dayIndex) => (
               <div
                 key={`${dayIndex}-${timeIndex}`}
                 className="flex-1 border-r border-gray-100 border-dashed last:border-r-0 cursor-pointer transition-colors duration-75"
-                style={getCellStyle(dayIndex, timeIndex)}
-                onMouseDown={() => handleMouseDown(dayIndex, timeIndex)}
-                onMouseEnter={() => handleMouseEnter(dayIndex, timeIndex)}
+                style={{
+                  ...getCellStyle(dayIndex, timeIndex),
+                  touchAction: "none",
+                }}
+                data-day={dayIndex}
+                data-time={timeIndex}
+                onPointerDown={(e) => handlePointerDown(dayIndex, timeIndex, e)}
+                onPointerEnter={() => handlePointerEnter(dayIndex, timeIndex)}
               />
             ))}
           </div>

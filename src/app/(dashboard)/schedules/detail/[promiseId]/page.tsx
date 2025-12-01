@@ -4,13 +4,16 @@ import Header from "@/components/ui/header/Header";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import Menu from "@/assets/svgs/icons/menu-black.svg";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ScheduleDrawer } from "./components/ScheduleDrawer";
-import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
 import { When2Meet } from "./When2Meet";
 import { Where2Meet } from "./Where2Meet";
+import { useParams, useRouter } from "next/navigation";
+import { ScheduleDrawer } from "./components/ScheduleDrawer";
+import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
+import { dummyTimeData } from "./when-components/types";
 
 export default function ScheduleDetailPage() {
+  const params = useParams<{ promiseId: string }>();
+  const promiseId = params.promiseId;
   const router = useRouter();
   const [tab, setTab] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,17 +22,26 @@ export default function ScheduleDetailPage() {
   // 임시로 약속장 권한 처리
   const isMaster = true;
 
+  // API 호출 시뮬레이션 (실제로는 fetch 사용)
+  const timeData = dummyTimeData;
+
   return (
     <div className="flex flex-col flex-1 w-full bg-[#f9f9f9]">
       <ScheduleDrawer
         open={menuOpen}
         setOpen={setMenuOpen}
         isMaster={isMaster}
+        promiseId={promiseId}
+        onConfirmClick={() => {
+          setMenuOpen(false);
+          setWhenConfirmOpen(true);
+        }}
       />
       {isMaster && (
         <WhenConfirmDrawer
           open={whenConfirmOpen}
           setOpen={setWhenConfirmOpen}
+          timeData={timeData}
         />
       )}
 
@@ -89,7 +101,11 @@ export default function ScheduleDetailPage() {
           어디서
         </button>
       </nav>
-      {tab ? <When2Meet /> : <Where2Meet />}
+      {tab ? (
+        <When2Meet promiseId={promiseId} timeData={timeData} />
+      ) : (
+        <Where2Meet />
+      )}
     </div>
   );
 }
