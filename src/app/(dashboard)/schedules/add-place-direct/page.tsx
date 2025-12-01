@@ -4,16 +4,45 @@ import { TextInput } from "@/components/shared/Input/TextInput";
 import { useState } from "react";
 import { Button } from "@/components/ui/button/Button";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { registerPlaceBoard } from "@/api/where2meet";
 
 export default function AddPlaceDirectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const promiseId = searchParams.get("promiseId");
+
   const [placeName, setPlaceName] = useState("");
+  const [placeAddr, setPlaceAddr] = useState("");
   const [placeDescription, setPlaceDescription] = useState("");
   const [openEnroll, setOpenEnroll] = useState(false);
 
-  const handleReturnToBoard = () => {
-    router.back();
+  const handleReturnToBoard = async () => {
+
+    const data = [
+      {
+        placeName: placeName,
+        placeAddress: placeAddr,
+        placeInfo : placeDescription,
+        aiPlace: false,
+      }
+    ]
+
+    if(!promiseId){
+      return;
+    }
+
+    const result = await registerPlaceBoard(promiseId, data)
+
+    if(result.code !== 200){
+      // TODO : 토스트 메세지 알림
+      console.log("응답 전체", result);
+      console.log("result만", result.result)
+      console.warn(result.code, result.message)
+      return;
+    }
+
+    router.push(`/schedules/detail/${promiseId}`);
   };
 
   const labelClass =
@@ -33,6 +62,13 @@ export default function AddPlaceDirectPage() {
             data={placeName}
             setData={setPlaceName}
             placeholder={"장소 이름을 입력해주세요"}
+          />
+          <TextInput
+            label={"장소주소"}
+            name="placeAddr"
+            data={placeAddr}
+            setData={setPlaceAddr}
+            placeholder={"장소 주소를 입력해주세요"}
           />
           <TextInput
             label={"어떤 장소인가요? (선택)"}
@@ -55,7 +91,9 @@ export default function AddPlaceDirectPage() {
                 </span>
                 <span className={labelClass}>
                   설명
-                  <span className="text-black-1">{placeDescription === "" ? "-" : placeDescription}</span>
+                  <span className="text-black-1">
+                    {placeDescription === "" ? "-" : placeDescription}
+                  </span>
                 </span>
               </div>
 

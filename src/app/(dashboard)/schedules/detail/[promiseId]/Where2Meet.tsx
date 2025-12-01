@@ -20,7 +20,7 @@ export const Where2Meet = () => {
 
   return (
     <div className="flex flex-col bg-[#F9F9F9] h-full overflow-y-scroll scrollbar-hidden">
-      <AddPlaceDialog isOpen={addModalOpen} setIsOpen={setAddModalOpen} />
+      <AddPlaceDialog isOpen={addModalOpen} setIsOpen={setAddModalOpen}  promiseId={ promiseId} />
       <YesNoDialog
         isOpen={delModalOpen}
         setIsOpen={setDelModalOpen}

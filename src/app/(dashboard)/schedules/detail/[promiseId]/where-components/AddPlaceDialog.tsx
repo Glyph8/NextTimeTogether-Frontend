@@ -8,12 +8,13 @@ import { useRouter } from "next/navigation";
 interface AddPlaceDialogProps{
     isOpen: boolean;
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    promiseId: string
 }
 
-export const AddPlaceDialog = ({ isOpen, setIsOpen }: AddPlaceDialogProps) => {
+export const AddPlaceDialog = ({ isOpen, setIsOpen, promiseId }: AddPlaceDialogProps) => {
     const router = useRouter();
-    const handleEnterDirect = () => router.push("/schedules/add-place-direct");
-    const handleEnterAI = () => router.push("/schedules/add-place-ai");
+    const handleEnterDirect = () => router.push(`/schedules/add-place-direct?promiseId=${promiseId}`);
+    const handleEnterAI = () => router.push(`/schedules/add-place-ai?promiseId=${promiseId}`);
 
     const buttonStyle = "flex flex-col justify-center items-center gap-3 w-full bg-white border-1 border-gray-3 text-black-1 p-4 rounded-[8px]"
     const descriptionStyle = "text-gray-2 text-sm font-normal leading-tight";

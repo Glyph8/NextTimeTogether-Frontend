@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button/Button";
 import Search from "@/assets/svgs/icons/search.svg";
 import { RecommandItem } from "./components/RecommandItem";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 
@@ -25,6 +25,8 @@ export interface KakaoPlace {
 
 export default function AddPlaceAIPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const promiseId = searchParams.get("promiseId");
 
   const [searchText, setSearchText] = useState("");
   const [selectedPlace, setSelectedPlace] = useState<KakaoPlace | null>(null); // 선택된 장소 상태 추가
@@ -47,14 +49,17 @@ export default function AddPlaceAIPage() {
   };
 
   const handleAiRecommand = () => {
-    if (!selectedPlace) return;
+    if (!selectedPlace || !promiseId) { // promiseId 체크 추가
+        console.error("장소 또는 약속 ID가 없습니다.");
+        return; 
+    }
 
-    // 선택된 장소의 정보를 쿼리 파라미터나 전역 상태로 넘김
-    // 예: /loading?lat=...&lng=...
+    // 2. 결과 페이지로 이동할 때 promiseId를 쿼리 파라미터에 포함하여 유지
     const queryParams = new URLSearchParams({
       lat: selectedPlace.y,
       lng: selectedPlace.x,
       placeName: selectedPlace.place_name,
+      promiseId: promiseId, // 핵심: Context 유지
     }).toString();
 
     router.push(`/schedules/add-place-ai/result?${queryParams}`);
