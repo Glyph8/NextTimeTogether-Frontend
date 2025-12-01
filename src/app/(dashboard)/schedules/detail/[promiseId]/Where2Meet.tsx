@@ -12,7 +12,7 @@ export const Where2Meet = () => {
   const { placeListInfo, isPending, error, page, setPage } =
     usePlaceBoard(promiseId);
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [delModalOpen, setDelModalOpen] = useState(true);
+  const [delModalOpen, setDelModalOpen] = useState(false);
   const handleAddPlace = () => setAddModalOpen(true);
 
   return (
@@ -72,7 +72,6 @@ export const Where2Meet = () => {
               )}
             </>
           )}
-          {/* <PlaceCard placeInfo={dummyPlaceInfo} /> */}
         </div>
 
         <button
