@@ -4,45 +4,32 @@ import { TextInput } from "@/components/shared/Input/TextInput";
 import { useState } from "react";
 import { Button } from "@/components/ui/button/Button";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
-import { useRouter, useSearchParams } from "next/navigation";
-import { registerPlaceBoard } from "@/api/where2meet";
+import { useSearchParams } from "next/navigation";
+import { useAddPlaceDirect } from "./use-add-place-direct";
 
 export default function AddPlaceDirectPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const promiseId = searchParams.get("promiseId");
+
+  const {mutate} = useAddPlaceDirect(promiseId)
 
   const [placeName, setPlaceName] = useState("");
   const [placeAddr, setPlaceAddr] = useState("");
   const [placeDescription, setPlaceDescription] = useState("");
   const [openEnroll, setOpenEnroll] = useState(false);
 
-  const handleReturnToBoard = async () => {
+  const handleReturnToBoard = () => {
+    if (!promiseId) return;
 
     const data = [
       {
         placeName: placeName,
         placeAddress: placeAddr,
-        placeInfo : placeDescription,
+        placeInfo: placeDescription,
         aiPlace: false,
-      }
-    ]
-
-    if(!promiseId){
-      return;
-    }
-
-    const result = await registerPlaceBoard(promiseId, data)
-
-    if(result.code !== 200){
-      // TODO : 토스트 메세지 알림
-      console.log("응답 전체", result);
-      console.log("result만", result.result)
-      console.warn(result.code, result.message)
-      return;
-    }
-
-    router.push(`/schedules/detail/${promiseId}`);
+      },
+    ];
+    mutate(data);
   };
 
   const labelClass =
