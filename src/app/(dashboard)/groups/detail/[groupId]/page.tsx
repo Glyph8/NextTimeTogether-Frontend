@@ -38,8 +38,7 @@ export default function DetailGroupPage() {
     if (groupDetail && groupKey) {
       setGroup(groupDetail, groupKey);
       router.push(`/schedules/create/${groupId}`);
-    }
-    alert("그룹 정보 혹은 그룹키 로딩에 실패");
+    }    
   };
 
   if (isPending || isGroupFetching) {
