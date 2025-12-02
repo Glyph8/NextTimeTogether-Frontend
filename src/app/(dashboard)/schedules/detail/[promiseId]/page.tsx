@@ -10,6 +10,9 @@ import { useParams, useRouter } from "next/navigation";
 import { ScheduleDrawer } from "./components/ScheduleDrawer";
 import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
 import { dummyTimeData } from "./when-components/types";
+import { useQuery } from "@tanstack/react-query";
+import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
+import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 export default function ScheduleDetailPage() {
   const params = useParams<{ promiseId: string }>();
@@ -21,9 +24,21 @@ export default function ScheduleDetailPage() {
 
   // 임시로 약속장 권한 처리
   const isMaster = true;
-
   // API 호출 시뮬레이션 (실제로는 fetch 사용)
   const timeData = dummyTimeData;
+
+  // getEncryptedPromiseMemberId
+  const { data: encPromiseMemberList, isPending } = useQuery({
+    queryKey: ["promiseIdList", "step1", "encPromiseIds"],
+    queryFn: async () => {
+      console.log("🔵 암호화된 약속 멤버 ID 조회");
+      const result = await getEncryptedPromiseMemberId(promiseId);
+      // null이나 undefined가 오면 빈 배열로 처리
+      return result || [];
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 1,
+  });
 
   return (
     <div className="flex flex-col flex-1 w-full bg-[#f9f9f9]">
@@ -101,10 +116,17 @@ export default function ScheduleDetailPage() {
           어디서
         </button>
       </nav>
-      {tab ? (
-        <When2Meet promiseId={promiseId} timeData={timeData} />
+
+      {isPending || !encPromiseMemberList ? (
+        <DefaultLoading />
+      ) : tab ? (
+        <When2Meet
+          promiseId={promiseId}
+          timeData={timeData}
+          encMemberIdList={encPromiseMemberList}
+        />
       ) : (
-        <Where2Meet />
+        <Where2Meet encMemberIdList={encPromiseMemberList} />
       )}
     </div>
   );

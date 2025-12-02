@@ -14,16 +14,17 @@ import {
   generateDateHeaders,
   convertScheduleIdsToDisabledSlots,
 } from "./when-components/utils";
+import { EncryptedPromiseMemberId } from "@/api/promise-view-create";
 
 interface When2MeetProps {
   promiseId: string;
   timeData: TimeApiResponse;
+  encMemberIdList: EncryptedPromiseMemberId
 }
 
-export const When2Meet = ({ promiseId, timeData }: When2MeetProps) => {
+export const When2Meet = ({ promiseId, timeData, encMemberIdList }: When2MeetProps) => {
   // 전체 멤버 수 계산 (API: /promise/member/{promiseId})
-  const totalMembers = useMemo(() => dummyMemberData.result.userIds.length, []);
-
+  const totalMembers = encMemberIdList.userIds.length;
   // Convert API data to grid format
   const { data: groupData, maxCount } = useMemo(
     () => convertApiDataToGridFormat(timeData, totalMembers),

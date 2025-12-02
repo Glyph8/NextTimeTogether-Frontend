@@ -5,8 +5,15 @@ import { PlaceCard } from "./where-components/PlaceCard";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
 import { useState } from "react";
 import { PlaceCardSkeleton } from "@/components/ui/Loading/PlaceCardSkeleton";
+import { EncryptedPromiseMemberId } from "@/api/promise-view-create";
 
-export const Where2Meet = () => {
+interface Where2MeetProps {
+  encMemberIdList: EncryptedPromiseMemberId
+}
+
+export const Where2Meet = ({
+  encMemberIdList
+}:Where2MeetProps ) => {
   const params = useParams<{ promiseId: string }>();
   const promiseId = params.promiseId;
   const { placeListInfo, isPending, error, page, setPage } =
@@ -60,8 +67,9 @@ export const Where2Meet = () => {
             <>
               {placeListInfo?.places.map((place) => (
                 <PlaceCard
+                  promiseId={promiseId}
                   placeInfo={place}
-                  totalMemberCount={5}
+                  totalMemberCount={encMemberIdList.userIds.length}
                   key={place.id}
                 />
               ))}
