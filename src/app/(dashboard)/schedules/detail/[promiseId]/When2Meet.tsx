@@ -1,138 +1,162 @@
+"use client";
+
 import { useState, useMemo } from "react";
+// Components
 import { MemberCountPalette } from "./when-components/MemberCountPalette";
 import { TimeTableGrid } from "./when-components/TimeTableGrid";
 import { Button } from "@/components/ui/button/Button";
 import TimeSlotDialog from "./when-components/TimeSlotDialog";
-import {
-  TimeApiResponse,
-  dummyMyScheduleData,
-  dummyMemberData,
-  dummyTimeUsersData,
-} from "./when-components/types";
+import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
+
+// Hooks & Utils
+
 import {
   convertApiDataToGridFormat,
   generateDateHeaders,
   convertScheduleIdsToDisabledSlots,
+  convertGridToApiPayload,
 } from "./when-components/utils";
+
+// Types & Dummy Data (for calendar feature)
 import { EncryptedPromiseMemberId } from "@/api/promise-view-create";
+import { dummyMyScheduleData } from "./when-components/types";
+import { usePromiseTime, useTimeSlotDetail } from "./when-components/use-promise-time";
 
 interface When2MeetProps {
   promiseId: string;
-  timeData: TimeApiResponse;
-  encMemberIdList: EncryptedPromiseMemberId
+  encMemberIdList: EncryptedPromiseMemberId;
 }
 
-export const When2Meet = ({ promiseId, timeData, encMemberIdList }: When2MeetProps) => {
-  // 전체 멤버 수 계산 (API: /promise/member/{promiseId})
+export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
   const totalMembers = encMemberIdList.userIds.length;
-  // Convert API data to grid format
+
+  // --------------------------------------------------------------------------
+  // 1. Server State Management (React Query Custom Hook)
+  // --------------------------------------------------------------------------
+  // UI는 데이터를 어떻게 가져오는지 알 필요가 없습니다. Hook이 모든 것을 처리합니다.
+  const { boardQuery, updateMutation } = usePromiseTime(promiseId);
+  const { data: timeBoardData, isLoading: isBoardLoading } = boardQuery;
+
+  // --------------------------------------------------------------------------
+  // 2. Data Transformation (Derived State)
+  // --------------------------------------------------------------------------
+  // API 응답 데이터를 UI 그리드 포맷(number[][])으로 변환
   const { data: groupData, maxCount } = useMemo(
-    () => convertApiDataToGridFormat(timeData, totalMembers),
-    [timeData, totalMembers]
+    () => convertApiDataToGridFormat(timeBoardData, totalMembers),
+    [timeBoardData, totalMembers]
   );
 
-  const { dates, days } = useMemo(
-    () =>
-      generateDateHeaders(
-        timeData.result.timeRange.startDateTime,
-        timeData.result.timeRange.endDateTime
-      ),
-    [timeData]
-  );
+  // 날짜 헤더 생성 (dates: "11/29", days: "금")
+  const { dates, days } = useMemo(() => {
+    if (!timeBoardData) return { dates: [], days: [] };
+    return generateDateHeaders(
+      timeBoardData.timeRange.startDateTime,
+      timeBoardData.timeRange.endDateTime
+    );
+  }, [timeBoardData]);
 
-  // State for my schedule (30분 단위, 9:00~24:00 = 30 slots)
+  // --------------------------------------------------------------------------
+  // 3. Local UI State
+  // --------------------------------------------------------------------------
+  // 내 시간표 선택 상태 (7일 x 30슬롯 boolean)
   const [mySelection, setMySelection] = useState<boolean[][]>(
-    Array(7)
-      .fill(null)
-      .map(() => Array(30).fill(false))
+    Array(7).fill(null).map(() => Array(30).fill(false))
   );
 
-  // State for disabled slots (내 캘린더 일정)
-  const [disabledSlots, setDisabledSlots] = useState<boolean[][] | undefined>(
-    undefined
-  );
+  // 캘린더 일정 (비활성화 슬롯) 상태
+  const [disabledSlots, setDisabledSlots] = useState<boolean[][] | undefined>(undefined);
 
-  // State for dialog
+  // 상세 조회 다이얼로그 상태
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<{
-    dayIndex: number;
-    timeIndex: number;
+  const [selectedSlotInfo, setSelectedSlotInfo] = useState<{
+    date: string;     // "2025-11-29"
+    time: string;     // "09:00:00"
+    dayOfWeek: string;// "금"
   } | null>(null);
 
-  // Handle cell click in group timetable
+  // --------------------------------------------------------------------------
+  // 4. On-Demand Data Fetching (Time Slot Detail)
+  // --------------------------------------------------------------------------
+  // 사용자가 셀을 클릭했을 때만 해당 시간대의 상세 정보(참여자 명단)를 가져옵니다.
+  const { data: slotDetailData, isLoading: isSlotLoading } = useTimeSlotDetail(
+    promiseId,
+    selectedSlotInfo ? { date: selectedSlotInfo.date, time: selectedSlotInfo.time } : null
+  );
+
+  // --------------------------------------------------------------------------
+  // 5. Event Handlers
+  // --------------------------------------------------------------------------
+  
+  // [VIEW 모드] 그룹 시간표 셀 클릭 핸들러
   const handleCellClick = (dayIndex: number, timeIndex: number) => {
-    // dummyTimeUsersData에서 해당 시간대의 사용자 정보 조회
-    const dateStr = timeData.result.timeRange.startDateTime;
-    const startDate = new Date(dateStr);
+    if (!timeBoardData) return;
+
+    // 인덱스를 실제 API 요청용 날짜/시간 포맷으로 변환
+    const startDate = new Date(timeBoardData.timeRange.startDateTime);
     const targetDate = new Date(startDate);
     targetDate.setDate(startDate.getDate() + dayIndex);
     const dateKey = targetDate.toISOString().split("T")[0]; // "2025-11-29"
 
-    // timeIndex를 시간으로 변환 (9:00 = 0, 9:30 = 1, ...)
     const hour = 9 + Math.floor(timeIndex / 2);
     const minute = timeIndex % 2 === 0 ? 0 : 30;
     const timeKey = `${hour.toString().padStart(2, "0")}:${minute
       .toString()
       .padStart(2, "0")}:00`;
 
-    const key = `${dateKey}_${timeKey}`;
-    const userData = dummyTimeUsersData[key];
-
-    // 데이터가 있을 때만 다이얼로그 열기 (count > 0인 시간대만)
-    if (userData) {
-      setSelectedSlot({ dayIndex, timeIndex });
-      // 약간의 지연을 두어 클릭 이벤트가 완전히 처리된 후 Dialog 열기
-      setTimeout(() => {
-        setDialogOpen(true);
-      }, 50);
-    }
-  };
-
-  // Get dialog data
-  const getDialogData = () => {
-    if (!selectedSlot) {
-      return {
-        date: "",
-        time: "",
-        dayOfWeek: "",
-        availableUsers: [],
-        unavailableUsers: [],
-      };
-    }
-
-    const { dayIndex, timeIndex } = selectedSlot;
-
-    // 날짜 계산
-    const dateStr = timeData.result.timeRange.startDateTime;
-    const startDate = new Date(dateStr);
-    const targetDate = new Date(startDate);
-    targetDate.setDate(startDate.getDate() + dayIndex);
-    const dateKey = targetDate.toISOString().split("T")[0]; // "2025-11-29"
-
-    // 시간 계산
-    const hour = 9 + Math.floor(timeIndex / 2);
-    const minute = timeIndex % 2 === 0 ? 0 : 30;
-    const timeKey = `${hour.toString().padStart(2, "0")}:${minute
-      .toString()
-      .padStart(2, "0")}:00`;
-
-    const key = `${dateKey}_${timeKey}`;
-    const userData = dummyTimeUsersData[key];
-
-    return {
+    setSelectedSlotInfo({
       date: dateKey,
       time: timeKey,
       dayOfWeek: days[dayIndex],
-      availableUsers: userData?.result.availableUsers || [],
-      unavailableUsers: userData?.result.unavailableUsers || [],
-    };
+    });
+    setDialogOpen(true);
   };
 
-  const dialogData = getDialogData();
+  // [SELECT 모드] 저장 버튼 클릭 핸들러
+  const handleSave = () => {
+    if (!timeBoardData) {
+      alert("데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    // API 전송을 위해 UI용 dates("11/29")가 아닌 ISO dates("2025-11-29") 배열 생성
+    const startDate = new Date(timeBoardData.timeRange.startDateTime);
+    const isoDates = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      return d.toISOString().split("T")[0];
+    });
+
+    // 1. Adapter Pattern: UI 데이터(Grid) -> API 데이터(DTO) 변환
+    const payload = convertGridToApiPayload(mySelection, isoDates);
+
+    // 2. Mutation: 서버로 데이터 전송
+    updateMutation.mutate(payload);
+  };
+
+  // [SELECT 모드] 캘린더 불러오기 토글 핸들러
+  const handleToggleCalendar = () => {
+    if (disabledSlots) {
+      setDisabledSlots(undefined);
+    } else {
+      if (!timeBoardData) return;
+      // TODO: 실제로는 useQuery로 내 캘린더 데이터를 가져와야 함 (현재는 더미 데이터)
+      const disabled = convertScheduleIdsToDisabledSlots(
+        dummyMyScheduleData.result.scheduleIds,
+        timeBoardData.timeRange.startDateTime,
+        timeBoardData.timeRange.endDateTime
+      );
+      setDisabledSlots(disabled);
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // 6. Render
+  // --------------------------------------------------------------------------
+  if (isBoardLoading) return <DefaultLoading />;
 
   return (
     <div className="flex flex-col w-full pb-10">
-      {/* Group Schedule Section */}
+      {/* === 섹션 1: 그룹 시간표 (View Mode) === */}
       <div className="flex flex-col gap-3 px-4 py-5 items-center bg-white">
         <div className="text-center text-black-1 text-lg font-semibold leading-tight">
           그룹 시간표
@@ -147,27 +171,28 @@ export const When2Meet = ({ promiseId, timeData, encMemberIdList }: When2MeetPro
             mode="view"
             data={groupData}
             maxMembers={maxCount}
-            dates={dates}
+            dates={dates} // "11/29" 형식 (Header 표시용)
             days={days}
             onCellClick={handleCellClick}
           />
         </div>
       </div>
 
-      {/* Time Slot Dialog */}
+      {/* === 컴포넌트: 상세 정보 다이얼로그 === */}
       <TimeSlotDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        date={dialogData.date}
-        time={dialogData.time}
-        dayOfWeek={dialogData.dayOfWeek}
-        availableUsers={dialogData.availableUsers}
-        unavailableUsers={dialogData.unavailableUsers}
+        date={selectedSlotInfo?.date || ""}
+        time={selectedSlotInfo?.time || ""}
+        dayOfWeek={selectedSlotInfo?.dayOfWeek || ""}
+        availableUsers={slotDetailData?.availableUsers || []}
+        unavailableUsers={slotDetailData?.unavailableUsers || []}
+        isLoading={isSlotLoading} // Dialog 내부에 로딩 처리가 필요하다면 전달
       />
 
       <div className="h-2 bg-[#F9F9F9]" />
 
-      {/* My Schedule Section */}
+      {/* === 섹션 2: 내 시간표 (Select Mode) === */}
       <div className="flex flex-col gap-3 px-4 py-5 items-center bg-white">
         <div className="text-center text-black-1 text-lg font-semibold leading-tight">
           내 시간표
@@ -187,35 +212,24 @@ export const When2Meet = ({ promiseId, timeData, encMemberIdList }: When2MeetPro
           />
         </div>
 
+        {/* 하단 버튼 그룹 */}
         <div className="flex w-full gap-2 mt-6">
           <button
-            className="flex-1 h-12 rounded-lg border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50"
-            onClick={() => {
-              // 토글: 이미 불러온 상태면 해제, 아니면 불러오기
-              if (disabledSlots) {
-                setDisabledSlots(undefined);
-              } else {
-                const disabled = convertScheduleIdsToDisabledSlots(
-                  dummyMyScheduleData.result.scheduleIds,
-                  timeData.result.timeRange.startDateTime,
-                  timeData.result.timeRange.endDateTime
-                );
-                setDisabledSlots(disabled);
-              }
-            }}
+            className="flex-1 h-12 rounded-lg border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors"
+            onClick={handleToggleCalendar}
           >
             {disabledSlots ? "캘린더 해제" : "캘린더 불러오기"}
           </button>
-          <button className="flex-1 h-12 rounded-lg border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50">
+          <button className="flex-1 h-12 rounded-lg border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors">
             우선순위 설정하기
           </button>
         </div>
 
         <div className="w-full mt-2 flex justify-center">
           <Button
-            text="저장"
-            onClick={() => console.log("Save", mySelection)}
-            disabled={false}
+            text={updateMutation.isPending ? "저장 중..." : "저장"}
+            onClick={handleSave}
+            disabled={updateMutation.isPending}
           />
         </div>
       </div>

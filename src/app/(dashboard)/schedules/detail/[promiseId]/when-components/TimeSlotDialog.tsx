@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 interface TimeSlotDialogProps {
   open: boolean;
@@ -17,6 +18,7 @@ interface TimeSlotDialogProps {
   dayOfWeek: string; // "금"
   availableUsers: string[];
   unavailableUsers: string[];
+  isLoading: boolean;
 }
 
 export default function TimeSlotDialog({
@@ -27,6 +29,7 @@ export default function TimeSlotDialog({
   dayOfWeek,
   availableUsers,
   unavailableUsers,
+  isLoading,
 }: TimeSlotDialogProps) {
   // "2025-11-29" -> "10/13"
   const formatDate = (dateStr: string) => {
@@ -38,6 +41,10 @@ export default function TimeSlotDialog({
   const formatTime = (timeStr: string) => {
     return timeStr.substring(0, 5);
   };
+
+  if(isLoading){
+    return <DefaultLoading/>
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>

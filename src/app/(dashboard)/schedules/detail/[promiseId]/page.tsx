@@ -9,7 +9,6 @@ import { Where2Meet } from "./Where2Meet";
 import { useParams, useRouter } from "next/navigation";
 import { ScheduleDrawer } from "./components/ScheduleDrawer";
 import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
-import { dummyTimeData } from "./when-components/types";
 import { useQuery } from "@tanstack/react-query";
 import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
@@ -22,14 +21,10 @@ export default function ScheduleDetailPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [whenConfirmOpen, setWhenConfirmOpen] = useState(false);
 
-  // 임시로 약속장 권한 처리
+  // TODO : 임시로 약속장 권한 처리
   const isMaster = true;
-  // API 호출 시뮬레이션 (실제로는 fetch 사용)
-  const timeData = dummyTimeData;
-
-  // getEncryptedPromiseMemberId
   const { data: encPromiseMemberList, isPending } = useQuery({
-    queryKey: ["promiseIdList", "step1", "encPromiseIds"],
+    queryKey: ["promiseId", "encPromiseIds"],
     queryFn: async () => {
       console.log("🔵 암호화된 약속 멤버 ID 조회");
       const result = await getEncryptedPromiseMemberId(promiseId);
@@ -56,7 +51,7 @@ export default function ScheduleDetailPage() {
         <WhenConfirmDrawer
           open={whenConfirmOpen}
           setOpen={setWhenConfirmOpen}
-          timeData={timeData}
+          promiseId={promiseId}
         />
       )}
 
@@ -122,7 +117,6 @@ export default function ScheduleDetailPage() {
       ) : tab ? (
         <When2Meet
           promiseId={promiseId}
-          timeData={timeData}
           encMemberIdList={encPromiseMemberList}
         />
       ) : (
