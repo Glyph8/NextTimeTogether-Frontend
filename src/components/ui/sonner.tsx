@@ -9,7 +9,7 @@ type ToasterProps = React.ComponentProps<typeof Sonner> & {
   nonce?: string; // nonce prop 추가
 }
 
-const Toaster = ({ nonce, ...props }: ToasterProps) => {
+const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
 
   return (

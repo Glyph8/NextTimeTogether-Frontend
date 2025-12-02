@@ -137,7 +137,7 @@ export const confirmTimetable = (
   const clientApi = clientBaseApi;
 
   return clientApi.time
-    .confirmDateTime(promiseId, data)
+    .confirmDateTime(promiseId, {dateTime: data})
     .then((response) => {
       const data = response.data;
       if (!data.result) {

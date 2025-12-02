@@ -19,9 +19,6 @@ export default function GroupsPage() {
   const handleCreateBtn = () => {
     router.push("/groups/create");
   };
-  const handleJoinBtn = () => {
-    setIsOpenEnterDialog(true);
-  };
 
   if (isPending) {
     return <DefaultLoading/>;
@@ -32,6 +29,7 @@ export default function GroupsPage() {
       <Header title={"그룹 관리"} />
 
       <div className="w-full h-19 flex justify-end items-center px-4">
+        {/* TODO : EnterGroupDialog 필요한가? join과 연결 하거나 지우기 */}
         <EnterGroupDialog
           isOpen={isOpenEnterDialog}
           setIsOpen={setIsOpenEnterDialog}

@@ -16,7 +16,8 @@ export const Where2Meet = ({
 }:Where2MeetProps ) => {
   const params = useParams<{ promiseId: string }>();
   const promiseId = params.promiseId;
-  const { placeListInfo, isPending, error, page, setPage } =
+  // const { placeListInfo, isPending, error, page, setPage } =
+   const { placeListInfo, isPending, error } =
     usePlaceBoard(promiseId);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [delModalOpen, setDelModalOpen] = useState(false);

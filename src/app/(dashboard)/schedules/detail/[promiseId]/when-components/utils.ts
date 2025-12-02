@@ -1,5 +1,4 @@
 import { UserTimeSlotReqDTO } from "@/apis/generated/Api";
-import { TimeApiResponse } from "./types";
 import { TimeBoardResponse, TimeCell } from "@/api/when2meet";
 
 /**

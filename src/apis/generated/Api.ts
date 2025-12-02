@@ -55,6 +55,10 @@ export interface UserTimeSlotReqDTO {
   dateTime?: UserTimeSlotDTO[];
 }
 
+export interface ConfirmDateReqDTO {
+  dateTime?: string;
+}
+
 export interface ErrorResponse {
   /** @format int32 */
   code?: number;
@@ -209,6 +213,10 @@ export interface PromiseView2Response {
   promiseImg?: string;
 }
 
+export interface UserIdsResDTO {
+  userIds?: string[];
+}
+
 export interface JoinPromise1Request {
   promiseId?: string;
   encPromiseId?: string;
@@ -260,11 +268,12 @@ export interface CreatePromise1Request {
 }
 
 export interface PlaceRegisterDTO {
-  placeId?: string;
   placeName: string;
   placeAddress?: string;
   placeInfo?: string;
   aiPlace?: boolean;
+  /** @format int32 */
+  aiPlaceId?: number;
 }
 
 export interface UserBoardReqDTO {
@@ -291,6 +300,7 @@ export interface BaseResponseObject {
 
 export interface UserAIInfoReqDTO {
   pseudoId?: string;
+  purpose?: string;
   /** @format double */
   latitude?: number;
   /** @format double */
@@ -541,10 +551,6 @@ export interface PromiseView1Response {
    * @example "0cL0PM....=="
    */
   encPromiseId?: string;
-}
-
-export interface UserIdsResDTO {
-  userIds?: string[];
 }
 
 export interface TestDTO {
@@ -856,7 +862,7 @@ export class Api<
      */
     confirmDateTime: (
       promiseId: string,
-      data: string,
+      data: ConfirmDateReqDTO,
       params: RequestParams = {},
     ) =>
       this.request<BaseResponse, ErrorResponse>({
@@ -982,6 +988,29 @@ export class Api<
         secure: true,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description 약속원에 대한 정보를 조회한다
+     *
+     * @tags 약속
+     * @name GetUsersByPromiseTime2
+     * @summary 약속원 정보 조회
+     * @request POST:/promise/mem/s2/{promiseId}
+     * @secure
+     */
+    getUsersByPromiseTime2: (
+      promiseId: string,
+      data: UserIdsResDTO,
+      params: RequestParams = {},
+    ) =>
+      this.request<BaseResponse, any>({
+        path: `/promise/mem/s2/${promiseId}`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         ...params,
       }),
 
@@ -1180,7 +1209,6 @@ export class Api<
     searchPromiseView: (
       query: {
         query: string;
-        filter?: string[];
       },
       params: RequestParams = {},
     ) =>
@@ -1189,29 +1217,6 @@ export class Api<
         method: "GET",
         query: query,
         secure: true,
-        ...params,
-      }),
-
-    /**
-     * @description 약속원에 대한 정보를 조회한다
-     *
-     * @tags 약속
-     * @name GetUsersByPromiseTime2
-     * @summary 약속원 정보 조회
-     * @request GET:/promise/mem/s2/{promiseId}
-     * @secure
-     */
-    getUsersByPromiseTime2: (
-      promiseId: string,
-      data: UserIdsResDTO,
-      params: RequestParams = {},
-    ) =>
-      this.request<BaseResponse, any>({
-        path: `/promise/mem/s2/${promiseId}`,
-        method: "GET",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
         ...params,
       }),
 
@@ -1370,11 +1375,16 @@ export class Api<
     confirmedPlace: (
       promiseId: string,
       placeId: number,
+      query?: {
+        /** @format int32 */
+        aiPlaceId?: number;
+      },
       params: RequestParams = {},
     ) =>
       this.request<BaseResponse, ErrorResponse>({
         path: `/place/confirm/${promiseId}/${placeId}`,
         method: "POST",
+        query: query,
         secure: true,
         ...params,
       }),
@@ -1402,16 +1412,12 @@ export class Api<
      * @tags 장소
      * @name RecommendPlace
      * @summary AI로 장소 추천
-     * @request POST:/place/ai/recommend/{promiseId}
+     * @request POST:/place/ai/recommend
      * @secure
      */
-    recommendPlace: (
-      promiseId: string,
-      data: UserAIInfoReqDTO,
-      params: RequestParams = {},
-    ) =>
+    recommendPlace: (data: UserAIInfoReqDTO, params: RequestParams = {}) =>
       this.request<BaseResponse, ErrorResponse>({
-        path: `/place/ai/recommend/${promiseId}`,
+        path: `/place/ai/recommend`,
         method: "POST",
         body: data,
         secure: true,

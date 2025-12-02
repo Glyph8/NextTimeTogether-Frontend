@@ -19,7 +19,7 @@ export const ScheduleDrawer = ({
   open,
   setOpen,
   isMaster = false,
-  promiseId,
+  // promiseId,
   onConfirmClick,
 }: ScheduleDrawerProps) => {
   const handleDisperse = () => {};

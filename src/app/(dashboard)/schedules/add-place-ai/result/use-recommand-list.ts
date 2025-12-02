@@ -33,7 +33,8 @@ export const useRecommandList = (
       };
 
       console.log("🔵 약속 장소 게시판 조회");
-      const result = await getAIRecommand(promiseId, requestBody);
+      // const result = await getAIRecommand(promiseId, requestBody);
+      const result = await getAIRecommand(requestBody);
       console.log("🔵 장소 게시판 서버 응답:", result);
 
       if (!result) {

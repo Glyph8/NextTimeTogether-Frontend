@@ -10,52 +10,53 @@ import Header from "@/components/ui/header/Header";
 import { ScheduleDialog } from "./components/ScheduleDialog";
 import { TeamItem } from "./components/TeamItem";
 import { ScheduleItem } from "./components/ScheduleItem";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import {teamList, scheduleList} from "./constants"
 
 export default function SchedulePage() {
     const [conditionOpen, setConditionOpen] = useState(false);
     const [isOpenDialog, setIsOpenDialog] = useState(false);
 
-    const router = useRouter()
-    const [switches, setSwitches] = useState(
-        Array(teamList.length).fill(false)
-    );
-    const [filterArray, setFilterArray] = useState([
-        {
-            category: "전체",
-            isSelected: true,
-        },
-        {
-            category: "약속 제목",
-            isSelected: true,
-        },
-        {
-            category: "참여 인원",
-            isSelected: true,
-        }
-        , {
-            category: "장소",
-            isSelected: true,
-        }
-    ]);
-    const handleNavDetail = () => {
-        router.push("/schedules/detail")
-    }
+    // const router = useRouter()
+    // const [switches, setSwitches] = useState(
+    //     Array(teamList.length).fill(false)
+    // );
 
-    const toggleAllValue = switches.every(Boolean);
+    // const [filterArray, setFilterArray] = useState([
+    //     {
+    //         category: "전체",
+    //         isSelected: true,
+    //     },
+    //     {
+    //         category: "약속 제목",
+    //         isSelected: true,
+    //     },
+    //     {
+    //         category: "참여 인원",
+    //         isSelected: true,
+    //     }
+    //     , {
+    //         category: "장소",
+    //         isSelected: true,
+    //     }
+    // ]);
+    // const handleNavDetail = () => {
+    //     router.push("/schedules/detail")
+    // }
 
-    const toggleAll = (value: boolean) => {
-        setSwitches(Array(switches.length).fill(value));
-    };
+    // const toggleAllValue = switches.every(Boolean);
 
-    const toggleOne = (id: number) => {
-        setSwitches((prev) => {
-            const copy = [...prev];
-            copy[id] = !copy[id];
-            return copy;
-        });
-    };
+    // const toggleAll = (value: boolean) => {
+    //     setSwitches(Array(switches.length).fill(value));
+    // };
+
+    // const toggleOne = (id: number) => {
+    //     setSwitches((prev) => {
+    //         const copy = [...prev];
+    //         copy[id] = !copy[id];
+    //         return copy;
+    //     });
+    // };
 
 
     return (

@@ -18,14 +18,14 @@ export default function AiSearchLoadingPage() {
   const [openEnroll, setOpenEnroll] = useState(false);
   const selectedPlaces = useMemo(() => {
     return dummyAISearchResult.filter((place) => selectedItems.has(place.id));
-  }, [dummyAISearchResult, selectedItems]);
+  }, [selectedItems]);
 
   // const promiseId = 'cf41e9f8-bd3b-424c-a856-e8deff2d2cb3';
   const promiseId = searchParams.get("promiseId") ?? "";
   const latitude = Number(searchParams.get("lat"));
   const longitude = Number(searchParams.get("lng"));
 
-  const { recommandList, isPending, error } = useRecommandList(
+  const { recommandList, isPending} = useRecommandList(
     promiseId,
     latitude,
     longitude

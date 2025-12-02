@@ -5,7 +5,7 @@ import {
   format,
   isWithinInterval,
   startOfDay,
-  endOfDay,
+  // endOfDay,
   parseISO, // 문자열을 Date로 변환하기 위해 임포트
 } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -65,7 +65,8 @@ const TimeWheelPicker = ({
   useEffect(() => {
     setValueGroups(dateToValueGroups(date));
   }, [date]);
-  const handleChange = (newValueGroup: PickerValue, changedKey: string) => {
+  // const handleChange = (newValueGroup: PickerValue, changedKey: string) => {
+  const handleChange = (newValueGroup: PickerValue) => {
     const updatedValue = newValueGroup as TimePickerValue;
     setValueGroups(updatedValue);
     const { ampm, hour, minute } = updatedValue;

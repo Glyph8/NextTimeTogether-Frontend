@@ -2,7 +2,6 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Toaster } from "@/components/ui/sonner";
 import { useAuthSession } from '@/hooks/useAuthSession';
 import DefaultLoading from '@/components/ui/Loading/DefaultLoading';
 
@@ -13,7 +12,8 @@ interface ProvidersProps {
 }
 
 // 2. props로 { children, nonce }를 받습니다.
-export function Providers({ children, nonce }: ProvidersProps) {
+// export function Providers({ children, nonce }: ProvidersProps) {
+export function Providers({ children }: ProvidersProps) {
   const { isRestoring } = useAuthSession();
   const [queryClient] = useState(
     () =>

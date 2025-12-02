@@ -64,11 +64,14 @@ export const getPlaceBoard = (
 };
 
 /** AI 추천 받는 API TODO : 현재 서버 에러로 응답이 안옴 */
-export const getAIRecommand = (promiseId: string, data: UserAIInfoReqDTO) => {
+// TODO : 이제 장소 추천에 약속 ID를 안받는지? 그 이유는?
+// export const getAIRecommand = (promiseId: string, data: UserAIInfoReqDTO) => {
+export const getAIRecommand = (data: UserAIInfoReqDTO) => {
   const clientApi = clientBaseApi;
 
   return clientApi.place
-    .recommendPlace(promiseId, data)
+    // .recommendPlace(promiseId, data)
+    .recommendPlace(data)
     .then((response) => {
       const data = response.data as ApiResponse<AIRecommandResponse>;
       if (!data.result) {
