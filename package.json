@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
     "swagger-typescript-api": "swagger-typescript-api generate -p https://meetnow.duckdns.org/v3/api-docs -r -o ./apis --modular -d --extract-request-body --extract-response-body --extract-response-error --axios --clean-output",
