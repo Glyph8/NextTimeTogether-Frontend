@@ -3,14 +3,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*", // 브라우저가 /api/어쩌구 로 요청하면
-        destination: "https://meetnow.duckdns.org/:path*", // 실제로는 여기로 보냄
-      },
-    ];
-  },
   images: {
     remotePatterns: [
       {

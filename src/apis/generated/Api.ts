@@ -114,6 +114,11 @@ export interface PromiseView4Response {
    */
   scheduleId?: string;
   /**
+   * 확정된 시간
+   * @example "20251129T1430-20251129T1630"
+   */
+  confirmedDateTime?: string;
+  /**
    * 제목
    * @example "61a4c8e6-ea48-47d3-9523-9cf09dd6aae4"
    */
@@ -129,11 +134,15 @@ export interface PromiseView4Response {
    */
   purpose?: string;
   /**
-   * 장소 ID
-   * @format int64
-   * @example 1
+   * 장소 이름
+   * @example "독서실"
    */
-  placeId?: number;
+  placeName?: string;
+  /**
+   * 장소 정보
+   * @example "공부하는곳"
+   */
+  placeInfo?: string;
   /**
    * 그룹 ID
    * @example "d71ac3eb-fc61-4cff-92c7-478a0e092936"
@@ -382,7 +391,6 @@ export interface CreateGroup1Request {
   groupName?: string;
   groupExplain?: string;
   groupImg?: string;
-  explain?: string;
 }
 
 export interface SaveGroupMemberRequest {

@@ -21,6 +21,7 @@ export interface GroupInfoData {
   groupId: string;
   groupName: string;
   groupImg: string;
+  // explanation: string
   managerId: string;
   encUserId: string[];
 }

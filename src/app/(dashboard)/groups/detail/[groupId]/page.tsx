@@ -121,7 +121,7 @@ export default function DetailGroupPage() {
           {openFixed && fixedPromise && fixedPromise.length > 0 ? (
             <div className="flex flex-col gap-2">
               {fixedPromise.map((schedule) => {
-                const {scheduleId, purpose, title, content, placeId} = schedule
+                const {scheduleId, purpose, title, content, placeName} = schedule
                 return (
                   <GroupScheduleItem
                     key={scheduleId}
@@ -129,19 +129,11 @@ export default function DetailGroupPage() {
                     category={purpose ?? ""}
                     title={title ?? ""}
                     time={content}
-                    // TODO : placeID로 주는 이유는? 이걸 어떻게 장소로 봄?
-                    place={placeId?.toString()}
+                    place={placeName}
                     attendees={content}
                   />
                 );
               })}
-              {/* <GroupScheduleItem
-                                category={"식사"}
-                                title={"하기"}
-                                time="10/12 (토) 09:00~12:00"
-                                attendees="오프라인"
-                                place="카페온더플랜"
-                            /> */}
             </div>
           ) : openFixed ? (
             <p className="text-center">확정된 약속이 없어요!</p>

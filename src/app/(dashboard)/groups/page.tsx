@@ -50,7 +50,6 @@ export default function GroupsPage() {
         <DefaultLoading />
       ) : (
         <div className="w-full flex flex-col gap-2 px-4">
-          {/* TODO: 이미지 속성에 이미지 정보 오도록 요청 <p>{group.groupImg}</p> */}
           {data && data.length !== 0 ? (
             data.map((group) => {
               return (
