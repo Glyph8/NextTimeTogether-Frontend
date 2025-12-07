@@ -37,7 +37,7 @@ export const getEncGroupsIdRequest = async (): Promise<
     .viewGroup1()
     .then((response) => {
       console.log(
-        "step1 - 참여한 그룹들의 암호화된 그룹 ID, 그룹원 ID 배열: ",
+        // "step1 - 참여한 그룹들의 암호화된 그룹 ID, 그룹원 ID 배열: ",
         response.data
       );
       return response.data;
@@ -69,7 +69,7 @@ export const getEncGroupsKeyRequest = async (
   return serverApi.api
     .viewGroup2(groupIdAndKeySets)
     .then((response) => {
-      console.log("step2 - 암호화된 groupKey 요청  : ", response.data);
+      // console.log("step2 - 암호화된 groupKey 요청  : ", response.data);
       return response.data;
     })
     .catch((error) => {
@@ -99,7 +99,7 @@ export const getGroupsInfoRequest = async (
   return serverApi.api
     .viewGroup3(groupIdSets)
     .then((response) => {
-      console.log("step3 - 실제 그룹 정보 요청  : ", response.data);
+      // console.log("step3 - 실제 그룹 정보 요청  : ", response.data);
       return response.data;
     })
     .catch((error) => {

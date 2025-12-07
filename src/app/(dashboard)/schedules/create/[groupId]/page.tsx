@@ -3,7 +3,7 @@
 import Header from "@/components/ui/header/Header";
 import X from "@/assets/svgs/icons/x-black.svg";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter} from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button/Button";
 import { useGroupStore } from "@/store/group-detail.store";
@@ -14,13 +14,11 @@ import SelectSchedule from "./components/SelectTimeOnline";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
 import { PromiseSummary } from "./components/PromiseSummary";
 import SharePromise from "./components/SharePromise"; // 새로 만든 컴포넌트 import
-import { useAuthStore } from "@/store/auth.store";
 
 export default function CreateSchedulePage() {
   const params = useParams<{ groupId: string }>();
   const groupIdFromUrl = params.groupId;
   const router = useRouter();
-  
   const [progress, setProgress] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -38,10 +36,10 @@ export default function CreateSchedulePage() {
   const promiseForm = useCreatePromise(groupIdFromUrl);
   const { values, actions } = promiseForm;
 
-  const userId = useAuthStore.getState().userId;
-  const decryptedUserId = localStorage.getItem("encrypted_user_id");
-  const hashed = localStorage.getItem("hashed_user_id_for_manager");
-  console.log("USERID : ", userId, "DEC USERID: ", decryptedUserId, "HASHED: ", hashed)
+  // TODO : 매니저용 임시 해시된 id (회원가입 시 사용되어 서버에 전달된 masterkey로 암호화된 아이디)
+  // const userId = useAuthStore.getState().userId;
+  // const decryptedUserId = localStorage.getItem("encrypted_user_id");
+  // const hashed = localStorage.getItem("hashed_user_id_for_manager");
 
   useEffect(() => {
     if (fetchedGroup && groupKey) {
@@ -80,6 +78,7 @@ if (values.createdPromiseId && groupIdFromUrl) {
   if (activeGroup) {
     return (
       <div className="bg-white h-dvh flex flex-col">
+        {/* TODO : 글자 길어지는 경우 모달 삐져나옴 문제 존재. */}
         <YesNoDialog
           isOpen={isOpen}
           setIsOpen={setIsOpen}

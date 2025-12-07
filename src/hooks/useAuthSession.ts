@@ -67,11 +67,15 @@ export const useAuthSession = () => {
       } catch (err) {
         console.warn(`[AuthSession] 세션 복원 실패: ${err}`);
         // 세션 복원에 실패하면 로그인 페이지로 (로그인 페이지 자체는 제외)
+
+
         clearAccessToken() // 사용자 데이터 날리기 
         localStorage.removeItem("encrypted_user_id"); // 실패한 데이터 정리
         if (pathname !== "/login") {
           router.replace("/login");
         }
+
+        
       } finally {
         setIsRestoring(false);
       }

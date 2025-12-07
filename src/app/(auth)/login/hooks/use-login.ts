@@ -95,12 +95,11 @@ export const useLogin = () => {
             return; 
           }
 
-          // TODO : 약속장 ID를 서버에서 비교하므로, 솔트가 들어가면 안됨..
-          // const encryptedLoginId = await encryptStringToBase64(
-          //   id,
-          //   masterCryptoKey
-          // );
-          // localStorage.setItem("encrypted_user_id", encryptedLoginId);
+          const encryptedLoginId = await encryptStringToBase64(
+            id,
+            masterCryptoKey
+          );
+          localStorage.setItem("encrypted_user_id", encryptedLoginId);
 
           // FIX : USER ID hmacSha256 ONLY VER - 매니저 구분용
           const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
