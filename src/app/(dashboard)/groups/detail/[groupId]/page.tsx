@@ -92,6 +92,7 @@ export default function DetailGroupPage() {
                 return (
                   <GroupScheduleItem
                     key={promiseId}
+                    promiseInfo = {onProgressPromise}
                     id={promiseId ?? ""}
                     category={type ?? ""}
                     title={title ?? ""}
@@ -120,6 +121,7 @@ export default function DetailGroupPage() {
                 return (
                   <GroupScheduleItem
                     key={scheduleId}
+                    promiseInfo={schedule}
                     id={scheduleId ?? ""}
                     category={purpose ?? ""}
                     title={title ?? ""}

@@ -51,6 +51,8 @@ export const useLogin = () => {
       const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
       const hashedPassword = await hashPassword(pw, masterKey);
 
+      // console.log("###############", hashedUserId, hashedPassword)
+
       // 3. 서버 액션에 전달할 FormData 수정
       formData.set("hashedUserId", hashedUserId);
       formData.set("hashedPassword", hashedPassword);
@@ -93,12 +95,16 @@ export const useLogin = () => {
             return; 
           }
 
-          const encryptedLoginId = await encryptStringToBase64(
-            id,
-            masterCryptoKey
-          );
-          // TODO : 더 나은 방법있을 시, 개선
-          localStorage.setItem("encrypted_user_id", encryptedLoginId);
+          // TODO : 약속장 ID를 서버에서 비교하므로, 솔트가 들어가면 안됨..
+          // const encryptedLoginId = await encryptStringToBase64(
+          //   id,
+          //   masterCryptoKey
+          // );
+          // localStorage.setItem("encrypted_user_id", encryptedLoginId);
+
+          // FIX : USER ID hmacSha256 ONLY VER - 매니저 구분용
+          const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
+          localStorage.setItem("hashed_user_id_for_manager", hashedUserId);
 
           // [수정 3] Router Cache 문제 방지를 위해 refresh() 호출 권장
           router.refresh();

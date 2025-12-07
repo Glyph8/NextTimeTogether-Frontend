@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button/Button";
 import { useSearchParams } from "next/navigation";
 import { AIRecommandItem } from "./components/AIRecommandItem";
-import { useSelection } from "@/hooks/useSelection"; // useSelection 훅이 있다고 가정
+import { useSelection } from "@/hooks/useSelection";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
 import { useMemo, useState } from "react";
 import { useRecommandList } from "./use-recommand-list";
@@ -14,13 +14,11 @@ import { useAddPlaceDirect } from "../../add-place-direct/use-add-place-direct";
 export default function AiSearchLoadingPage() {
   const searchParams = useSearchParams();
   
-  // URL Params parsing
   const promiseId = searchParams.get("promiseId");
   const latitude = Number(searchParams.get("lat"));
   const longitude = Number(searchParams.get("lng"));
   const purpose = searchParams.get("purpose") ?? "카페/디저트";
 
-  // 1. Data Fetching (AI Recommendation)
   const { recommandList, isPending } = useRecommandList(
     promiseId ?? "",
     latitude,
@@ -28,20 +26,16 @@ export default function AiSearchLoadingPage() {
     purpose
   );
 
-  // 2. Data Mutation (Reuse existing hook)
   const { mutate } = useAddPlaceDirect(promiseId);
 
-  // State Management
-  const { selectedItems, toggleItem } = useSelection(); // Returns Set<string | number>
+  const { selectedItems, toggleItem } = useSelection(); 
   const [openEnroll, setOpenEnroll] = useState(false);
 
-  // 3. Derived State: 실제 선택된 장소 객체 리스트 추출
   const selectedPlaces = useMemo(() => {
     if (!recommandList) return [];
     return recommandList.filter((place:AIRecommandResponse) => selectedItems.has(place.placeId));
   }, [recommandList, selectedItems]);
 
-  // Handler: Toggle Selection with Validation (Max 5)
   const handleTogglePlace = (placeId: number) => {
     if (!selectedItems.has(placeId) && selectedItems.size >= 5) {
       alert("장소는 최대 5개까지 선택 가능합니다.");
@@ -50,26 +44,21 @@ export default function AiSearchLoadingPage() {
     toggleItem(placeId);
   };
 
-  // Handler: Open Confirmation Dialog
   const handleAiRecommand = () => {
     setOpenEnroll(true);
   };
 
-  // Handler: Execute Mutation (API Call)
   const handleConfirmRegistration = () => {
     if (!promiseId) return;
 
-    // 4. Data Transformation (Mapping AI Response to DTO)
     const requestData = selectedPlaces.map((place:AIRecommandResponse) => ({
       placeName: place.placeName,
-      placeAddress: place.placeAddress, // DTO 필드명에 맞게 매핑 (placeAddr -> placeAddress)
-      placeInfo: place.placeInfo, // AI 추천 결과에 설명이 없다면 빈 문자열 처리
-      aiPlaceId: place.placeId, // 요청하신 placeId 추가
-      aiPlace: true, // 요청하신 isAiPlace=true (DTO 필드명이 aiPlace라면 이것 사용)
+      placeAddress: place.placeAddress, 
+      placeInfo: place.placeInfo, 
+      aiPlaceId: place.placeId, 
+      aiPlace: true, 
     }));
 
-    // use-add-place-direct 훅의 mutate 실행
-    // 성공 시 훅 내부의 onSuccess에서 페이지 이동 처리됨
     mutate(requestData); 
   };
 
@@ -117,7 +106,7 @@ export default function AiSearchLoadingPage() {
             </div>
             <div className="w-full border-1 border-gray-3" />
             <p className="text-lg text-black-1 font-medium leading-tight">
-              선택한 장소들을 게시판에 등록하시겠어요?
+              선택한 장소들을 등록하시겠어요?
             </p>
           </div>
         }

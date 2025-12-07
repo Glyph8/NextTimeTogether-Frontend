@@ -14,6 +14,7 @@ import SelectSchedule from "./components/SelectTimeOnline";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
 import { PromiseSummary } from "./components/PromiseSummary";
 import SharePromise from "./components/SharePromise"; // 새로 만든 컴포넌트 import
+import { useAuthStore } from "@/store/auth.store";
 
 export default function CreateSchedulePage() {
   const params = useParams<{ groupId: string }>();
@@ -36,6 +37,11 @@ export default function CreateSchedulePage() {
 
   const promiseForm = useCreatePromise(groupIdFromUrl);
   const { values, actions } = promiseForm;
+
+  const userId = useAuthStore.getState().userId;
+  const decryptedUserId = localStorage.getItem("encrypted_user_id");
+  const hashed = localStorage.getItem("hashed_user_id_for_manager");
+  console.log("USERID : ", userId, "DEC USERID: ", decryptedUserId, "HASHED: ", hashed)
 
   useEffect(() => {
     if (fetchedGroup && groupKey) {

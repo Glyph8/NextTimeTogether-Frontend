@@ -186,11 +186,11 @@ export const unvotePlace = (placeId: number) =>{
 
 
 /** 장소 확정 요청 API */
-export const confirmPlace = (promiseId:string, placeId: number) =>{
+export const confirmPlace = (promiseId:string, placeId: number, aiPlaceId: number) =>{
     const clientApi = clientBaseApi;
 
   return clientApi.place
-    .confirmedPlace(promiseId, placeId)
+    .confirmedPlace(promiseId, placeId, {aiPlaceId:aiPlaceId})
     .then((response) => {
       const data = response.data;
       console.log("🔵 장소 확정 성공 : ", data);

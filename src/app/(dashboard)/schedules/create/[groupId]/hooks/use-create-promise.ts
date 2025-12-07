@@ -42,7 +42,6 @@ export const useCreatePromise = (groupId: string | undefined) => {
   const [purpose, setPurpose] = useState<PurposeType>("스터디");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   
-  // [Portfolio] 생성 완료 상태 관리 (즉시 리다이렉트 하지 않음)
   const [createdPromiseId, setCreatedPromiseId] = useState<string | null>(null);
 
   const { groupKey } = useGroupStore();
@@ -67,7 +66,9 @@ export const useCreatePromise = (groupId: string | undefined) => {
 
   const submitPromise = async () => {
     const userId = useAuthStore.getState().userId;
-    if (!userId || !groupId) return;
+    const decryptedUserId = localStorage.getItem("encrypted_user_id");
+
+    if (!userId || !groupId || !decryptedUserId) return;
 
     const startIso = convertToISO(schedule.start);
     const endIso = convertToISO(schedule.end);
@@ -77,7 +78,8 @@ export const useCreatePromise = (groupId: string | undefined) => {
       title: topic,
       type: purpose,
       promiseImg: "default_image.png",
-      managerId: userId,
+      // managerId: userId,
+      managerId: decryptedUserId,
       startDate: startIso,
       endDate: endIso,
     };

@@ -16,9 +16,8 @@ export const useAuthSession = () => {
   const pathname = usePathname();
   // 세션 복원 중임을 알리는 로딩 상태 (e.g., 스플래시 스크린)
   const [isRestoring, setIsRestoring] = useState(true);
-
   const { accessToken, setAccessToken, userId, setUserId, clearAccessToken } = useAuthStore();
-
+  
   useEffect(() => {
     // 1. 이미 메모리에 세션이 있거나, 로그인 페이지라면 복원 시도 안 함
     if ((accessToken && userId) || pathname === "/login" || pathname.includes("/register") || pathname === "/") {

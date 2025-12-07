@@ -1,8 +1,11 @@
 "use client";
 
+import { PromiseView2Response, PromiseView4Response } from "@/apis/generated/Api";
+import { usePromiseStore } from "@/store/promise-detail.store";
 import { useRouter } from "next/navigation";
 
 interface GroupScheduleItemProps {
+    promiseInfo : PromiseView2Response | PromiseView4Response
     id: string;
     category: string;
     title: string;
@@ -11,9 +14,13 @@ interface GroupScheduleItemProps {
     place?: string;
 }
 
-export const GroupScheduleItem = ({id, category, title, time, attendees, place }: GroupScheduleItemProps) => {
-    const router = useRouter()
-    const handleNavToDetail = () => {
+export const GroupScheduleItem = ({id, category, title, time, attendees, place,  promiseInfo }: GroupScheduleItemProps) => {
+    const router = useRouter();
+    const setPromise = usePromiseStore((state) => state.setPromise);
+    const handleNavToDetail = async () => {
+
+        const promiseKey = "TODO : promiseKey API 필요"
+        setPromise(promiseInfo, promiseKey);
         const encodedTitle = encodeURIComponent(title);
         // router.push(`/schedules/detail/${id}`);
         router.push(`/schedules/detail/${id}?title=${encodedTitle}`);
