@@ -6,7 +6,7 @@ import Menu from "@/assets/svgs/icons/menu-black.svg";
 import { useState } from "react";
 import { When2Meet } from "./When2Meet";
 import { Where2Meet } from "./Where2Meet";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ScheduleDrawer } from "./components/ScheduleDrawer";
 import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +16,8 @@ import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 export default function ScheduleDetailPage() {
   const params = useParams<{ promiseId: string }>();
   const promiseId = params.promiseId;
+  const searchParams = useSearchParams();
+  const title = searchParams.get("title") ?? "약속 상세";
   const router = useRouter();
   const [tab, setTab] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -28,7 +30,6 @@ export default function ScheduleDetailPage() {
     queryFn: async () => {
       console.log("🔵 암호화된 약속 멤버 ID 조회");
       const result = await getEncryptedPromiseMemberId(promiseId);
-      // null이나 undefined가 오면 빈 배열로 처리
       return result || [];
     },
     staleTime: 1000 * 60 * 5,
@@ -45,6 +46,10 @@ export default function ScheduleDetailPage() {
         onConfirmClick={() => {
           setMenuOpen(false);
           setWhenConfirmOpen(true);
+        }}
+        onConfirmPlace={()=>{
+          // TODO : 장소 확정 페이지로 이동
+          router.push(`/schedules/confirm-place?promiseId=${promiseId}`);
         }}
       />
       {isMaster && (
@@ -65,7 +70,7 @@ export default function ScheduleDetailPage() {
             <LeftArrow />
           </button>
         }
-        title={"발표 주제 정하기"}
+        title={title}
         rightChild={
           <button
             type="button"

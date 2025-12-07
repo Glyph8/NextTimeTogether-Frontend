@@ -5,7 +5,7 @@ import { convertToISO } from "../utils/date-converter";
 import { invitePromiseService } from "../utils/join-promise";
 import { useGroupStore } from "@/store/group-detail.store";
 
-export type PurposeType = "study" | "meal";
+export type PurposeType = "스터디" | "식사";
 
 export type DateTimeValue = {
   year: string;
@@ -39,7 +39,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
   });
 
   const [topic, setTopic] = useState("");
-  const [purpose, setPurpose] = useState<PurposeType>("study");
+  const [purpose, setPurpose] = useState<PurposeType>("스터디");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   
   // [Portfolio] 생성 완료 상태 관리 (즉시 리다이렉트 하지 않음)

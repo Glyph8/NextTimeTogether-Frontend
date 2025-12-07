@@ -21,7 +21,7 @@ export interface GroupInfoData {
   groupId: string;
   groupName: string;
   groupImg: string;
-  // explanation: string
+  explanation: string
   managerId: string;
   encUserId: string[];
 }
@@ -297,7 +297,13 @@ export const useDecryptedGroupList = () => {
         throw new Error(result.error);
       }
 
-      const finalEncData = result.data as ViewGroupThirdResponseData[];
+      const finalEncData = result.data
+      // const finalEncData = result.data as ViewGroupThirdResponseData[];
+
+      if(!finalEncData){
+        throw new Error("3단계 요청 응답이 undefined")
+      }
+
       console.log("🔵 [3단계] 암호화된 데이터 개수:", finalEncData.length);
 
       console.log("🟡 [3단계 복호화] 시작");
@@ -339,6 +345,7 @@ export const useDecryptedGroupList = () => {
           groupId: groupData.groupId,
           groupName: groupData.groupName,
           groupImg: groupData.groupImg,
+          explanation: groupData.explanation,
           managerId: groupData.managerId,
           userIds: decryptedMemberIds,
         };

@@ -8,7 +8,6 @@ export const useAddPlaceDirect = (promiseId: string | null) => {
   const router = useRouter();
 
   return useMutation({
-    // 1. 실제 API 호출 함수
     mutationFn: async (data: PlaceRegisterDTO[]) => {
       if (!promiseId) throw new Error("Promise ID is missing");
       const result = await registerPlaceBoard(promiseId, data);
@@ -35,10 +34,8 @@ export const useAddPlaceDirect = (promiseId: string | null) => {
       }
     },
 
-    // 3. 실패 시 실행될 로직
     onError: (error) => {
       console.error("❌ 장소 등록 실패:", error);
-      // 여기에 토스트 메시지(Toast)를 띄우면 좋습니다.
       alert("장소 등록에 실패했습니다. 다시 시도해주세요.");
     },
   });

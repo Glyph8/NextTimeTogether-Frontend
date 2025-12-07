@@ -59,8 +59,7 @@ export default function DetailGroupPage() {
       <div className="flex flex-col justify-center items-center gap-5 text-black-1 pt-7 pb-5">
         <div className="w-16 h-16 bg-amber-500 border-gray-1 rounded-[8px]" />
         <span className="text-gray-1 text-sm font-normal leading-tight">
-          {/* TODO : 그룹 설명 내용 좀 필요.. */}
-          {groupDetail?.groupName}
+          {groupDetail?.explanation}
         </span>
       </div>
 
@@ -104,10 +103,6 @@ export default function DetailGroupPage() {
           ) : openOngoing ? (
             <p className="text-center">정하고 있는 약속이 없어요!</p>
           ) : null}
-
-          {/* {openOngoing && (                        
-                            <GroupScheduleItem category={"스터디"} title={"내용 정하기"} time="10/12 (토)  09:00~12:00" attendees="온라인" />
-                    )} */}
         </div>
 
         <div>

@@ -61,7 +61,7 @@ export default function GroupsPage() {
                     "https://res.cloudinary.com/dg1apjunc/image/upload/v1764595919/samples/cloudinary-icon.png"
                   }
                   title={group.groupName}
-                  description={group.groupImg}
+                  description={group.explanation ?? "123"}
                   // members={group.encUserId.join(',')}
                   members={group.userIds.join(", ")}
                   setIsOpen={setIsOpenExitDialog}

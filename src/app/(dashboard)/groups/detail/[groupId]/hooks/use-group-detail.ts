@@ -37,8 +37,6 @@ export const useGroupDetail = (targetGroupId: string | null) => {
       const masterKey = await getMasterKey();
       if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
 
-      // [성장 포인트] 서버에서 필터링해주지 않는다면, 클라이언트에서 찾아야 합니다.
-      // E2EE 특성상 식별자(ID)도 암호화되어 있을 수 있어, 복호화하며 대조합니다.
       const list = result.data as ViewGroupFirstResponseData[];
 
       for (const item of list) {
@@ -141,6 +139,7 @@ export const useGroupDetail = (targetGroupId: string | null) => {
         groupId: targetGroup.groupId,
         groupName: targetGroup.groupName,
         groupImg: targetGroup.groupImg,
+        explanation: targetGroup.explanation || "", // Add explanation property
         // TODO : 매니저 ID는 평문이 아닌가?
         managerId: targetGroup.managerId,
         userIds: decryptedMemberIds,

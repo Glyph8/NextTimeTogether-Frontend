@@ -77,6 +77,7 @@ export default function AddPlaceAIPage() {
       placeName: selectedPlace.place_name,
       category: selectedCategory, // 5. 선택한 카테고리를 쿼리 파라미터로 전달
       promiseId: promiseId,
+      purpose: selectedCategory,
     }).toString();
 
     router.push(`/schedules/add-place-ai/result?${queryParams}`);

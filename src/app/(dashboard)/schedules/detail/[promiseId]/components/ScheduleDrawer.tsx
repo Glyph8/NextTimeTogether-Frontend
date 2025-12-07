@@ -13,6 +13,7 @@ interface ScheduleDrawerProps {
   isMaster?: boolean;
   promiseId: string;
   onConfirmClick: () => void;
+  onConfirmPlace: () => void;
 }
 
 export const ScheduleDrawer = ({
@@ -21,11 +22,13 @@ export const ScheduleDrawer = ({
   isMaster = false,
   // promiseId,
   onConfirmClick,
+  onConfirmPlace,
 }: ScheduleDrawerProps) => {
   const handleDisperse = () => {};
   const handleExit = () => {};
 
   // 더미 데이터에서 참여 인원 목록 가져오기
+  // TODO : 실제 멤버로 바꾸기
   const participants = dummyMemberData.result.userIds.map((userId) => ({
     userId,
     name: dummyMemberData.result.decryptedMapping[userId].name,
@@ -52,7 +55,9 @@ export const ScheduleDrawer = ({
                 >
                   일시 확정하기
                 </button>
-                <button className="w-full bg-gray-2 rounded-[8px] px-5 py-2.5 text-white">
+                
+                <button className="w-full bg-gray-2 rounded-[8px] px-5 py-2.5 text-white"
+                onClick={onConfirmPlace}>
                   장소 확정하기
                 </button>
               </div>

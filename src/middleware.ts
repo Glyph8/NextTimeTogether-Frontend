@@ -15,9 +15,10 @@ export function middleware(request: NextRequest) {
     : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
 
   // ✅ 개발 환경에서는 nonce 없이 unsafe-inline만 사용
-  const styleSrcPolicy = isDevelopment
-    ? `'self' 'unsafe-inline'`
-    : `'self' 'nonce-${nonce}'`;
+  // const styleSrcPolicy = isDevelopment
+  //   ? `'self' 'unsafe-inline'`
+  //   : `'self' 'nonce-${nonce}'`;
+  const styleSrcPolicy = `'self' 'unsafe-inline'`;
 
   // 통신 예외가 될 API URL, 추후 웹소켓 사용할 경우 추가 필요.
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;

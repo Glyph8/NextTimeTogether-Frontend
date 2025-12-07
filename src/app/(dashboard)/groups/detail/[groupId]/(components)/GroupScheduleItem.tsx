@@ -14,7 +14,9 @@ interface GroupScheduleItemProps {
 export const GroupScheduleItem = ({id, category, title, time, attendees, place }: GroupScheduleItemProps) => {
     const router = useRouter()
     const handleNavToDetail = () => {
-        router.push(`/schedules/detail/${id}`);
+        const encodedTitle = encodeURIComponent(title);
+        // router.push(`/schedules/detail/${id}`);
+        router.push(`/schedules/detail/${id}?title=${encodedTitle}`);
     }
     return (
         <div role="button" tabIndex={0} className="w-full p-4 rounded-[20px] shadow-[0px_0px_10px_0px_rgba(0,0,0,0.04)] outline-1 outline-offset-[-1px] outline-gray-3 bg-white inline-flex flex-col justify-start items-start gap-2"

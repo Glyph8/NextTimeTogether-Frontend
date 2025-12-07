@@ -7,7 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 export const useRecommandList = (
   promiseId: string,
   latitude: number,
-  longitude: number
+  longitude: number,
+  purpose:string,
 ) => {
   const userId = useAuthStore((state) => state.userId);
 
@@ -30,6 +31,7 @@ export const useRecommandList = (
         pseudoId: pseudoId,
         latitude: latitude,
         longitude: longitude,
+        purpose: purpose,
       };
 
       console.log("🔵 약속 장소 게시판 조회");

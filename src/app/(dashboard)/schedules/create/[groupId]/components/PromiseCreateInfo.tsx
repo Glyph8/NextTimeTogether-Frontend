@@ -65,6 +65,43 @@ export default function PromiseCreateInfo({
           ))}
         </div>
       </div>
+
+      <div className="py-4">
+        <div className="text-gray-2 text-sm font-normal leading-tight mb-3">
+          목적
+        </div>
+        <div className="flex gap-6">
+          {/* 스터디 옵션 */}
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="radio"
+              name="purpose"
+              value="스터디"
+              checked={values.purpose === "스터디"}
+              onChange={actions.handleOptionChange}
+              className="w-5 h-5 accent-main cursor-pointer"
+            />
+            <span className={`text-base font-normal leading-tight ${values.purpose === "스터디" ? "text-black-1" : "text-gray-400"}`}>
+              스터디
+            </span>
+          </label>
+
+          {/* 식사 옵션 */}
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="radio"
+              name="purpose"
+              value="식사"
+              checked={values.purpose === "식사"}
+              onChange={actions.handleOptionChange}
+              className="w-5 h-5 accent-main cursor-pointer"
+            />
+            <span className={`text-base font-normal leading-tight ${values.purpose === "식사" ? "text-black-1" : "text-gray-400"}`}>
+              식사
+            </span>
+          </label>
+        </div>
+      </div>
     </>
   );
 }

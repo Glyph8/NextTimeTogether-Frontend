@@ -20,6 +20,7 @@ export interface ViewGroupSecResponseData {
 export interface ViewGroupThirdResponseData {
   groupId: string;
   groupName: string;
+  explanation:string;
   groupImg: string;
   managerId: string;
   encUserId: string[];
