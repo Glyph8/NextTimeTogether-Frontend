@@ -8,7 +8,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
-import { confirmPlace as confirmPlaceApi } from "@/api/where2meet";
+import { confirmPlace as confirmPlaceApi, PlaceBoardItem } from "@/api/where2meet";
 import { PlaceConfirmItem } from "../detail/[promiseId]/components/PlaceConfirmItem";
 import { usePlaceBoard } from "../detail/[promiseId]/hooks/use-place-board";
 import { useConfirmSchedule } from "./use-confirm-schedule";
@@ -40,10 +40,11 @@ export default function ConfirmPlacePage() {
   });
 
   const { mutate: confirmPlace, isPending: isPlaceConfirming } = useMutation({
-    mutationFn: async (placeId: number) => {
+    // mutationFn: async (placeId: number) => {
+    mutationFn: async (placeInfo: PlaceBoardItem) => {
       if (!promiseId) throw new Error("약속 ID가 없습니다.");
-      // aiPlaceId는 0 혹은 적절한 값 설정
-      return await confirmPlaceApi(promiseId, placeId, 0); 
+      // TODO : 직접 추가한 장소의 aiPlaceID는 0으로 처리하고 있는 듯.
+      return await confirmPlaceApi(promiseId, placeInfo.id, placeInfo.aiPlace ); 
     },
     onSuccess: (response) => {
       // response 구조: { code: 200, result: { dateTime, title, ... } }
@@ -95,9 +96,18 @@ export default function ConfirmPlacePage() {
 //     }
 //   };
 
-  const handleConfirm = () => {
-    if (selectedPlaceId !== null) {
-      confirmPlace(selectedPlaceId);
+ const handleConfirm = () => {
+    if (selectedPlaceId === null || !placeListInfo) return;
+
+    // 현재 리스트에서 선택된 ID에 해당하는 '전체 객체'를 찾습니다.
+    const selectedPlaceObj = placeListInfo.places.find(
+      (place) => place.id === selectedPlaceId
+    );
+
+    if (selectedPlaceObj) {
+      confirmPlace(selectedPlaceObj);
+    } else {
+      alert("선택된 장소 정보를 찾을 수 없습니다.");
     }
   };
 

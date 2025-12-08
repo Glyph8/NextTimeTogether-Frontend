@@ -1,10 +1,8 @@
-// src/hooks/queries/usePromiseTime.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { UserTimeSlotReqDTO, TimeSlotReqDTO } from "@/apis/generated/Api";
 import { AvailableMembers, confirmTimetable, getAvailableMemberTime, getPromiseTimeBoard, TimeBoardResponse, updateMyTimetable } from "@/api/when2meet";
 
-// Keys Factory: 쿼리 키를 한곳에서 관리하여 휴먼 에러 방지
 export const TIME_KEYS = {
   all: ["time"] as const,
   board: (promiseId: string) => [...TIME_KEYS.all, "board", promiseId] as const,
@@ -14,18 +12,15 @@ export const TIME_KEYS = {
 export const usePromiseTime = (promiseId: string) => {
   const queryClient = useQueryClient();
 
-  // 1. 전체 시간표 조회 (Board)
   const boardQuery = useQuery<TimeBoardResponse>({
     queryKey: TIME_KEYS.board(promiseId),
     queryFn: () => getPromiseTimeBoard(promiseId),
     staleTime: 1000 * 60, // 1분간은 캐시된 데이터 사용 (불필요한 호출 방지)
   });
 
-  // 2. 내 시간표 업데이트 (Mutation)
   const updateMutation = useMutation({
     mutationFn: (data: UserTimeSlotReqDTO) => updateMyTimetable(promiseId, data),
     onSuccess: () => {
-      // 성공 시 전체 보드 데이터를 무효화하여 최신 상태로 갱신 (Refetch)
       queryClient.invalidateQueries({ queryKey: TIME_KEYS.board(promiseId) });
       alert("시간표가 저장되었습니다!");
     },

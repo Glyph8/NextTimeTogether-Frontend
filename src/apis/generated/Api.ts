@@ -222,6 +222,11 @@ export interface PromiseView2Response {
   promiseImg?: string;
 }
 
+export interface GetPromiseRequest {
+  promiseId?: string;
+  encUserId?: string;
+}
+
 export interface UserIdsResDTO {
   userIds?: string[];
 }
@@ -860,6 +865,23 @@ export class Api<
       }),
 
     /**
+     * @description 시간을 확정했는지 확인한다
+     *
+     * @tags 시간
+     * @name ConfirmedTimeCheck
+     * @summary 시간 확정 확인
+     * @request GET:/time/confirm/{promiseId}
+     * @secure
+     */
+    confirmedTimeCheck: (promiseId: string, params: RequestParams = {}) =>
+      this.request<BaseResponse, ErrorResponse>({
+        path: `/time/confirm/${promiseId}`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
      * @description 약속 시간을 확정한다
      *
      * @tags 시간
@@ -995,6 +1017,44 @@ export class Api<
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description encPromiseIdList의 각 원소들을 개인키로 복호화한 후, 요청하고 싶은 promise_id를 고르기. - 요청: promiseId, encUserId(그룹키로 암호화한 사용자 아이디) 로 요청 - 응답: promise_id에 해당하는 enc_promise_key (개인키로 암호화한 promise_key) 반환받음
+     *
+     * @tags 약속
+     * @name GetPromiseKey2
+     * @summary promisekey를 획득하는 과정 - step2
+     * @request POST:/promise/promisekey2
+     * @secure
+     */
+    getPromiseKey2: (data: GetPromiseRequest, params: RequestParams = {}) =>
+      this.request<BaseResponse, ErrorResponse>({
+        path: `/promise/promisekey2`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description promise_proxy_user 테이블에 있는 enc_promise_id (개인키로 암호화한 promise_id) 리스트 반환
+     *
+     * @tags 약속
+     * @name GetPromiseKey1
+     * @summary promisekey를 획득하는 과정 - step1
+     * @request POST:/promise/promisekey1
+     * @secure
+     */
+    getPromiseKey1: (params: RequestParams = {}) =>
+      this.request<BaseResponse, ErrorResponse>({
+        path: `/promise/promisekey1`,
+        method: "POST",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -1449,6 +1509,23 @@ export class Api<
     ) =>
       this.request<BaseResponse, ErrorResponse>({
         path: `/place/${promiseId}/${page}`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description 장소를 확정했는지 확인한다
+     *
+     * @tags 장소
+     * @name ConfirmedPlaceCheck
+     * @summary 장소 확정 확인
+     * @request GET:/place/confirm/{promiseId}
+     * @secure
+     */
+    confirmedPlaceCheck: (promiseId: string, params: RequestParams = {}) =>
+      this.request<BaseResponse, ErrorResponse>({
+        path: `/place/confirm/${promiseId}`,
         method: "GET",
         secure: true,
         ...params,

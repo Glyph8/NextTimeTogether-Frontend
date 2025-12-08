@@ -5,7 +5,7 @@ export interface PlaceBoardItem {
   id: number;
   placeName: string | null;
   placeAddr: string;
-  placeUrl: string;
+  aiPlace : number;
   voting: number;
   isRemoved: boolean;
   voted: boolean;

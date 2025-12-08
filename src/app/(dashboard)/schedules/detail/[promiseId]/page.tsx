@@ -10,7 +10,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ScheduleDrawer } from "./components/ScheduleDrawer";
 import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
 import { useQuery } from "@tanstack/react-query";
-import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
+import { getEncryptedPromiseMemberId, getPromiseMemberDetail } from "@/api/promise-view-create";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 export default function ScheduleDetailPage() {
@@ -23,18 +23,26 @@ export default function ScheduleDetailPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [whenConfirmOpen, setWhenConfirmOpen] = useState(false);
 
-  // TODO : 임시로 약속장 권한 처리
-  const isMaster = true;
-  const { data: encPromiseMemberList, isPending } = useQuery({
+  const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
+
+  const { data, isPending } = useQuery({
     queryKey: ["promiseId", "encPromiseIds"],
     queryFn: async () => {
       console.log("🔵 암호화된 약속 멤버 ID 조회");
       const result = await getEncryptedPromiseMemberId(promiseId);
-      return result || [];
+
+      const decUsersIds = await getPromiseMemberDetail(promiseId, result)
+      return {
+        encMembers: result || [],
+        managerId: decUsersIds.promiseManager // 매니저 ID도 데이터에 포함
+      };
     },
     staleTime: 1000 * 60 * 5,
     retry: 1,
   });
+
+  const isMaster = data?.managerId === decryptedUserId;
+  const encPromiseMemberList = data?.encMembers;
 
   return (
     <div className="flex flex-col flex-1 w-full bg-[#f9f9f9]">
@@ -42,7 +50,9 @@ export default function ScheduleDetailPage() {
         open={menuOpen}
         setOpen={setMenuOpen}
         isMaster={isMaster}
+        managerId={data?.managerId ?? ''}
         promiseId={promiseId}
+        participants={encPromiseMemberList?.userIds ?? []}
         onConfirmClick={() => {
           setMenuOpen(false);
           setWhenConfirmOpen(true);
@@ -52,6 +62,7 @@ export default function ScheduleDetailPage() {
           router.push(`/schedules/confirm-place?promiseId=${promiseId}`);
         }}
       />
+
       {isMaster && (
         <WhenConfirmDrawer
           open={whenConfirmOpen}

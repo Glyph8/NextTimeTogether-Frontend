@@ -5,12 +5,13 @@ import {
   DrawerDescription,
 } from "@/components/ui/col-drawer";
 import { ParticipantCard } from "./ParticipantCard";
-import { dummyMemberData } from "../when-components/types";
 
 interface ScheduleDrawerProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  managerId: string;
   isMaster?: boolean;
+  participants: string[]
   promiseId: string;
   onConfirmClick: () => void;
   onConfirmPlace: () => void;
@@ -19,21 +20,16 @@ interface ScheduleDrawerProps {
 export const ScheduleDrawer = ({
   open,
   setOpen,
+  managerId,
   isMaster = false,
   // promiseId,
+  participants,
   onConfirmClick,
   onConfirmPlace,
 }: ScheduleDrawerProps) => {
   const handleDisperse = () => {};
   const handleExit = () => {};
 
-  // 더미 데이터에서 참여 인원 목록 가져오기
-  // TODO : 실제 멤버로 바꾸기
-  const participants = dummyMemberData.result.userIds.map((userId) => ({
-    userId,
-    name: dummyMemberData.result.decryptedMapping[userId].name,
-    isMaster: userId === "encUser1", // 첫 번째 사용자를 약속장으로 가정
-  }));
 
   return (
     <Drawer open={open} onOpenChange={setOpen} direction="right" modal={true}>
@@ -75,9 +71,11 @@ export const ScheduleDrawer = ({
           <div className="flex flex-col gap-3">
             {participants.map((participant) => (
               <ParticipantCard
-                key={participant.userId}
-                name={participant.name}
-                isMaster={participant.isMaster}
+                key={participant}
+                // TODO : mem/s2 userIds 배열 빈 배열 오류
+                // name={participant.userName}
+                name={participant}
+                isMaster={participant === managerId}
               />
             ))}
           </div>
