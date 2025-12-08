@@ -34,9 +34,9 @@ export const PromiseSummary = ({
     .join(", ");
 
   // 2. 목적 스타일링
-  const purposeLabel = purpose === "study" ? "스터디" : "식사";
+  const purposeLabel = purpose;
   const purposeStyle =
-    purpose === "study"
+    purpose === "스터디"
       ? "bg-blue-100 text-blue-600"
       : "bg-orange-100 text-orange-600";
 
