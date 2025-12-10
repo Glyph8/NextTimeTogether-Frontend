@@ -15,10 +15,17 @@ import { DayScheduleDialog } from "./components/DayScheduleDialog";
 // ScheduleCreateDrawer 임포트
 import { ScheduleCreateDrawer } from "./components/ScheduleCreateDrawer";
 import { useCalendarView } from "./hooks/use-calendar-view";
-import { useCalendarResisterBaseInfo } from "./hooks/use-calendar-create";
+import {
+  useCalendarCreate,
+  useCalendarResisterBaseInfo,
+} from "./hooks/use-calendar-create";
 import { useMutation } from "@tanstack/react-query";
-import { CalendarCreateRequest1 } from "@/apis/generated/Api";
+import {
+  CalendarCreateRequest1,
+  CalendarCreateRequest2,
+} from "@/apis/generated/Api";
 import { createCalendarBaseInfo } from "@/api/calendar";
+import { convertToCompactISO } from "./utils/date-util";
 
 // CalendarEvent 인터페이스에 startTime, endTime이 string | undefined 일 수 있으므로
 // Omit을 사용할 때를 대비해 명확히 정의합니다.
@@ -40,7 +47,8 @@ export interface CalendarEvent {
   // allDay가 false일 때 사용되는 상세 시간 정보
   startTime?: string; // 예: "오후 02:00"
   endTime?: string; // 예: "오후 03:00"
-
+  place?: string;
+  memo?: string;
   // FullCalendar 색상 속성 (동적으로 추가)
   backgroundColor?: string;
   borderColor?: string;
@@ -56,6 +64,11 @@ export interface CalendarEvent {
 // ScheduleCreateDrawer로 전달할 이벤트 데이터 타입 (id가 없는 버전)
 export type NewEventData = Omit<CalendarEvent, "id">;
 
+interface ExtendedNewEventData extends NewEventData {
+  place?: string;
+  memo?: string;
+}
+
 export default function CalendarPage() {
   // const router = useRouter(); // 현재 사용하지 않음
   const [calendarTitle, setCalendarTitle] = useState("");
@@ -63,8 +76,12 @@ export default function CalendarPage() {
   // 현재 보고 있는 캘린더의 기준 날짜 상태 추가 (초기값: 오늘)
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date());
   const { events: serverEvents, isLoading } = useCalendarView(currentViewDate);
-  
-  const {mutate:registerBaseInfo, isPending }= useCalendarResisterBaseInfo();
+
+  const { mutateAsync: registerBaseInfo, isPending: isBasePending } =
+    useCalendarResisterBaseInfo();
+  const { mutateAsync: registerTimeInfo, isPending: isTimePending } =
+    useCalendarCreate();
+  const isSubmitting = isBasePending || isTimePending;
 
   // --- 모든 상태를 page.tsx에서 관리 ---
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -140,59 +157,95 @@ export default function CalendarPage() {
   // --- CRUD 핸들러 ---
 
   // ScheduleCreateDrawer가 호출할 함수 (이벤트 생성)
-  const handleEventCreated = (newEvent: NewEventData) => {
-    console.log("🔵 Received newEvent from drawer:", newEvent);
+  // const handleEventCreated = (newEvent: NewEventData) => {
+  const handleEventCreated = async (newEvent: ExtendedNewEventData) => {
+    console.log("🔵 드로워 원본 데이터:", newEvent);
 
-    // 색상 hex값 매핑
-    const colorHexMap: { [key: string]: string } = {
-      salmon: "#FDB0A8",
-      orange: "#F9B283",
-      yellow: "#FADF84",
-      lightPurple: "#B8B3F9",
-      darkPurple: "#8668F9",
-      blue: "#77ABF8",
-    };
-    // FullCalendar 표준 형식으로 이벤트 생성
-    const eventWithId: CalendarEvent = {
-      id: Date.now().toString(),
-      title: newEvent.title,
-      start: newEvent.start,
-      end: newEvent.end,
-      allDay: true, // 명시적으로 true 설정
-      color: newEvent.color, // 내부 참조용
-      startTime: newEvent.startTime,
-      endTime: newEvent.endTime,
-      backgroundColor: colorHexMap[newEvent.color || "orange"],
-      borderColor: colorHexMap[newEvent.color || "orange"],
-      textColor: "#222",
-    };
+    // TODO : 백엔드 API에 색상 없음.. 색상 hex값 매핑
+    // const colorHexMap: { [key: string]: string } = {
 
-    console.log("🟢 Created eventWithId:", eventWithId);
-    console.log("📅 FullCalendar format check:");
-    console.log("  - start:", eventWithId.start);
-    console.log("  - end:", eventWithId.end);
-    console.log("  - allDay:", eventWithId.allDay);
-    console.log("  - backgroundColor:", eventWithId.backgroundColor);
+    try {
+      console.log("🚀 일정 생성 프로세스 시작");
 
-    const newEvents = [...events, eventWithId];
-    console.log("📊 All events:", newEvents);
-    setEvents(newEvents);
+      // ---------------------------------------------------------
+      // 1. [준비] 클라이언트 사이드 ID 생성 (Time Format)
+      //    서버 ID를 쓰더라도, encStartTimeAndEndTime 값 생성을 위해 이 로직은 필요합니다.
+      // ---------------------------------------------------------
+      const formattedStart = convertToCompactISO(
+        newEvent.start,
+        newEvent.startTime
+      );
 
-    // FullCalendar API로 이벤트 확인
-    setTimeout(() => {
-      const calendarApi = calendarRef.current?.getApi();
-      if (calendarApi) {
-        const fcEvents = calendarApi.getEvents();
-        console.log("🔍 FullCalendar events:", fcEvents);
-        fcEvents.forEach((e) => {
-          console.log(
-            `  Event: ${e.title}, start: ${e.start}, end: ${e.end}, allDay: ${e.allDay}`
-          );
-        });
+      // [타입 에러 수정 반영] 종료일이 없으면 시작일로 대체
+      const formattedEnd = convertToCompactISO(
+        newEvent.end || newEvent.start,
+        newEvent.endTime,
+        true
+      );
+
+      // "20251129T1430-20251129T1530" 형식의 문자열
+      const generatedTimeFormatId = `${formattedStart}-${formattedEnd}`;
+
+      // ---------------------------------------------------------
+      // 2. [요청] 1단계: 기본 정보 등록
+      // ---------------------------------------------------------
+      const baseInfoBody: CalendarCreateRequest1 = {
+        title: newEvent.title,
+        content: newEvent.memo || "",
+        placeName: newEvent.place || "",
+        purpose: "PERSONAL_SCHEDULE",
+        placeAddr: "",
+        placeInfo: "",
+      };
+
+      // 서버 응답 대기
+      const baseResponse = await registerBaseInfo(baseInfoBody);
+      const serverResponseId = baseResponse?.result?.scheduleId;
+
+      // ---------------------------------------------------------
+      // 3. [핵심] ID 결정 로직 (Switching Logic)
+      //    여기서 주석 처리를 통해 사용할 ID의 출처를 결정합니다.
+      // ---------------------------------------------------------
+
+      // [Option A] 서버 응답 ID 사용 (현재 활성화됨)
+      const finalScheduleId = serverResponseId;
+
+      // [Option B] 클라이언트 생성 날짜 포맷 ID 사용 (필요 시 주석 해제하여 사용)
+      // 서버 로직이 변경되거나, 응답을 기다리지 않고 낙관적 업데이트를 할 때 사용
+      // finalScheduleId = generatedTimeFormatId;
+
+      // [방어 코드] 만약 어떤 이유로든 ID가 없다면 에러 처리
+      if (!finalScheduleId) {
+        throw new Error("스케줄 ID를 결정할 수 없습니다.");
       }
-    }, 100);
 
-    setIsCreateDrawerOpen(false); // 드로워 닫기
+      console.log(
+        `🔑 최종 결정된 ID: ${finalScheduleId} (Source: ${
+          finalScheduleId === serverResponseId ? "Server" : "Client"
+        })`
+      );
+
+      // ---------------------------------------------------------
+      // 4. [요청] 2단계: 시간 정보 등록
+      // ---------------------------------------------------------
+      const timeInfoBody: CalendarCreateRequest2 = {
+        // 결정된 최종 ID 주입
+        // scheduleId: finalScheduleId,
+        timeStampInfo: newEvent.start,
+        // encStartTimeAndEndTime은 ID의 출처와 상관없이 항상 날짜 포맷 문자열을 사용
+        // (만약 ID와 똑같이 맞추고 싶다면 finalScheduleId를 넣으면 됩니다)
+        // encStartTimeAndEndTime: finalScheduleId,
+        encStartTimeAndEndTime: generatedTimeFormatId,
+      };
+
+      await registerTimeInfo(timeInfoBody);
+
+      console.log("🎉 모든 단계 완료");
+      setIsCreateDrawerOpen(false);
+    } catch (error) {
+      console.error("일정 생성 실패:", error);
+      // alert("일정 생성에 실패했습니다."); // 필요 시 주석 해제
+    }
   };
 
   // ScheduleCreateDrawer가 호출할 함수 (이벤트 수정)
@@ -233,8 +286,6 @@ export default function CalendarPage() {
       setEditingEvent(null);
     }
   };
-
-   
 
   return (
     <>

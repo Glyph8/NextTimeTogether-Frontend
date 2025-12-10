@@ -308,34 +308,44 @@ export function ScheduleCreateDrawer({
 
   // --- 저장 / 수정 핸들러 ---
   const handleSave = () => {
-    // 폼 데이터를 CalendarEvent 형식으로 변환
-    // FullCalendar는 end가 exclusive이므로 1일 더해야 함
-    const exclusiveEndDate = new Date(endDate);
-    exclusiveEndDate.setDate(exclusiveEndDate.getDate() + 1);
+    // 1. 종료 날짜 계산 (기존 로직 유지)
+    // FullCalendar 표시를 위해 AllDay인 경우 날짜 하루 더하기
+    let finalEndDateStr = formatDateToISO(endDate);
+    if (isAllDay) {
+      const exclusiveEndDate = new Date(endDate);
+      exclusiveEndDate.setDate(exclusiveEndDate.getDate() + 1);
+      finalEndDateStr = formatDateToISO(exclusiveEndDate);
+    } 
 
-    const eventData = {
+    // 2. 데이터 구조화 [수정된 부분]
+    const eventData: NewEventData = { 
       title: title.trim(),
-      start: formatDateToISO(startDate), // "YYYY-MM-DD"
-      // end는 항상 exclusive (endDate + 1일)
-      end: formatDateToISO(exclusiveEndDate),
+      start: formatDateToISO(startDate), 
+      end: finalEndDateStr,
       color: selectedColor,
       allDay: isAllDay,
-      startTime: isAllDay ? undefined : formatTime(startDate),
-      endTime: isAllDay ? undefined : formatTime(endDate),
-      // place, memo 등도 추가 가능
+      
+      // [핵심 수정] isAllDay가 true일 때 undefined가 아니라 '00:00' ~ '23:59'로 강제 할당
+      // 현재 포맷(오전/오후 hh:mm)에 맞춰서 문자열을 하드코딩합니다.
+      startTime: isAllDay ? "오전 12:00" : formatTime(startDate),
+      endTime: isAllDay ? "오후 11:59" : formatTime(endDate),
+      
+      place: place,
+      memo: memo,
     };
 
-    if (isEditMode) {
+    console.log("📤 저장할 이벤트 데이터:", eventData);
+
+    if (isEditMode && editingEvent) {
       // --- 수정 ---
       onEventUpdated({
         ...eventData,
-        id: editingEvent.id, // 기존 ID 유지
+        id: editingEvent.id, 
       });
     } else {
       // --- 생성 ---
       onEventCreated(eventData);
     }
-    // 드로워 닫는 것은 page.tsx에서 처리
   };
 
   // --- 삭제 핸들러 ---
