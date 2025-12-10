@@ -14,6 +14,11 @@ import "./calendar.css";
 import { DayScheduleDialog } from "./components/DayScheduleDialog";
 // ScheduleCreateDrawer 임포트
 import { ScheduleCreateDrawer } from "./components/ScheduleCreateDrawer";
+import { useCalendarView } from "./hooks/use-calendar-view";
+import { useCalendarResisterBaseInfo } from "./hooks/use-calendar-create";
+import { useMutation } from "@tanstack/react-query";
+import { CalendarCreateRequest1 } from "@/apis/generated/Api";
+import { createCalendarBaseInfo } from "@/api/calendar";
 
 // CalendarEvent 인터페이스에 startTime, endTime이 string | undefined 일 수 있으므로
 // Omit을 사용할 때를 대비해 명확히 정의합니다.
@@ -54,6 +59,12 @@ export type NewEventData = Omit<CalendarEvent, "id">;
 export default function CalendarPage() {
   // const router = useRouter(); // 현재 사용하지 않음
   const [calendarTitle, setCalendarTitle] = useState("");
+
+  // 현재 보고 있는 캘린더의 기준 날짜 상태 추가 (초기값: 오늘)
+  const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date());
+  const { events: serverEvents, isLoading } = useCalendarView(currentViewDate);
+  
+  const {mutate:registerBaseInfo, isPending }= useCalendarResisterBaseInfo();
 
   // --- 모든 상태를 page.tsx에서 관리 ---
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -222,6 +233,8 @@ export default function CalendarPage() {
       setEditingEvent(null);
     }
   };
+
+   
 
   return (
     <>
