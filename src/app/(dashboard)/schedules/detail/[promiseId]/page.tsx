@@ -10,7 +10,10 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ScheduleDrawer } from "./components/ScheduleDrawer";
 import { WhenConfirmDrawer } from "./components/WhenConfirmDrawer";
 import { useQuery } from "@tanstack/react-query";
-import { getEncryptedPromiseMemberId, getPromiseMemberDetail } from "@/api/promise-view-create";
+import {
+  getEncryptedPromiseMemberId,
+  getPromiseMemberDetail,
+} from "@/api/promise-view-create";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 export default function ScheduleDetailPage() {
@@ -32,10 +35,10 @@ export default function ScheduleDetailPage() {
       console.log("🔵 암호화된 약속 멤버 ID 조회");
       const result = await getEncryptedPromiseMemberId(promiseId);
 
-      const decUsersIds = await getPromiseMemberDetail(promiseId, result)
+      const decUsersIds = await getPromiseMemberDetail(promiseId, result);
       return {
         encMembers: result || [],
-        managerId: decUsersIds.promiseManager // 매니저 ID도 데이터에 포함
+        managerId: decUsersIds.promiseManager, // 매니저 ID도 데이터에 포함
       };
     },
     staleTime: 1000 * 60 * 5,
@@ -43,7 +46,14 @@ export default function ScheduleDetailPage() {
   });
 
   const isMaster = data?.managerId === decryptedUserId;
-  console.log("약속 매니저 아이디 : ", data?.managerId, "복호화된 유저 아이디 :", decryptedUserId, "매니저 여부 :", isMaster);
+  console.log(
+    "약속 매니저 아이디 : ",
+    data?.managerId,
+    "복호화된 유저 아이디 :",
+    decryptedUserId,
+    "매니저 여부 :",
+    isMaster
+  );
   const encPromiseMemberList = data?.encMembers;
 
   const handleBack = () => {
@@ -62,17 +72,19 @@ export default function ScheduleDetailPage() {
         open={menuOpen}
         setOpen={setMenuOpen}
         isMaster={isMaster}
-        managerId={data?.managerId ?? ''}
+        managerId={data?.managerId ?? ""}
         promiseId={promiseId}
         participants={encPromiseMemberList?.userIds ?? []}
         onConfirmClick={() => {
           setMenuOpen(false);
           setWhenConfirmOpen(true);
         }}
-        onConfirmPlace={()=>{
+        onConfirmPlace={() => {
           // TODO : 장소 확정 페이지로 이동
           // router.push(`/schedules/confirm-place?promiseId=${promiseId}`);
-          const query = `promiseId=${promiseId}${groupId ? `&groupId=${groupId}` : ""}`;
+          const query = `promiseId=${promiseId}${
+            groupId ? `&groupId=${groupId}` : ""
+          }`;
           router.push(`/schedules/confirm-place?${query}`);
         }}
       />
@@ -87,11 +99,7 @@ export default function ScheduleDetailPage() {
 
       <Header
         leftChild={
-          <button
-            type="button"
-            aria-label="뒤로가기"
-            onClick={handleBack}
-          >
+          <button type="button" aria-label="뒤로가기" onClick={handleBack}>
             <LeftArrow />
           </button>
         }
