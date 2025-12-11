@@ -22,10 +22,12 @@ export default function ConfirmPlacePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const promiseId = searchParams.get("promiseId"); // 타입: string | null
+  const groupId = searchParams.get("groupId");
 
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
 
-  const { confirmSchedule, isScheduleCreating } = useConfirmSchedule(promiseId || "");
+  // TODO :현재 성성 직후에는 groupId가 없으므로 생성 시에도 전달할 수 있도록..
+  const { confirmSchedule, isScheduleCreating } = useConfirmSchedule(promiseId || "", groupId || "");
 
   const { placeListInfo, isPending: isPlaceLoading } = usePlaceBoard(promiseId || "");
 
@@ -66,40 +68,10 @@ export default function ConfirmPlacePage() {
     },
   });
 
-  // // TODO : 시간 확정되었는지, 장소 확정되었는 지, 해당 데이터 요청하는 API 필요.
-  // const { mutate: confirmPlace, isPending: isConfirming } = useMutation({
-  //   mutationFn: async ({placeId, aiPlaceId}:ConfirmPlaceProps) => {
-  //     // 가드 절: promiseId가 null이면 에러를 던져 타입 에러 방지
-  //     if (!promiseId) throw new Error("약속 ID가 유효하지 않습니다.");
-  //     // API 호출: (string, number) 순서 정확함
-  //     return await confirmPlaceApi(promiseId, placeId, aiPlaceId);
-  //   },
-  //   onSuccess: () => {
-  //     alert("장소가 확정되었습니다!");
-  //     router.back();
-  //   },
-  //   onError: (err) => {
-  //     console.error(err);
-  //     alert("장소 확정에 실패했습니다.");
-  //   },
-  // });
-
-  // const {confirm, isLoading:isLoading2} = useConfirmSchedule('PROMI-002');
-//   const {confirm, isLoading:isLoading2} = useConfirmSchedule(promiseId ?? 'PROMI-002');
-//   const handleConfirm = () => {
-//     if (selectedPlaceId !== null) {
-//       confirmPlace({
-// placeId:selectedPlaceId,
-//     });
-
-//     confirm(selectedPlaceId)
-//     }
-//   };
 
  const handleConfirm = () => {
     if (selectedPlaceId === null || !placeListInfo) return;
 
-    // 현재 리스트에서 선택된 ID에 해당하는 '전체 객체'를 찾습니다.
     const selectedPlaceObj = placeListInfo.places.find(
       (place) => place.id === selectedPlaceId
     );

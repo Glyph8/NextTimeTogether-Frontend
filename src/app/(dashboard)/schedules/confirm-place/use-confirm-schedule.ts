@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
 import { createSchedule } from "@/api/schedule-get-create";
 import { ScheduleConfirmReqDTO } from "@/apis/generated/Api"; // DTO 타입 확인 필요
@@ -19,10 +19,16 @@ interface ConfirmScheduleParams {
   serverResult: ServerConfirmResult;
 }
 
-export const useConfirmSchedule = (promiseId: string) => {
+
+
+export const useConfirmSchedule = (promiseId: string, groupId:string) => {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { selectedGroup } = useGroupStore();
+  // TODO : 나중에 useQuery 요청으로 대체 필요
+  // const { selectedGroup } = useGroupStore();
+  const searchParams = useSearchParams(); // [추가] URL에서 title 가져오기 위함
+  // 현재 URL에 있는 title을 가져오거나, 없으면 기본값 사용
+  const currentTitle = searchParams.get("title") ?? "약속 상세";
 
   // 사용자 리스트(userList)를 얻기 위한 쿼리
   const { data: memberData } = useQuery({
@@ -35,7 +41,7 @@ export const useConfirmSchedule = (promiseId: string) => {
   const mutation = useMutation({
     mutationFn: async ({ placeId, serverResult }: ConfirmScheduleParams) => {
       // 1. 유효성 검사 (Fail Fast)
-      const groupId = selectedGroup?.groupId;
+      // const groupId = selectedGroup?.groupId;
       if (!groupId) throw new Error("그룹 정보를 찾을 수 없습니다.");
       if (!memberData?.userIds) throw new Error("멤버 정보를 불러오는 중입니다.");
       if (!promiseId) throw new Error("약속 ID가 없습니다.");
@@ -66,7 +72,8 @@ export const useConfirmSchedule = (promiseId: string) => {
       console.log("✅ 일정 확정 완료:", data);
       // 관련 쿼리 무효화 후 결과 페이지 이동
       queryClient.invalidateQueries({ queryKey: ["promise", promiseId] });
-      router.push(`/schedules/${promiseId}/result`);
+      const encodedTitle = encodeURIComponent(currentTitle);
+      router.push(`/schedules/detail/${promiseId}?groupId=${groupId}&title=${encodedTitle}`);
     },
     onError: (error) => {
       console.error("❌ 일정 확정 실패:", error);

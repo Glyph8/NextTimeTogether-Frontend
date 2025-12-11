@@ -18,6 +18,7 @@ export default function ScheduleDetailPage() {
   const promiseId = params.promiseId;
   const searchParams = useSearchParams();
   const title = searchParams.get("title") ?? "약속 상세";
+  const groupId = searchParams.get("groupId");
   const router = useRouter();
   const [tab, setTab] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -42,7 +43,18 @@ export default function ScheduleDetailPage() {
   });
 
   const isMaster = data?.managerId === decryptedUserId;
+  console.log("약속 매니저 아이디 : ", data?.managerId, "복호화된 유저 아이디 :", decryptedUserId, "매니저 여부 :", isMaster);
   const encPromiseMemberList = data?.encMembers;
+
+  const handleBack = () => {
+    if (groupId) {
+      // groupId가 있으면 그룹 상세 페이지로 이동
+      router.push(`/groups/detail/${groupId}`);
+    } else {
+      // groupId가 없으면 일반적인 뒤로가기 (예외 처리)
+      router.back();
+    }
+  };
 
   return (
     <div className="flex flex-col flex-1 w-full bg-[#f9f9f9]">
@@ -59,7 +71,9 @@ export default function ScheduleDetailPage() {
         }}
         onConfirmPlace={()=>{
           // TODO : 장소 확정 페이지로 이동
-          router.push(`/schedules/confirm-place?promiseId=${promiseId}`);
+          // router.push(`/schedules/confirm-place?promiseId=${promiseId}`);
+          const query = `promiseId=${promiseId}${groupId ? `&groupId=${groupId}` : ""}`;
+          router.push(`/schedules/confirm-place?${query}`);
         }}
       />
 
@@ -76,7 +90,7 @@ export default function ScheduleDetailPage() {
           <button
             type="button"
             aria-label="뒤로가기"
-            onClick={() => router.back()}
+            onClick={handleBack}
           >
             <LeftArrow />
           </button>

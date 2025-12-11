@@ -12,9 +12,10 @@ interface GroupScheduleItemProps {
     time?: string;
     attendees?: string;
     place?: string;
+    groupId: string;
 }
 
-export const GroupScheduleItem = ({id, category, title, time, attendees, place,  promiseInfo }: GroupScheduleItemProps) => {
+export const GroupScheduleItem = ({id, category, title, time, attendees, place,  promiseInfo, groupId }: GroupScheduleItemProps) => {
     const router = useRouter();
     const setPromise = usePromiseStore((state) => state.setPromise);
     const handleNavToDetail = async () => {
@@ -23,7 +24,8 @@ export const GroupScheduleItem = ({id, category, title, time, attendees, place, 
         setPromise(promiseInfo, promiseKey);
         const encodedTitle = encodeURIComponent(title);
         // router.push(`/schedules/detail/${id}`);
-        router.push(`/schedules/detail/${id}?title=${encodedTitle}`);
+        // router.push(`/schedules/detail/${id}?title=${encodedTitle}`);
+        router.push(`/schedules/detail/${id}?title=${encodedTitle}&groupId=${groupId}`);
     }
     return (
         <div role="button" tabIndex={0} className="w-full p-4 rounded-[20px] shadow-[0px_0px_10px_0px_rgba(0,0,0,0.04)] outline-1 outline-offset-[-1px] outline-gray-3 bg-white inline-flex flex-col justify-start items-start gap-2"

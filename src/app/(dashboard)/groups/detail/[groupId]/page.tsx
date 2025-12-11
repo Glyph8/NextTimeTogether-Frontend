@@ -97,6 +97,7 @@ export default function DetailGroupPage() {
                     category={type ?? ""}
                     title={title ?? ""}
                     time={`${startDate} ~ ${endDate}`}
+                    groupId={groupId ?? ""}
                   />
                 );
               })}
@@ -128,6 +129,7 @@ export default function DetailGroupPage() {
                     time={content}
                     place={placeName}
                     attendees={content}
+                    groupId={groupId ?? ""}
                   />
                 );
               })}
