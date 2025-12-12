@@ -3,7 +3,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
 import { createSchedule } from "@/api/schedule-get-create";
 import { ScheduleConfirmReqDTO } from "@/apis/generated/Api"; // DTO 타입 확인 필요
-import { useGroupStore } from "@/store/group-detail.store";
 import { parseServerDateToScheduleId } from "./utils/date-format";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
@@ -59,9 +58,6 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
         "promise_proxy_user"
       );
 
-      // 3. Request Body 구성 (Swagger 명세 기준)
-      // 주의: Swagger에는 encTimeStamp, 표에는 encPromiseKey로 되어 있다면
-      // 구현체인 Swagger 예시를 따르는 것이 보통 안전합니다.
       const requestData: ScheduleConfirmReqDTO = {
         promiseId: promiseId,
         scheduleId: scheduleId, // "20251206T0900-20251206T1100"
@@ -70,7 +66,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
         title: serverResult.title,
         purpose: serverResult.purpose,
         userList: memberData.userIds,
-        encTimeStamp: encTimeStamp, // TODO: 이렇게 암호화는게 맞는지 확인 필요
+        encTimeStamp: encTimeStamp, // 개인키로 암호화
       };
 
       console.log("🚀 [API 요청] 일정 확정:", { groupId, body: requestData });

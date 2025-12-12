@@ -39,6 +39,40 @@ export const convertToCompactISO = (dateStr: string, timeStr?: string, isEnd = f
   return `${cleanDate}T${hh}${mm}`;
 };
 
+export const convertToLocalDateTime = (
+  dateStr: string,
+  timeStr?: string,
+  isEnd = false
+): string => {
+  // dateStr은 이미 "YYYY-MM-DD" 형태라고 가정
+  let hour = 0;
+  let minute = 0;
+
+  if (timeStr) {
+    const [ampm, time] = timeStr.split(" ");
+    const [hStr, mStr] = time.split(":");
+    let h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10);
+
+    if (ampm === "오후" && h !== 12) h += 12;
+    if (ampm === "오전" && h === 12) h = 0;
+    hour = h;
+    minute = m;
+  } else {
+    // 시간이 없으면 시작일은 00:00, 종료일은 23:59로 설정
+    if (isEnd) {
+      hour = 23;
+      minute = 59;
+    }
+  }
+
+  const hh = String(hour).padStart(2, "0");
+  const mm = String(minute).padStart(2, "0");
+
+  // 초(ss)와 밀리초(.000)까지 포함하여 반환
+  return `${dateStr}T${hh}:${mm}:00.000`;
+};
+
 
 export const parseScheduleIdToDates = (scheduleId: string) => {
   try {
@@ -65,4 +99,20 @@ export const parseScheduleIdToDates = (scheduleId: string) => {
     console.error("ID 파싱 에러:", scheduleId, e);
     return { start: null, end: null };
   }
+};
+
+// 형식: UUID(36자) + Start(23자) + End(23자)
+// 예: "97582bfc-1669-4e8d-b09c-043a0fa8b8f32025-12-12T00:00:00.0002025-12-13T23:59:00.000"
+export const parseEncryptedString = (combinedStr: string) => {
+  // UUID 길이: 36
+  // LocalDateTime 길이: 23 (YYYY-MM-DDTHH:mm:ss.sss)
+  
+  const uuidLength = 36;
+  const dateLength = 23;
+
+  const scheduleId = combinedStr.substring(0, uuidLength);
+  const start = combinedStr.substring(uuidLength, uuidLength + dateLength);
+  const end = combinedStr.substring(uuidLength + dateLength, uuidLength + dateLength * 2);
+
+  return { scheduleId, start, end };
 };

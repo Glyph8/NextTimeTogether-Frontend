@@ -118,7 +118,7 @@ export default function DetailGroupPage() {
           {openFixed && fixedPromise && fixedPromise.length > 0 ? (
             <div className="flex flex-col gap-2">
               {fixedPromise.map((schedule) => {
-                const {scheduleId, purpose, title, content, placeName} = schedule
+                const {scheduleId, purpose, title, confirmedDateTime, placeName} = schedule
                 return (
                   <GroupScheduleItem
                     key={scheduleId}
@@ -126,9 +126,9 @@ export default function DetailGroupPage() {
                     id={scheduleId ?? ""}
                     category={purpose ?? ""}
                     title={title ?? ""}
-                    time={content}
+                    time={confirmedDateTime}
                     place={placeName}
-                    attendees={content}
+                    attendees={confirmedDateTime}
                     groupId={groupId ?? ""}
                   />
                 );
@@ -154,17 +154,6 @@ export default function DetailGroupPage() {
             <Plus />
           </button>
         </div>
-        <p>
-          {/* TODO : managerId는 평문인가 아닌가, 무엇으로 암복호화되는가 */}
-          {/* {
-                   groupDetail?.managerId
-                }
-                </p>
-                <p>
-                {
-                    groupDetail?.userIds
-                } */}
-        </p>
         <div className="flex p-4 bg-white gap-3 rounded-[20px]">
           {(groupDetail?.userIds ?? []).map((member) => (
             <GroupMemberItem

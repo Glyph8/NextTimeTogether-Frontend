@@ -1,8 +1,9 @@
 import { getCalendarInfoList, getEncTimeStampList } from "@/api/calendar";
 import { useAuthStore } from "@/store/auth.store";
-import { generateMonthDates, parseScheduleIdToDates } from "../utils/date-util";
+import { generateMonthDates, parseEncryptedString, parseScheduleIdToDates } from "../utils/date-util";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarViewRequest2 } from "@/apis/generated/Api";
+import { useMemo } from "react";
 
 // TODO : 실제 데이터 받아보기 전까지 모름,,
 export interface CalendarDetail {
@@ -31,15 +32,40 @@ export const useCalendarView = (date: Date) => {
   });
 
   // Query 1의 결과에서 ID 배열 추출
-  // (API 응답 구조에 따라 경로가 다를 수 있으니 확인 필요. 예시: result.encTimeStampList)
-  const scheduleIds: string[] = idListData?.result?.encTimeStampList || [];
+
+
+
+  // const scheduleIds: string[] = idListData?.result?.encTimeStampList || [];
+
+  // Query 1의 결과(긴 문자열 배열)를 파싱하여 Map으로 변환
+  // Key: scheduleId, Value: { start, end }
+  const scheduleMap = useMemo(() => {
+    const rawList = idListData?.result?.encTimeStampList || [];
+    const map = new Map<string, { start: string; end: string }>();
+
+    rawList.forEach((str: string) => {
+      // 파싱 함수 호출
+      const { scheduleId, start, end } = parseEncryptedString(str);
+      map.set(scheduleId, { start, end });
+    });
+
+    return map;
+  }, [idListData]);
+
+  // Query 2에 보낼 ID 배열 추출 (Map의 Key들만 모음)
+  const scheduleIds = useMemo(() => Array.from(scheduleMap.keys()), [scheduleMap]);
+
 
   // 3. [Query 2] 상세 일정 조회 (Dependent Query)
   // Query 1이 성공해서 scheduleIds가 있을 때만 실행됩니다.
   const { data: eventsData, isLoading: isEventsLoading } = useQuery({
     queryKey: ["calendarEvents", scheduleIds], // ID 목록이 바뀌면 재요청
     queryFn: async () => {
-      // 요청 DTO 구성 (CalendarViewRequest2 타입 준수)
+
+      // TODO : 복호화 필요 예상
+      // TODO : 텍스트 파싱하여서, '97582bfc-1669-4e8d-b09c-043a0fa8b8f32025-12-12T00:00:00.0002025-12-13T23:59:00.000'
+      // 앞에서 스케쥴 아이디를 요청에 담기, 해당 스케쥴 아이디의 응답을 파싱한 텍스트에서 시작 시간과 종료 시간과 함께 묶어서 반환하기
+
       const requestBody: CalendarViewRequest2 = {
         scheduleIdList: scheduleIds, // API 명세에 맞는 필드명 사용
       };
@@ -52,23 +78,43 @@ export const useCalendarView = (date: Date) => {
 
   // 4. [Data Transformation] UI에 맞는 형태로 데이터 가공
   // 서버 데이터를 그대로 내보내지 않고, FullCalendar가 이해하는 'events' 형태로 변환합니다.
-  const events = (eventsData?.result || []).map((serverEvent: CalendarDetail) => {
-    // ScheduleId에서 날짜/시간 정보 복원
-    const { start, end } = parseScheduleIdToDates(serverEvent.scheduleId);
+  // const events = (eventsData?.result || []).map((serverEvent: CalendarDetail) => {
+  //   // ScheduleId에서 날짜/시간 정보 복원
+  //   const { start, end } = parseScheduleIdToDates(serverEvent.scheduleId);
     
-    return {
-      id: serverEvent.scheduleId,
-      title: serverEvent.title,
-      // FullCalendar 필수 필드 매핑
-      start: start || date.toISOString(), // 파싱 실패 시 현재 뷰 날짜로 폴백
-      end: end, 
-      // 추가 정보 매핑 (상세 모달용)
-      memo: serverEvent.content,
-      place: serverEvent.placeName,
-      // 기타 스타일링 등
-      // color: serverEvent.color // (백엔드에 색상 필드가 있다면)
-    };
-  });
+  //   return {
+  //     id: serverEvent.scheduleId,
+  //     title: serverEvent.title,
+  //     start: start || date.toISOString(), // 파싱 실패 시 현재 뷰 날짜로 폴백
+  //     end: end, 
+  //     memo: serverEvent.content,
+  //     place: serverEvent.placeName,
+  //   };
+  // });
+
+  const events = useMemo(() => {
+    const serverEvents = eventsData?.result || [];
+
+    return serverEvents.map((serverEvent: CalendarDetail) => {
+      // Map에서 해당 ID의 시간 정보를 가져옴
+      const timeInfo = scheduleMap.get(serverEvent.scheduleId);
+
+      return {
+        id: serverEvent.scheduleId,
+        title: serverEvent.title,
+        
+        // Query 1에서 파싱해둔 시간 정보 사용
+        // (만약 Map에 없다면 Fallback으로 현재 날짜 사용)
+        start: timeInfo?.start || date.toISOString(),
+        end: timeInfo?.end,
+
+        // 상세 정보 매핑
+        memo: serverEvent.content,
+        place: serverEvent.placeName,
+        // color: serverEvent.color 
+      };
+    });
+  }, [eventsData, scheduleMap, date]);
 
   return {
     dates: timeStampInfoList,

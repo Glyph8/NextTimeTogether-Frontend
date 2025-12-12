@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState, useMemo } from "react";
+import React, { useRef, useState, useMemo, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction";
@@ -8,7 +8,7 @@ import ArrowRight from "@/assets/svgs/icons/arrow-right-gray.svg";
 
 // useRouter는 현재 사용하지 않으므로 삭제
 // import { useRouter } from "next/navigation";
-import { parseISO, startOfDay } from "date-fns";
+import { format, parseISO, startOfDay } from "date-fns";
 
 import "./calendar.css";
 import { DayScheduleDialog } from "./components/DayScheduleDialog";
@@ -25,7 +25,8 @@ import {
   CalendarCreateRequest2,
 } from "@/apis/generated/Api";
 import { createCalendarBaseInfo } from "@/api/calendar";
-import { convertToCompactISO } from "./utils/date-util";
+import { convertToCompactISO, convertToLocalDateTime } from "./utils/date-util";
+import { ko } from "date-fns/locale";
 
 // CalendarEvent 인터페이스에 startTime, endTime이 string | undefined 일 수 있으므로
 // Omit을 사용할 때를 대비해 명확히 정의합니다.
@@ -110,6 +111,49 @@ export default function CalendarPage() {
     if (calendarApi) calendarApi.next();
   };
 
+  useEffect(() => {
+    if (serverEvents && serverEvents.length > 0) {
+      // 서버 데이터를 UI 포맷에 맞게 변환
+      const mappedEvents: CalendarEvent[] = serverEvents.map((evt: { start: string; end: string; color: string | undefined; }) => {
+        const startDate = parseISO(evt.start);
+        const endDate = evt.end ? parseISO(evt.end) : undefined;
+
+        return {
+          ...evt,
+          // 1) FullCalendar 필수 필드 (이미 Hook에서 start/end는 ISO로 옴)
+          start: evt.start,
+          end: evt.end,
+
+          // 2) UI 표시용 포맷 생성 (DayScheduleDialog 등에서 사용)
+          // 예: "2024-12-12T14:30:00" -> "오후 02:30"
+          startTime: format(startDate, "a hh:mm", { locale: ko }),
+          endTime: endDate ? format(endDate, "a hh:mm", { locale: ko }) : undefined,
+
+          // 3) 색상 및 스타일 지정 (서버에 색상 정보가 없으므로 클라이언트에서 지정)
+          // evt.color 값이 있다면 매핑하고, 없다면 기본값 할당
+          backgroundColor: mapColor(evt.color) || "#F9B283", // 기본: 오렌지
+          borderColor: mapColor(evt.color) || "#F9B283",
+          textColor: "#222",
+          allDay: false, // 시간 정보가 있으므로 false (필요시 로직 추가)
+        };
+      });
+      setEvents(mappedEvents);
+    }
+  }, [serverEvents]);
+
+  // [Helper] 색상 매핑 함수 (컴포넌트 내부 혹은 외부에 정의)
+  const mapColor = (colorKey?: string) => {
+    const colorHexMap: { [key: string]: string } = {
+      salmon: "#FDB0A8",
+      orange: "#F9B283",
+      yellow: "#FADF84",
+      lightPurple: "#B8B3F9",
+      darkPurple: "#8668F9",
+      blue: "#77ABF8",
+    };
+    return colorKey ? colorHexMap[colorKey] : undefined;
+  };
+
   // 날짜 클릭 핸들러 (작은 모달 열기)
   const handleDateClick = (arg: DateClickArg) => {
     setSelectedDate(arg.date); // 날짜 저장
@@ -171,20 +215,30 @@ export default function CalendarPage() {
       // 1. [준비] 클라이언트 사이드 ID 생성 (Time Format)
       //    서버 ID를 쓰더라도, encStartTimeAndEndTime 값 생성을 위해 이 로직은 필요합니다.
       // ---------------------------------------------------------
-      const formattedStart = convertToCompactISO(
-        newEvent.start,
-        newEvent.startTime
-      );
+      // const formattedStart = convertToCompactISO(
+      //   newEvent.start,
+      //   newEvent.startTime
+      // );
 
-      // [타입 에러 수정 반영] 종료일이 없으면 시작일로 대체
-      const formattedEnd = convertToCompactISO(
-        newEvent.end || newEvent.start,
-        newEvent.endTime,
-        true
-      );
+      // // [타입 에러 수정 반영] 종료일이 없으면 시작일로 대체
+      // const formattedEnd = convertToCompactISO(
+      //   newEvent.end || newEvent.start,
+      //   newEvent.endTime,
+      //   true
+      // );
+      const startLocalDateTime = convertToLocalDateTime(
+      newEvent.start,
+      newEvent.startTime
+    );
+
+    const endLocalDateTime = convertToLocalDateTime(
+      newEvent.end || newEvent.start,
+      newEvent.endTime,
+      true
+    );
 
       // "20251129T1430-20251129T1530" 형식의 문자열
-      const generatedTimeFormatId = `${formattedStart}-${formattedEnd}`;
+      // const generatedTimeFormatId = `${formattedStart}-${formattedEnd}`;
 
       // ---------------------------------------------------------
       // 2. [요청] 1단계: 기본 정보 등록
@@ -200,42 +254,22 @@ export default function CalendarPage() {
 
       // 서버 응답 대기
       const baseResponse = await registerBaseInfo(baseInfoBody);
-      const serverResponseId = baseResponse?.result?.scheduleId;
+      const finalScheduleId = baseResponse?.result?.scheduleId;
 
-      // ---------------------------------------------------------
-      // 3. [핵심] ID 결정 로직 (Switching Logic)
-      //    여기서 주석 처리를 통해 사용할 ID의 출처를 결정합니다.
-      // ---------------------------------------------------------
-
-      // [Option A] 서버 응답 ID 사용 (현재 활성화됨)
-      const finalScheduleId = serverResponseId;
-
-      // [Option B] 클라이언트 생성 날짜 포맷 ID 사용 (필요 시 주석 해제하여 사용)
-      // 서버 로직이 변경되거나, 응답을 기다리지 않고 낙관적 업데이트를 할 때 사용
-      // finalScheduleId = generatedTimeFormatId;
-
-      // [방어 코드] 만약 어떤 이유로든 ID가 없다면 에러 처리
       if (!finalScheduleId) {
         throw new Error("스케줄 ID를 결정할 수 없습니다.");
       }
 
-      console.log(
-        `🔑 최종 결정된 ID: ${finalScheduleId} (Source: ${
-          finalScheduleId === serverResponseId ? "Server" : "Client"
-        })`
-      );
-
+      // TODO : 아직 암호화 미적용. 추후 암호화 적용
+      const combinedEncStr = `${finalScheduleId}${startLocalDateTime}${endLocalDateTime}`;
+    
+      console.log("🔏 생성된 암호화용 문자열:", combinedEncStr);
       // ---------------------------------------------------------
       // 4. [요청] 2단계: 시간 정보 등록
       // ---------------------------------------------------------
       const timeInfoBody: CalendarCreateRequest2 = {
-        // 결정된 최종 ID 주입
-        // scheduleId: finalScheduleId,
         timeStampInfo: newEvent.start,
-        // encStartTimeAndEndTime은 ID의 출처와 상관없이 항상 날짜 포맷 문자열을 사용
-        // (만약 ID와 똑같이 맞추고 싶다면 finalScheduleId를 넣으면 됩니다)
-        // encStartTimeAndEndTime: finalScheduleId,
-        encStartTimeAndEndTime: generatedTimeFormatId,
+        encStartTimeAndEndTime: combinedEncStr,
       };
 
       await registerTimeInfo(timeInfoBody);

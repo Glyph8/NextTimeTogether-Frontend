@@ -3,6 +3,7 @@
 import { PromiseView2Response, PromiseView4Response } from "@/apis/generated/Api";
 import { usePromiseStore } from "@/store/promise-detail.store";
 import { useRouter } from "next/navigation";
+import { formatEventTime } from "../utils/confirm-time-format";
 
 interface GroupScheduleItemProps {
     promiseInfo : PromiseView2Response | PromiseView4Response
@@ -15,7 +16,7 @@ interface GroupScheduleItemProps {
     groupId: string;
 }
 
-export const GroupScheduleItem = ({id, category, title, time, attendees, place,  promiseInfo, groupId }: GroupScheduleItemProps) => {
+export const GroupScheduleItem = ({id, category, title, time, place,  promiseInfo, groupId }: GroupScheduleItemProps) => {
     const router = useRouter();
     const setPromise = usePromiseStore((state) => state.setPromise);
     const handleNavToDetail = async () => {
@@ -42,8 +43,12 @@ export const GroupScheduleItem = ({id, category, title, time, attendees, place, 
             <div className="text-sm font-normal leading-tight">
                 {
                     time ? (
+                    // confirmedDateTime ? (
                         <span className="text-gray-2">
-                            {[time, attendees].filter(Boolean).join(" ")}
+                            {formatEventTime(time)}
+                            {/* {confirmedDateTime} */}
+                            {/* {formatEventTime(confirmedDateTime)} */}
+                            {/* {[time, attendees].filter(Boolean).join(" ")} */}
                         </span>
                     ) : (
                         <span className="text-main">
