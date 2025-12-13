@@ -48,7 +48,7 @@ export const useJoinGroup = () => {
       return;
     }
 
-    // 로그인 되어 있으면 그룹 정보 조회 (GET API)
+    // 로그인 되어 있으면 그룹 정보 조회 (GET API) - 이메일 보내는 로직이라 현재 지원 안됨.
     apiGetGroupJoinRequest(groupId)
       .then(() => {
         setStatus("READY"); // 가입 버튼 활성화

@@ -3,7 +3,7 @@
 import Header from "@/components/ui/header/Header";
 import X from "@/assets/svgs/icons/x-black.svg";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
-import { useParams, useRouter} from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button/Button";
 import { useGroupStore } from "@/store/group-detail.store";
@@ -23,7 +23,8 @@ export default function CreateSchedulePage() {
   const [isOpen, setIsOpen] = useState(false);
 
   const { selectedGroup, setGroup } = useGroupStore();
-  const targetIdForFetch = selectedGroup?.groupId === groupIdFromUrl ? null : groupIdFromUrl;
+  const targetIdForFetch =
+    selectedGroup?.groupId === groupIdFromUrl ? null : groupIdFromUrl;
 
   // 그룹 정보 및 키 로드
   const {
@@ -48,13 +49,17 @@ export default function CreateSchedulePage() {
   }, [fetchedGroup, groupKey, setGroup]);
 
   // [Flow Control] 약속 생성 성공 시 공유 화면 렌더링
-if (values.createdPromiseId && groupIdFromUrl) {
+  if (values.createdPromiseId && groupIdFromUrl) {
     return (
       <div className="bg-white h-dvh flex flex-col">
         {/* 헤더의 닫기 버튼도 상세 페이지로 이동하도록 수정 */}
         <Header
           leftChild={
-            <button onClick={() => router.push(`/schedules/detail/${values.createdPromiseId}`)}>
+            <button
+              onClick={() =>
+                router.push(`/schedules/detail/${values.createdPromiseId}`)
+              }
+            >
               <X />
             </button>
           }
@@ -64,8 +69,18 @@ if (values.createdPromiseId && groupIdFromUrl) {
           <SharePromise
             promiseId={values.createdPromiseId}
             groupId={groupIdFromUrl}
+            promiseKey={values.generatedPromiseKey}
             // [수정] 닫기(확인) 버튼 클릭 시 해당 약속의 상세 페이지로 이동
-            onClose={() => router.push(`/schedules/detail/${values.createdPromiseId}`)}
+            onClose={() => {
+              // 확인 버튼 누르면 상세 페이지로 이동 (키를 Hash에 포함)
+              // SharePromise 내부에서 이동하거나, 여기서 router.push 처리
+              const encodedKey = encodeURIComponent(
+                values.generatedPromiseKey || ""
+              );
+              router.push(
+                `/groups/detail/${groupIdFromUrl}/schedules/${values.createdPromiseId}#pkey=${encodedKey}`
+              );
+            }}
           />
         </div>
       </div>
@@ -97,7 +112,7 @@ if (values.createdPromiseId && groupIdFromUrl) {
           extraHandleReject={() => setIsOpen(false)}
           extraHandleAccept={actions.submitPromise}
         />
-        
+
         <Header
           leftChild={
             isStep1 ? (
@@ -112,7 +127,7 @@ if (values.createdPromiseId && groupIdFromUrl) {
           }
           title={"약속 만들기"}
         />
-        
+
         {/* 진행률 바 */}
         <div className="w-full h-16 py-7 relative px-4">
           <div className="w-full h-2 bg-gray-3 rounded-[20px] z-1" />
@@ -155,7 +170,9 @@ if (values.createdPromiseId && groupIdFromUrl) {
     return (
       <div className="flex h-screen items-center justify-center flex-col gap-4">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-main" />
-        <p className="text-gray-500 font-medium">보안 데이터를 복호화하고 있습니다...</p>
+        <p className="text-gray-500 font-medium">
+          보안 데이터를 복호화하고 있습니다...
+        </p>
       </div>
     );
   }

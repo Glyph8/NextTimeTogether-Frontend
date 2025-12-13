@@ -1,3 +1,5 @@
+'use client'
+
 import {
   GroupProxyUser_iv,
   User_iv,
@@ -10,11 +12,14 @@ import { base64ToArrayBuffer } from "../helper";
 
 async function decryptDataWithCryptoKey(
   encrypted: string,
-  masterCryptoKey: CryptoKey,
+  masterKeyOrString: CryptoKey | string, // 1. 타입 변경 (string 허용)
   role: string
 ) {
-  // TODO : // 길이 맞추기 필요함?
-  //   const normalizedKey = EncryptUtil.normalizeAESKey(masterCryptoKey, 32);
+
+  console.log("복호화 대상 :", encrypted);
+  console.log("복호화 IV : ", role);
+
+  // IV 결정 로직 (기존 동일)
   const iv = () => {
     if (role === "group_iv") return GroupProxyUser_iv;
     else if (role === "user_iv") return User_iv;
@@ -27,13 +32,34 @@ async function decryptDataWithCryptoKey(
   };
 
   try {
+    let cryptoKey: CryptoKey;
+
+    // 2. 키 타입에 따른 처리 로직 추가
+    if (typeof masterKeyOrString === "string") {
+      // 2-1. 문자열인 경우: ArrayBuffer 변환 후 Key Import
+      const keyBuffer = base64ToArrayBuffer(masterKeyOrString);
+      
+      cryptoKey = await crypto.subtle.importKey(
+        "raw", 
+        keyBuffer, 
+        { name: "AES-GCM" }, 
+        false, 
+        ["decrypt"] // [중요] 복호화용이므로 'decrypt' 권한 필요
+      );
+    } else {
+      // 2-2. 이미 CryptoKey인 경우 그대로 사용
+      cryptoKey = masterKeyOrString;
+    }
+
     const ciphertext = base64ToArrayBuffer(encrypted);
+    
+    // 3. 결정된 cryptoKey를 사용하여 복호화 수행
     const decryptedBuffer = await crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv: iv(), // <-- 암호문에서 추출한 'iv'를 사용
+        iv: iv(),
       },
-      masterCryptoKey, // <-- IndexedDB에서 가져온 'CryptoKey'를 사용
+      cryptoKey, 
       ciphertext
     );
 

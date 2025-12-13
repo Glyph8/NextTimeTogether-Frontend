@@ -31,14 +31,30 @@ export default function JoinPromisePage() {
 
   useEffect(() => {
     const handleJoin = async () => {
+      // 0. URL Hash에서 Promise Key 추출 (#pkey=...)
+      // window 객체는 클라이언트 사이드에서만 접근 가능하므로 useEffect 내부에서 실행
+      const hash = window.location.hash; // 예: "#pkey=BASE64STRING..."
+      let extractedKeyString = "";
+
+      if (hash) {
+         // # 제거 후 파싱
+        const hashParams = new URLSearchParams(hash.substring(1));
+        extractedKeyString = hashParams.get("pkey") || "";
+      }
+
+      // 키가 URL에 없으면 -> 이미 멤버이거나, 잘못된 링크일 수 있음 (일단 진행해보고 실패 시 처리)
+      // 하지만 초대 흐름에서는 키가 필수이므로 체크하는 것이 좋음.
+      if (!extractedKeyString) {
+         console.warn("URL에 약속 키가 없습니다. 기존 멤버인지 확인이 필요할 수 있습니다.");
+      }
+
       // 1. 로그인 체크 및 리다이렉트 처리
       if (!userId) {
-        // 현재 페이지의 전체 경로(쿼리 파라미터 포함)를 저장
-        const currentPath = `/schedules/join/${params.promiseId}?groupId=${groupId}`;
+        // [중요] 로그인 후 돌아올 때 Hash(#pkey=...)까지 포함해야 키를 잃어버리지 않음
+        // window.location.search는 '?groupId=...' 부분을 포함
+        const currentPath = `/schedules/join/${params.promiseId}${window.location.search}${window.location.hash}`;
         const encodedReturnUrl = encodeURIComponent(currentPath);
         
-        // 로그인 페이지로 이동하되, 로그인 성공 후 돌아올 주소를 넘겨줌
-        // (참고: 로그인 페이지에서 returnUrl 쿼리 파라미터를 처리해야 함)
         router.push(`/login?returnUrl=${encodedReturnUrl}`);
         return;
       }
@@ -73,7 +89,8 @@ export default function JoinPromisePage() {
           const result = await invitePromiseService(
             userId,
             params.promiseId,
-            groupKey
+            groupKey,
+            extractedKeyString
           );
 
           if (result) {
@@ -81,7 +98,7 @@ export default function JoinPromisePage() {
             setMessage("성공적으로 약속에 참여했습니다!");
             
             // [수정 1] 성공 시 목록이 아닌 '해당 약속의 상세 페이지'로 이동
-            router.push(`/schedules/detail/${params.promiseId}`);
+            router.push(`/groups/detail/${groupId}/schedules/${params.promiseId}#pkey=${encodeURIComponent(extractedKeyString)}`);
           } else {
             throw new Error("서버 응답 없음");
           }
@@ -89,6 +106,10 @@ export default function JoinPromisePage() {
           console.error(e);
           setStatus("error");
           setMessage("참여에 실패했거나 이미 참여한 약속입니다.");
+          // 이미 참여한 경우라도 상세 페이지로 이동시켜주는 것이 UX상 좋음
+          setTimeout(() => {
+             router.push(`/groups/detail/${groupId}/schedules/${params.promiseId}#pkey=${encodeURIComponent(extractedKeyString)}`);
+           }, 1500);
         }
       }
     };
@@ -117,15 +138,16 @@ export default function JoinPromisePage() {
         </div>
       )}
       
-      {/* 성공 시엔 useEffect에서 router.push가 일어나지만, 
-          혹시 모를 딜레이나 수동 이동을 위해 버튼 유지 (경로 수정됨) */}
-      {status !== "loading" && (
+     {status !== "loading" && (
         <div className="w-full max-w-xs">
           <Button
             text={status === "success" ? "약속 바로가기" : "홈으로 돌아가기"}
             onClick={() => {
-              if (status === "success") {
-                router.push(`/schedules/detail/${params.promiseId}`);
+              if (status === "success" || message.includes("이미 참여")) {
+                // [수정 3] 버튼 클릭 시에도 변경된 경로로 이동
+                // 여기서도 키를 유지하고 싶다면 hash 추가
+                const hash = window.location.hash;
+                router.push(`/groups/detail/${groupId}/schedules/${params.promiseId}${hash}`);
               } else {
                 router.push("/");
               }

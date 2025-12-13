@@ -9,6 +9,7 @@ import {
 } from "@/apis/generated/Api";
 import { BackendResponse, clientBaseApi } from ".";
 
+/** 이메일 보내는 로직이라 현재 지원 안됨 */
 export const apiGetGroupJoinRequest = async (
   groupId: string
 ): Promise<GetGroupJoinEmailResponse> => {

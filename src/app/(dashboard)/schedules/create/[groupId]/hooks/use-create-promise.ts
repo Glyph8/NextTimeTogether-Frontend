@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { createPromise } from "@/api/promise-view-create";
 import { convertToISO } from "../utils/date-converter";
 import { invitePromiseService } from "../utils/join-promise";
 import { useGroupStore } from "@/store/group-detail.store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import testGenerateKey from "@/utils/crypto/generate-key/key-generator";
 
 export type PurposeType = "스터디" | "식사";
 
@@ -27,6 +28,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const createdPromiseId = searchParams.get("newPromiseId");
+  const urlStoredKey = searchParams.get("createdKey"); // [추가] URL에서 키 복구
 
   // 현재 시간 기준 초기값 설정
   const now = new Date();
@@ -48,9 +50,15 @@ export const useCreatePromise = (groupId: string | undefined) => {
   const [purpose, setPurpose] = useState<PurposeType>("스터디");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   
-  // const [createdPromiseId, setCreatedPromiseId] = useState<string | null>(null);
-
+  const [generatedPromiseKey, setGeneratedPromiseKey] = useState<string | null>(urlStoredKey);
   const { groupKey } = useGroupStore();
+
+  useEffect(() => {
+    if (urlStoredKey) {
+      setGeneratedPromiseKey(urlStoredKey);
+    }
+  }, [urlStoredKey]);
+  
 
   const isSelected = (userId: string) => selectedMembers.includes(userId);
   
@@ -91,6 +99,8 @@ export const useCreatePromise = (groupId: string | undefined) => {
     };
 
     try {
+      // promiseKey 생성
+      const newPromiseKey = await testGenerateKey();
       // 1. 약속 생성 API 호출
       const createResult = await createPromise(promiseInfo);
       
@@ -98,20 +108,21 @@ export const useCreatePromise = (groupId: string | undefined) => {
         // 2. 생성자(나)를 약속에 자동 참여시킴 (초대 로직 재사용)
         // TODO : userID(사용자가 입력한 값)냐.. manager처럼 원본 userID(서버에 전달된 값)냐..
 
-        const joinResult = await invitePromiseService(
+        await invitePromiseService(
           userId,
-          //decryptedUserId, TODO : 이걸로 하면 에러 응답 옴..  하지만 제대로 참여는 됨???
+          // TODO : 이걸로 하면 에러 응답 옴..  하지만 제대로 참여는 됨???
+          // decryptedUserId, 
           createResult.promiseId,
-          groupKey
+          groupKey, // groupKey는 null일 수 있으므로 체크 필요
+          newPromiseKey // <--- 생성한 키 전달
         );
-        
+   
+    
+        setGeneratedPromiseKey(newPromiseKey);
+
         const params = new URLSearchParams(searchParams);
         params.set("newPromiseId", createResult.promiseId);
         router.replace(`${pathname}?${params.toString()}`);
-        // if (joinResult) {
-        //   // 3. 페이지 이동 대신, 생성된 ID를 상태에 저장 -> 공유 화면 표출 트리거
-        //   setCreatedPromiseId(createResult.promiseId);
-        // }
       }
     } catch (e) {
       console.error(e);
@@ -120,7 +131,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
   };
 
   return {
-    values: { topic, purpose, selectedMembers, schedule, createdPromiseId },
+    values: { topic, purpose, selectedMembers, schedule, createdPromiseId, generatedPromiseKey },
     actions: {
       setTopic,
       handleOptionChange,

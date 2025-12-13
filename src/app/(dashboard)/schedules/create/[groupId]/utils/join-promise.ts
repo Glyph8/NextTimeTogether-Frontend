@@ -1,21 +1,22 @@
 import { joinPromise } from "@/api/promise-invite-join";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
-import testGenerateKey from "@/utils/crypto/generate-key/key-generator";
 
 export const invitePromiseService = async (
   userId: string,
   promiseId: string,
-  groupKey: CryptoKey | null
+  groupKey: CryptoKey | null,
+  // promiseKey: CryptoKey
+  promiseKey: string,
 ) => {
   const masterkey = await getMasterKey();
 
-  if (!masterkey || !groupKey) {
+  if (!masterkey || !groupKey || !promiseKey) {
     return null;
   }
 
-  // 약속 공유키 생성
-  const promiseKey = await testGenerateKey();
+  // 약속 공유키 생성 - 초대 코드에서 생성하도록 변경
+  // const promiseKey = await testGenerateKey();
 
   // TODO : 메일 보내기 생략. 추후 로직 정립 후 적용
 
@@ -53,7 +54,11 @@ export const invitePromiseService = async (
     encPromiseKey,
   };
 
-  const joinPromiseResult = await joinPromise(joinInfo);
-
-  return joinPromiseResult;
+  try {
+    const joinPromiseResult = await joinPromise(joinInfo);
+    return joinPromiseResult;
+  } catch (e) {
+    console.error("Join API Error:", e);
+    return null;
+  }
 };
