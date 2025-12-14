@@ -80,7 +80,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
       queryClient.invalidateQueries({ queryKey: ["promise", promiseId] });
       const encodedTitle = encodeURIComponent(currentTitle);
       router.push(
-        `/schedules/detail/${promiseId}?groupId=${groupId}&title=${encodedTitle}`
+        `/groups/detail/${groupId}/schedules/detail/${promiseId}?title=${encodedTitle}`
       );
     },
     onError: (error) => {

@@ -1,11 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { registerPlaceBoard } from "@/api/where2meet";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { PlaceRegisterDTO } from "@/apis/generated/Api";
 
 export const useAddPlaceDirect = (promiseId: string | null) => {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const params = useParams<{ groupId: string }>();
+  // TODO: params.groupId가 없을 경우에 대한 방어 로직 필요
+  const groupId = params.groupId;
 
   return useMutation({
     mutationFn: async (data: PlaceRegisterDTO[]) => {
@@ -30,7 +33,7 @@ export const useAddPlaceDirect = (promiseId: string | null) => {
         });
 
         // 페이지 이동
-        router.push(`/schedules/detail/${promiseId}`);
+        router.push(`/groups/detail/${groupId}/schedules/detail/${promiseId}`);
       }
     },
 

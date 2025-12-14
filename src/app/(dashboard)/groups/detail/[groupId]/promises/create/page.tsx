@@ -7,13 +7,13 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button/Button";
 import { useGroupStore } from "@/store/group-detail.store";
-import { useGroupDetail } from "../../../groups/detail/[groupId]/hooks/use-group-detail";
 import PromiseCreateInfo from "./components/PromiseCreateInfo";
 import { useCreatePromise } from "./hooks/use-create-promise";
 import SelectSchedule from "./components/SelectTimeOnline";
 import { YesNoDialog } from "@/components/shared/Dialog/YesNoDialog";
 import { PromiseSummary } from "./components/PromiseSummary";
 import SharePromise from "./components/SharePromise"; // 새로 만든 컴포넌트 import
+import { useGroupDetail } from "../../hooks/use-group-detail";
 
 export default function CreateSchedulePage() {
   const params = useParams<{ groupId: string }>();

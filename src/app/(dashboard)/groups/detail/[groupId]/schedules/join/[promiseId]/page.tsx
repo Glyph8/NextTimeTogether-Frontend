@@ -5,15 +5,16 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/button/Button";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
-import { invitePromiseService } from "../../create/[groupId]/utils/join-promise";
+import { invitePromiseService } from "../../create/utils/join-promise";
+import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 
 export default function JoinPromisePage() {
-  const params = useParams<{ promiseId: string }>();
+  const params = useParams<{ groupId: string; promiseId: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
 
   // URL에서 groupId 추출
-  const groupId = searchParams.get("groupId");
+  const groupId = params.groupId;
   const { userId } = useAuthStore();
 
   // E2EE 키 복구 훅 (groupId가 있어야 동작)
@@ -25,6 +26,7 @@ export default function JoinPromisePage() {
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("보안 정보를 확인하고 있습니다...");
+  const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
 
   // 중복 실행 방지 락
   const isJoinAttempted = useRef(false);
@@ -37,7 +39,7 @@ export default function JoinPromisePage() {
       let extractedKeyString = "";
 
       if (hash) {
-         // # 제거 후 파싱
+        // # 제거 후 파싱
         const hashParams = new URLSearchParams(hash.substring(1));
         extractedKeyString = hashParams.get("pkey") || "";
       }
@@ -45,16 +47,16 @@ export default function JoinPromisePage() {
       // 키가 URL에 없으면 -> 이미 멤버이거나, 잘못된 링크일 수 있음 (일단 진행해보고 실패 시 처리)
       // 하지만 초대 흐름에서는 키가 필수이므로 체크하는 것이 좋음.
       if (!extractedKeyString) {
-         console.warn("URL에 약속 키가 없습니다. 기존 멤버인지 확인이 필요할 수 있습니다.");
+        console.warn("URL에 약속 키가 없습니다. 기존 멤버인지 확인이 필요할 수 있습니다.");
       }
 
       // 1. 로그인 체크 및 리다이렉트 처리
-      if (!userId) {
+      if (!userId || !decryptedUserId) {
         // [중요] 로그인 후 돌아올 때 Hash(#pkey=...)까지 포함해야 키를 잃어버리지 않음
-        // window.location.search는 '?groupId=...' 부분을 포함
-        const currentPath = `/schedules/join/${params.promiseId}${window.location.search}${window.location.hash}`;
+        // window.location.search는 '?groupId=...' 부분을 포함하지 않을 수 있음
+        const currentPath = `/groups/detail/${groupId}/schedules/join/${params.promiseId}${window.location.search}${window.location.hash}`;
         const encodedReturnUrl = encodeURIComponent(currentPath);
-        
+
         router.push(`/login?returnUrl=${encodedReturnUrl}`);
         return;
       }
@@ -84,10 +86,11 @@ export default function JoinPromisePage() {
         isJoinAttempted.current = true;
 
         try {
-          setMessage("약속 목록에 추가하는 중입니다...");
+          setMessage("약속 목록에 추가하는 중입니다...")
 
           const result = await invitePromiseService(
-            userId,
+            // userId,
+            decryptedUserId,
             params.promiseId,
             groupKey,
             extractedKeyString
@@ -96,9 +99,9 @@ export default function JoinPromisePage() {
           if (result) {
             setStatus("success");
             setMessage("성공적으로 약속에 참여했습니다!");
-            
+
             // [수정 1] 성공 시 목록이 아닌 '해당 약속의 상세 페이지'로 이동
-            router.push(`/groups/detail/${groupId}/schedules/${params.promiseId}#pkey=${encodeURIComponent(extractedKeyString)}`);
+            router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}#pkey=${encodeURIComponent(extractedKeyString)}`);
           } else {
             throw new Error("서버 응답 없음");
           }
@@ -108,8 +111,8 @@ export default function JoinPromisePage() {
           setMessage("참여에 실패했거나 이미 참여한 약속입니다.");
           // 이미 참여한 경우라도 상세 페이지로 이동시켜주는 것이 UX상 좋음
           setTimeout(() => {
-             router.push(`/groups/detail/${groupId}/schedules/${params.promiseId}#pkey=${encodeURIComponent(extractedKeyString)}`);
-           }, 1500);
+            router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}#pkey=${encodeURIComponent(extractedKeyString)}`);
+          }, 1500);
         }
       }
     };
@@ -137,8 +140,8 @@ export default function JoinPromisePage() {
           </p>
         </div>
       )}
-      
-     {status !== "loading" && (
+
+      {status !== "loading" && (
         <div className="w-full max-w-xs">
           <Button
             text={status === "success" ? "약속 바로가기" : "홈으로 돌아가기"}

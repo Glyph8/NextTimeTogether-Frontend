@@ -38,7 +38,7 @@ export default function DetailGroupPage() {
   const handleNavtoCreateSchedule = () => {
     if (groupDetail && groupKey) {
       setGroup(groupDetail, groupKey);
-      router.push(`/schedules/create/${groupId}`);
+      router.push(`/groups/detail/${groupId}/schedules/create`);
     }    
   };
 
