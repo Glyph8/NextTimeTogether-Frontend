@@ -2,11 +2,9 @@
 
 import toast from "react-hot-toast";
 
-import Image from "next/image";
 import Header from "@/components/ui/header/Header";
 import X from "@/assets/svgs/icons/x-black.svg";
 import XWhite from "@/assets/svgs/icons/x-white.svg";
-import Plus from "@/assets/svgs/icons/plus-white.svg";
 import { Button } from "@/components/ui/button/Button";
 import { useState } from "react";
 import Link from "next/link";
@@ -16,8 +14,9 @@ import { useCreateGroup } from "./use-create-group";
 import { useQueryClient } from "@tanstack/react-query";
 
 // ✅ 추가: Cloudinary 위젯 임포트
-import { CldUploadWidget } from "next-cloudinary";
+// import { CldUploadWidget } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
+import CloudinaryUpload from "@/components/shared/Cloudinary/ImageUpload";
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -70,7 +69,7 @@ export default function CreateGroupPage() {
 
       <div className="w-full flex justify-center items-center px-4 md:px-40 pt-5 pb-3.5 relative">
         {/* ✅ 수정: Cloudinary 위젯으로 감싸기 */}
-        <CldUploadWidget
+        {/* <CldUploadWidget
           uploadPreset="MySpot" // ⚠️ 중요: 본인의 Unsigned Preset 이름으로 변경하세요
           onSuccess={(result: any) => {
             // 업로드 성공 시 URL을 상태에 저장
@@ -97,8 +96,6 @@ export default function CreateGroupPage() {
                     sizes="64px" // ✅ 추가: "이 이미지는 항상 64px(w-16) 크기로 보여요"라고 알려줌
                   />
                 </div>
-
-                {/* 플러스 버튼 (디자인 유지) */}
                 <button
                   type="button"
                   className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center absolute -bottom-2 -right-2 z-10"
@@ -111,7 +108,12 @@ export default function CreateGroupPage() {
               </div>
             );
           }}
-        </CldUploadWidget>
+        </CldUploadWidget> */}
+        <CloudinaryUpload
+          uploadPreset="MySpot"
+          groupImg={groupImg}
+          setGroupImg={setGroupImg}
+        />
       </div>
 
       <div className="flex-1 w-full h-full p-4 flex flex-col justify-between items-start">
