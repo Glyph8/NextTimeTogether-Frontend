@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import "./globals.css";
 import { pretandard } from "./fonts";
-import { headers } from "next/headers";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -15,23 +14,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
 
-  // 3. Next.js가 생성한 CSP nonce를 읽어옵니다.
-  const nonce = (await headers()).get("x-nonce") || "";
-  
   return (
     <html lang="ko" className={`${pretandard.variable}`}>
       <head>
         <title>Time Together</title>
       </head>
       <body className="bg-[#8E98A8] text-black-1 ">
-         {/* 4. Providers에 nonce를 prop으로 전달합니다. */}
-        <Providers nonce={nonce}>
+        <Providers>
           {children}
-          {/* 5. Toaster는 Providers 내부(클라이언트 컴포넌트)에서 
-               nonce를 받아 렌더링하는 것이 좋습니다.
-               (기존 코드를 존중한다면 여기에 <Toaster nonce={nonce} ... />를 둬도 되지만,
-               Providers 내부로 옮기는 것을 권장합니다.)
-          */}
         </Providers>
       </body>
     </html>

@@ -1,4 +1,6 @@
 "use client";
+
+import toast from "react-hot-toast";
 import React, { useRef, useState, useMemo, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -37,13 +39,13 @@ export interface CalendarEvent {
   start: string; // ISO 8601 날짜 문자열 (예: "2025-10-20")
   end?: string;
   color?:
-    | "salmon"
-    | "orange"
-    | "yellow"
-    | "lightPurple"
-    | "darkPurple"
-    | "blue"
-    | string;
+  | "salmon"
+  | "orange"
+  | "yellow"
+  | "lightPurple"
+  | "darkPurple"
+  | "blue"
+  | string;
   allDay?: boolean;
   // allDay가 false일 때 사용되는 상세 시간 정보
   startTime?: string; // 예: "오후 02:00"
@@ -182,8 +184,8 @@ export default function CalendarPage() {
       // FullCalendar의 end는 exclusive이므로 -1일 해야 실제 종료일
       const eventEnd = event.end
         ? startOfDay(
-            new Date(parseISO(event.end).getTime() - 24 * 60 * 60 * 1000)
-          )
+          new Date(parseISO(event.end).getTime() - 24 * 60 * 60 * 1000)
+        )
         : eventStart;
 
       // 선택한 날짜가 이벤트 범위에 포함되는지 확인
@@ -227,15 +229,15 @@ export default function CalendarPage() {
       //   true
       // );
       const startLocalDateTime = convertToLocalDateTime(
-      newEvent.start,
-      newEvent.startTime
-    );
+        newEvent.start,
+        newEvent.startTime
+      );
 
-    const endLocalDateTime = convertToLocalDateTime(
-      newEvent.end || newEvent.start,
-      newEvent.endTime,
-      true
-    );
+      const endLocalDateTime = convertToLocalDateTime(
+        newEvent.end || newEvent.start,
+        newEvent.endTime,
+        true
+      );
 
       // "20251129T1430-20251129T1530" 형식의 문자열
       // const generatedTimeFormatId = `${formattedStart}-${formattedEnd}`;
@@ -262,7 +264,7 @@ export default function CalendarPage() {
 
       // TODO : 아직 암호화 미적용. 추후 암호화 적용
       const combinedEncStr = `${finalScheduleId}${startLocalDateTime}${endLocalDateTime}`;
-    
+
       console.log("🔏 생성된 암호화용 문자열:", combinedEncStr);
       // ---------------------------------------------------------
       // 4. [요청] 2단계: 시간 정보 등록
@@ -278,7 +280,7 @@ export default function CalendarPage() {
       setIsCreateDrawerOpen(false);
     } catch (error) {
       console.error("일정 생성 실패:", error);
-      // alert("일정 생성에 실패했습니다."); // 필요 시 주석 해제
+      toast.error("일정 생성에 실패했습니다.");
     }
   };
 

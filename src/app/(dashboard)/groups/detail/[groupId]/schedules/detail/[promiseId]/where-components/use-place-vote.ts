@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { votePlace, unvotePlace } from "@/api/where2meet";
+import toast from "react-hot-toast";
 
 export const usePlaceVote = (promiseId: string) => {
   const queryClient = useQueryClient();
@@ -19,7 +20,7 @@ export const usePlaceVote = (promiseId: string) => {
     },
     onError: (error) => {
       console.error("투표 실패:", error);
-      alert("투표에 실패했습니다."); // 추후 Toast UI로 변경 권장
+      toast.error("투표에 실패했습니다."); // 추후 Toast UI로 변경 권장
     },
   });
 
@@ -37,7 +38,7 @@ export const usePlaceVote = (promiseId: string) => {
     },
     onError: (error) => {
       console.error("투표 취소 실패:", error);
-      alert("취소에 실패했습니다.");
+      toast.error("취소에 실패했습니다.");
     },
   });
 

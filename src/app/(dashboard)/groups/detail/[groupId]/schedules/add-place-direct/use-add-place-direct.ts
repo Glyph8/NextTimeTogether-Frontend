@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { registerPlaceBoard } from "@/api/where2meet";
 import { useRouter, useParams } from "next/navigation";
 import { PlaceRegisterDTO } from "@/apis/generated/Api";
@@ -39,7 +40,7 @@ export const useAddPlaceDirect = (promiseId: string | null) => {
 
     onError: (error) => {
       console.error("❌ 장소 등록 실패:", error);
-      alert("장소 등록에 실패했습니다. 다시 시도해주세요.");
+      toast.error("장소 등록에 실패했습니다. 다시 시도해주세요.");
     },
   });
 };

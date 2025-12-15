@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/auth.store";
 import { createPromise } from "@/api/promise-view-create";
 import { convertToISO } from "../utils/date-converter";
@@ -49,7 +50,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
   const [topic, setTopic] = useState("");
   const [purpose, setPurpose] = useState<PurposeType>("스터디");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  
+
   const [generatedPromiseKey, setGeneratedPromiseKey] = useState<string | null>(urlStoredKey);
   const { groupKey } = useGroupStore();
 
@@ -58,10 +59,10 @@ export const useCreatePromise = (groupId: string | undefined) => {
       setGeneratedPromiseKey(urlStoredKey);
     }
   }, [urlStoredKey]);
-  
+
 
   const isSelected = (userId: string) => selectedMembers.includes(userId);
-  
+
   const handleMemberChange = (userId: string) => {
     if (isSelected(userId)) {
       setSelectedMembers((prev) => prev.filter((id) => id !== userId));
@@ -103,7 +104,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
       const newPromiseKey = await testGenerateKey();
       // 1. 약속 생성 API 호출
       const createResult = await createPromise(promiseInfo);
-      
+
       if (createResult.promiseId) {
         // 2. 생성자(나)를 약속에 자동 참여시킴 (초대 로직 재사용)
         // TODO : userID(사용자가 입력한 값)냐.. manager처럼 원본 userID(서버에 전달된 값)냐..
@@ -111,13 +112,13 @@ export const useCreatePromise = (groupId: string | undefined) => {
         await invitePromiseService(
           // userId,
           // TODO : 이걸로 하면 에러 응답 옴..  하지만 제대로 참여는 됨???
-          decryptedUserId, 
+          decryptedUserId,
           createResult.promiseId,
           groupKey, // groupKey는 null일 수 있으므로 체크 필요
           newPromiseKey // <--- 생성한 키 전달
         );
-   
-    
+
+
         setGeneratedPromiseKey(newPromiseKey);
 
         const params = new URLSearchParams(searchParams);
@@ -126,7 +127,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
       }
     } catch (e) {
       console.error(e);
-      alert("약속 생성 중 오류가 발생했습니다.");
+      toast.error("약속 생성 중 오류가 발생했습니다.");
     }
   };
 

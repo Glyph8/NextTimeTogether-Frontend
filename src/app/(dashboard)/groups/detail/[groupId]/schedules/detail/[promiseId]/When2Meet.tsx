@@ -1,5 +1,7 @@
 "use client";
 
+import toast from "react-hot-toast";
+
 import { useState, useMemo } from "react";
 // Components
 import { MemberCountPalette } from "./when-components/MemberCountPalette";
@@ -86,7 +88,7 @@ export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
   // --------------------------------------------------------------------------
   // 5. Event Handlers
   // --------------------------------------------------------------------------
-  
+
   // [VIEW 모드] 그룹 시간표 셀 클릭 핸들러
   const handleCellClick = (dayIndex: number, timeIndex: number) => {
     if (!timeBoardData) return;
@@ -114,7 +116,7 @@ export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
   // [SELECT 모드] 저장 버튼 클릭 핸들러
   const handleSave = () => {
     if (!timeBoardData) {
-      alert("데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      toast.error("데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
 

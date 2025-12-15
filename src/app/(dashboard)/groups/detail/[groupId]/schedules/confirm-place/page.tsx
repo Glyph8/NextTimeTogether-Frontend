@@ -1,5 +1,7 @@
 "use client";
 
+import toast from "react-hot-toast";
+
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/ui/header/Header";
@@ -15,7 +17,7 @@ import { useConfirmSchedule } from "./use-confirm-schedule";
 
 export interface ConfirmPlaceProps {
   placeId: number;
-  aiPlaceId:number;
+  aiPlaceId: number;
 }
 
 export default function ConfirmPlacePage() {
@@ -46,30 +48,30 @@ export default function ConfirmPlacePage() {
     mutationFn: async (placeInfo: PlaceBoardItem) => {
       if (!promiseId) throw new Error("약속 ID가 없습니다.");
       // TODO : 직접 추가한 장소의 aiPlaceID는 0으로 처리하고 있는 듯.
-      return await confirmPlaceApi(promiseId, placeInfo.id, placeInfo.aiPlace ); 
+      return await confirmPlaceApi(promiseId, placeInfo.id, placeInfo.aiPlace);
     },
     onSuccess: (response) => {
       // response 구조: { code: 200, result: { dateTime, title, ... } }
       console.log("📍 장소 확정 성공, 일정 생성 시작:", response);
-      
+
       if (response.code === 200 && selectedPlaceId) {
         // [핵심] 장소 확정의 결과값을 그대로 일정 생성 훅으로 전달
         confirmSchedule({
-            placeId: selectedPlaceId,
-            serverResult: response.result
+          placeId: selectedPlaceId,
+          serverResult: response.result
         });
       } else {
-        alert("장소 확정 응답에 문제가 있습니다.");
+        toast.error("장소 확정 응답에 문제가 있습니다.");
       }
     },
     onError: (err) => {
       console.error(err);
-      alert("장소 확정에 실패했습니다.");
+      toast.error("장소 확정에 실패했습니다.");
     },
   });
 
 
- const handleConfirm = () => {
+  const handleConfirm = () => {
     if (selectedPlaceId === null || !placeListInfo) return;
 
     const selectedPlaceObj = placeListInfo.places.find(
@@ -79,7 +81,7 @@ export default function ConfirmPlacePage() {
     if (selectedPlaceObj) {
       confirmPlace(selectedPlaceObj);
     } else {
-      alert("선택된 장소 정보를 찾을 수 없습니다.");
+      toast.error("선택된 장소 정보를 찾을 수 없습니다.");
     }
   };
 
@@ -104,9 +106,9 @@ export default function ConfirmPlacePage() {
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="px-5 py-2 bg-white">
-            <h2 className="text-black-1 text-xl font-semibold leading-tight mt-4 mb-6 whitespace-pre-line">
+          <h2 className="text-black-1 text-xl font-semibold leading-tight mt-4 mb-6 whitespace-pre-line">
             확정할 장소를{"\n"}선택해주세요.
-            </h2>
+          </h2>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pb-24 scrollbar-hide">
@@ -151,10 +153,9 @@ export default function ConfirmPlacePage() {
             onClick={handleConfirm}
             disabled={selectedPlaceId === null || isProcessing}
             className={`w-full rounded-[12px] py-4 text-white text-lg font-bold leading-tight text-center transition-colors
-              ${
-                selectedPlaceId !== null && !isProcessing
-                  ? "bg-main hover:bg-main/90"
-                  : "bg-gray-300 cursor-not-allowed"
+              ${selectedPlaceId !== null && !isProcessing
+                ? "bg-main hover:bg-main/90"
+                : "bg-gray-300 cursor-not-allowed"
               }`}
           >
             {isProcessing ? "확정 처리 중..." : "확정하기"}

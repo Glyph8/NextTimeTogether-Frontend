@@ -16,7 +16,7 @@ import { useGroupDetail } from "./hooks/use-group-detail";
 import { useGroupStore } from "@/store/group-detail.store";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { CldImage } from "next-cloudinary";
-import { DEFAULT_IMAGE } from "../../page";
+import { DEFAULT_IMAGE } from "@/constants";
 
 export default function DetailGroupPage() {
   const router = useRouter();

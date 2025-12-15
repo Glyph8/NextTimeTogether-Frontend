@@ -50,18 +50,18 @@ export const useCalendarCreate = () => {
       console.log("캘린더 생성 성공:", data);
       // [중요] 캘린더가 생성되었으니, 캘린더 목록을 보여주는 쿼리("calendar")를 무효화하여
       // 자동으로 목록을 새로고침하게 만듭니다. (데이터 일관성 유지)
-      queryClient.invalidateQueries({ queryKey: ["calendar"] });
+      queryClient.invalidateQueries({ queryKey: ["calendarIds"] });
     },
     onError: (error) => {
       console.error("생성 실패:", error);
     },
   });
-// 응답 예시
-// {
-//   "code": 200,
-//   "message": "요청에 성공했습니다.",
-//   "result": {
-//     "msg": "개인 일정을 저장했습니다."
-//   }
-// }
+  // 응답 예시
+  // {
+  //   "code": 200,
+  //   "message": "요청에 성공했습니다.",
+  //   "result": {
+  //     "msg": "개인 일정을 저장했습니다."
+  //   }
+  // }
 };

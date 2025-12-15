@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
 import { createSchedule } from "@/api/schedule-get-create";
@@ -78,15 +79,17 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
     onSuccess: (data) => {
       console.log("✅ 일정 확정 완료:", data);
       // 관련 쿼리 무효화 후 결과 페이지 이동
-      queryClient.invalidateQueries({ queryKey: ["promise", promiseId] });
+      queryClient.invalidateQueries({ queryKey: ["promiseId"] });
       const encodedTitle = encodeURIComponent(currentTitle);
+
+      // TODO : 확정된 일정 페이지로 이동시켜주기
       router.push(
         `/groups/detail/${groupId}/schedules/detail/${promiseId}?title=${encodedTitle}`
       );
     },
     onError: (error) => {
       console.error("❌ 일정 확정 실패:", error);
-      alert("일정을 확정하는 중 오류가 발생했습니다. 다시 시도해주세요.");
+      toast.error("일정을 확정하는 중 오류가 발생했습니다. 다시 시도해주세요.");
     },
   });
 

@@ -13,7 +13,7 @@ import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { ScheduleDialog } from "./components/ScheduleDialog";
 import { ScheduleItem } from "./components/ScheduleItem";
 import { TeamItem } from "./components/TeamItem";
-import { DEFAULT_IMAGE } from "../groups/page";
+import { DEFAULT_IMAGE } from "@/constants";
 
 const CLOUDINARY_ICON = "https://res.cloudinary.com/dg1apjunc/image/upload/v1764595919/samples/cloudinary-icon.png"
 

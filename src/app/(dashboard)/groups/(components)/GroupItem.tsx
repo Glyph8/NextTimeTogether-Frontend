@@ -2,7 +2,7 @@
 import Trashcan from "@/assets/svgs/icons/trashcan.svg";
 import { useRouter } from "next/navigation";
 import { CldImage } from "next-cloudinary";
-import { DEFAULT_IMAGE } from "../page";
+import { DEFAULT_IMAGE } from "@/constants";
 
 interface GroupItemProps {
   groupId: string;

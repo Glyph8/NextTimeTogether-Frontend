@@ -1,5 +1,7 @@
 "use client";
 
+import toast from "react-hot-toast";
+
 import Image from "next/image";
 import Header from "@/components/ui/header/Header";
 import X from "@/assets/svgs/icons/x-black.svg";
@@ -15,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 // ✅ 추가: Cloudinary 위젯 임포트
 import { CldUploadWidget } from "next-cloudinary";
-import { DEFAULT_IMAGE } from "../page";
+import { DEFAULT_IMAGE } from "@/constants";
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -40,12 +42,12 @@ export default function CreateGroupPage() {
       {
         onSuccess: () => {
           // TODO : Toast로 추후 교체
-          alert("그룹이 성공적으로 생성되었습니다!");
+          toast.success("그룹이 성공적으로 생성되었습니다!");
           queryClient.invalidateQueries({ queryKey: ["groupList"] });
           router.push("/groups");
         },
         onError: (error: { message: string }) => {
-          alert(`그룹 생성 실패: ${error.message}`);
+          toast.error(`그룹 생성 실패: ${error.message}`);
         },
       }
     );
