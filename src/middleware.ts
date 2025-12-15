@@ -14,9 +14,6 @@ export function middleware(request: NextRequest) {
   //   ? `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
   //   : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
 
-  // cloudinary 를 위해 임시로 strict-dynamic 해제 - TODO : 백엔드 측에서 이미지 처리 준비되면 대체예정
-  const scriptSrcPolicy = `'self' 'unsafe-eval'`;
-
   // ✅ 개발 환경에서는 nonce 없이 unsafe-inline만 사용
   // const styleSrcPolicy = isDevelopment
   //   ? `'self' 'unsafe-inline'`
@@ -31,11 +28,14 @@ export function middleware(request: NextRequest) {
   // Cloudinary 위젯 도메인 (iframe용)
   const cloudinaryWidgetDomain = "https://upload-widget.cloudinary.com"; // ✅ 추가
 
+  // cloudinary 를 위해 임시로 strict-dynamic 해제 - TODO : 백엔드 측에서 이미지 처리 준비되면 대체예정
+  const scriptSrcPolicy = `'self' 'unsafe-inline' 'unsafe-eval' ${cloudinaryWidgetDomain}`;
+
   // CSP 정책 모음
   const cspHeader = `
     default-src 'self';
     connect-src ${connectSrcPolicy};
-   script-src ${scriptSrcPolicy} ${cloudinaryWidgetDomain};
+   script-src ${scriptSrcPolicy};
     style-src ${styleSrcPolicy};
     img-src 'self' blob: data: ${cloudinaryDomain};
     font-src 'self' data:;
