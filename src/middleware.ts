@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
   //   : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
 
   // cloudinary 를 위해 임시로 strict-dynamic 해제 - TODO : 백엔드 측에서 이미지 처리 준비되면 대체예정
-  const scriptSrcPolicy = `'self' 'nonce-${nonce}''unsafe-eval'`;
+  const scriptSrcPolicy = `'self' 'unsafe-eval'`;
 
   // ✅ 개발 환경에서는 nonce 없이 unsafe-inline만 사용
   // const styleSrcPolicy = isDevelopment
