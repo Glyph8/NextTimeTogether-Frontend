@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import "./globals.css";
 import { pretandard } from "./fonts";
 import { Providers } from "./providers";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "타임투게더",
@@ -21,10 +20,6 @@ export default async function RootLayout({
         <title>Time Together</title>
       </head>
       <body className="bg-[#8E98A8] text-black-1 ">
-        <Script
-          src="https://upload-widget.cloudinary.com/global/all.js"
-          strategy="beforeInteractive"
-        />
         <Providers>
           {children}
         </Providers>

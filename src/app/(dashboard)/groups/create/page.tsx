@@ -11,11 +11,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCreateGroup } from "./use-create-group";
 import { useQueryClient } from "@tanstack/react-query";
-
+import Image from "next/image";
+import Plus from "@/assets/svgs/icons/plus-white.svg";
+import FullLogo from "@/assets/pngs/logo-full.png"; // 기본 이미지
 // ✅ 추가: Cloudinary 위젯 임포트
-// import { CldUploadWidget } from "next-cloudinary";
+import { CldUploadWidget } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
-import CloudinaryUpload from "@/components/shared/Cloudinary/ImageUpload";
+// import CloudinaryUpload from "@/components/shared/Cloudinary/ImageUpload";
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -68,7 +70,7 @@ export default function CreateGroupPage() {
 
       <div className="w-full flex justify-center items-center px-4 md:px-40 pt-5 pb-3.5 relative">
         {/* ✅ 수정: Cloudinary 위젯으로 감싸기 */}
-        {/* <CldUploadWidget
+        <CldUploadWidget
           uploadPreset="MySpot" // ⚠️ 중요: 본인의 Unsigned Preset 이름으로 변경하세요
           onSuccess={(result: any) => {
             // 업로드 성공 시 URL을 상태에 저장
@@ -107,12 +109,7 @@ export default function CreateGroupPage() {
               </div>
             );
           }}
-        </CldUploadWidget> */}
-        <CloudinaryUpload
-          uploadPreset="MySpot"
-          groupImg={groupImg}
-          setGroupImg={setGroupImg}
-        />
+        </CldUploadWidget>
       </div>
 
       <div className="flex-1 w-full h-full p-4 flex flex-col justify-between items-start">

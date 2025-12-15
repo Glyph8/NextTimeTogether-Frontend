@@ -10,9 +10,12 @@ export function middleware(request: NextRequest) {
   // console.log('🔍 Environment:', process.env.NODE_ENV);
   // console.log('🔍 isDevelopment:', isDevelopment);
 
-  const scriptSrcPolicy = isDevelopment
-    ? `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
-    : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
+  // const scriptSrcPolicy = isDevelopment
+  //   ? `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
+  //   : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
+
+  // cloudinary 를 위해 임시로 strict-dynamic 해제 - TODO : 백엔드 측에서 이미지 처리 준비되면 대체예정
+  const scriptSrcPolicy = `'self' 'nonce-${nonce}''unsafe-eval'`;
 
   // ✅ 개발 환경에서는 nonce 없이 unsafe-inline만 사용
   // const styleSrcPolicy = isDevelopment
