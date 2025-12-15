@@ -150,7 +150,7 @@ export default function JoinPromisePage() {
                 // [수정 3] 버튼 클릭 시에도 변경된 경로로 이동
                 // 여기서도 키를 유지하고 싶다면 hash 추가
                 const hash = window.location.hash;
-                router.push(`/groups/detail/${groupId}/schedules/${params.promiseId}${hash}`);
+                router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`);
               } else {
                 router.push("/");
               }

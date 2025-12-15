@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: 'res.cloudinary.com',
-        pathname: '/:dg1apjunc/**', // 내 클라우드 네임 아래의 경로만 허용
+        pathname: '/dg1apjunc/**', // 내 클라우드 네임 아래의 경로만 허용
       },
     ],
   },
@@ -25,14 +25,14 @@ const nextConfig: NextConfig = {
       {
         ...fileLoaderRule,
         test: /\.svg$/i,
-        resourceQuery: /url/, 
+        resourceQuery: /url/,
       },
       // *.svg?url 로 끝나지 않는 모든 SVG 파일은 @svgr/webpack 로더가 처리하도록 규칙을 추가합니다.
       // (예: import Icon from './icon.svg';)
       {
         test: /\.svg$/i,
         issuer: fileLoaderRule.issuer,
-        resourceQuery: { not: /url/ }, 
+        resourceQuery: { not: /url/ },
         use: ["@svgr/webpack"],
       }
     );

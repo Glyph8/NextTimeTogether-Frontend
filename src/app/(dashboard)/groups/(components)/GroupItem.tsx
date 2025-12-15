@@ -2,6 +2,7 @@
 import Trashcan from "@/assets/svgs/icons/trashcan.svg";
 import { useRouter } from "next/navigation";
 import { CldImage } from "next-cloudinary";
+import { DEFAULT_IMAGE } from "../page";
 
 interface GroupItemProps {
   groupId: string;
@@ -37,7 +38,7 @@ export const GroupItem = ({
       onClick={handleToDetail}
     >
       <CldImage
-        src={image} // 전체 URL을 넣어도 되고, 파일 ID만 넣어도 됨
+        src={image ?? DEFAULT_IMAGE} // 전체 URL을 넣어도 되고, 파일 ID만 넣어도 됨
         alt="image"
         width="64" // 문자열로 넣어도 됨
         height="64"

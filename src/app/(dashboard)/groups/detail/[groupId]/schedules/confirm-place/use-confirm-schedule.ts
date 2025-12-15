@@ -53,7 +53,8 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
       );
 
       const encTimeStamp = await encryptDataClient(
-        timeStampInfo,
+        scheduleId,
+        // timeStampInfo,
         masterKey,
         "promise_proxy_user"
       );

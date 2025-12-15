@@ -1,27 +1,27 @@
-interface ScheduleItemProps{
+interface ScheduleItemProps {
     type: string;
     title: string;
     date: string;
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const ScheduleItem = ({type, title, date, setIsOpen}: ScheduleItemProps) => {
+export const ScheduleItem = ({ type, title, date, setIsOpen }: ScheduleItemProps) => {
 
-    const handleShowDetail = () => {setIsOpen(true)}
+    const handleShowDetail = () => { setIsOpen(true) }
 
-    return(
+    return (
         <div className="flex flex-col p-4 gap-2" onClick={handleShowDetail}>
             <div className="flex gap-2 items-center">
-                <div className="bg-indigo-600/10 text-center text-indigo-600 text-xs font-medium leading-none">
+                <div className="bg-indigo-600/10 text-center text-indigo-600 text-xs font-medium leading-none p-2 whitespace-nowrap rounded-[8px]">
                     {type}
                 </div>
                 <div className="text-black text-base font-medium leading-tight">
                     {title}
                 </div>
             </div>
-            <div className="flex text-sm text-gray-2 font-normal leading-tight">
+            {/* <div className="flex text-sm text-gray-2 font-normal leading-tight">
                 {date}
-            </div>
+            </div> */}
         </div>
     )
 }

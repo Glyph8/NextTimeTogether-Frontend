@@ -14,7 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 const BottomNav = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const handleNavigate = (path:string) => router.push(path);
+  const handleNavigate = (path: string) => router.push(path);
   const navItem = [
     {
       iconOn: CalendarOn,
@@ -27,8 +27,8 @@ const BottomNav = () => {
       iconOn: ScheduleOn,
       iconOff: ScheduleOff,
       label: "약속 일정",
-      path: "/schedules",
-      active: pathname.startsWith("/schedules"),
+      path: "/appointment",
+      active: pathname.startsWith("/appointment"),
     },
     {
       iconOn: GroupOn,
@@ -57,15 +57,15 @@ const BottomNav = () => {
         navItem.map((item) => {
           return ((
             <button className="flex flex-col w-25 h-11 justify-center items-center 
-                bg-[#FFFFFF] rounded-[10px] cursor-pointer gap-2" 
-                key={item.path} onClick={()=>handleNavigate(item.path)}>
-                  
-              {item.active ? 
-              <item.iconOn/>
-                : 
-                <item.iconOff/>
-                }
-              
+                bg-[#FFFFFF] rounded-[10px] cursor-pointer gap-2"
+              key={item.path} onClick={() => handleNavigate(item.path)}>
+
+              {item.active ?
+                <item.iconOn />
+                :
+                <item.iconOff />
+              }
+
               <div className="text-center justify-start text-neutral-900 text-[10px] font-medium font-Pretendard leading-tight">
                 {item.label}
               </div>

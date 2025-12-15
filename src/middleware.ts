@@ -23,14 +23,16 @@ export function middleware(request: NextRequest) {
   // 통신 예외가 될 API URL, 추후 웹소켓 사용할 경우 추가 필요.
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const connectSrcPolicy = `'self' ${apiBaseUrl || ""}`.trim();
-// Cloudinary 도메인만 허용
+  // Cloudinary 도메인 (이미지용)
   const cloudinaryDomain = "https://res.cloudinary.com";
+  // Cloudinary 위젯 도메인 (iframe용)
+  const cloudinaryWidgetDomain = "https://upload-widget.cloudinary.com"; // ✅ 추가
 
   // CSP 정책 모음
   const cspHeader = `
     default-src 'self';
     connect-src ${connectSrcPolicy};
-    script-src ${scriptSrcPolicy}; 
+   script-src ${scriptSrcPolicy} ${cloudinaryWidgetDomain};
     style-src ${styleSrcPolicy};
     img-src 'self' blob: data: ${cloudinaryDomain};
     font-src 'self' data:;
@@ -38,6 +40,7 @@ export function middleware(request: NextRequest) {
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
+    frame-src 'self' ${cloudinaryWidgetDomain};
     upgrade-insecure-requests;
   `;
 

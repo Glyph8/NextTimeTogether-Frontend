@@ -157,29 +157,6 @@ export default function ScheduleDetailPage() {
     retry: 1,
   });
 
-  // const { data, isPending } = useQuery({
-  //   queryKey: ["promiseId", "encPromiseIds"],
-  //   queryFn: async () => {
-  //     console.log("🔵 암호화된 약속 멤버 ID 조회");
-  //     const result = await getEncryptedPromiseMemberId(promiseId);
-
-  //     // userIds는 string 배열임. 각 원소에 대해 decryptDataWithCryptoKey 호출 필요
-  //     const decResult = await decryptDataWithCryptoKey(
-  //       result.userIds,
-  //       promiseKey,
-  //       "promise_proxy_user"
-  //     )
-
-  //     const decUsersIds = await getPromiseMemberDetail(promiseId, result);
-  //     return {
-  //       encMembers: result || [],
-  //       managerId: decUsersIds.promiseManager, // 매니저 ID도 데이터에 포함
-  //     };
-  //   },
-  //   staleTime: 1000 * 60 * 5,
-  //   retry: 1,
-  // });
-
   const isMaster = data?.managerId === decryptedUserId;
   console.log(
     "약속 매니저 아이디 : ",

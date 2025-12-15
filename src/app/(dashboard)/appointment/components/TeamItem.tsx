@@ -7,10 +7,11 @@ interface TeamItemProps {
 import { CldImage } from "next-cloudinary";
 
 export const TeamItem = ({ isSelected, title, image }: TeamItemProps) => {
-  const handleClick = () => {};
+  const handleClick = () => { };
+
 
   return (
-    <button className="flex flex-col" onClick={handleClick}>
+    <button className="flex flex-col items-center justify-center" onClick={handleClick}>
       {isSelected ? (
         <>
           <div className="w-10 h<-10 bg-stone-50 rounded-lg border border-main overflow-clip">
@@ -21,9 +22,9 @@ export const TeamItem = ({ isSelected, title, image }: TeamItemProps) => {
             <CldImage
               src={image} // 전체 URL을 넣어도 되고, 파일 ID만 넣어도 됨
               alt="image"
-              width="24" // 문자열로 넣어도 됨
-              height="24"
-              className="border-gray-1 rounded-[8px]"
+              width="40" // 문자열로 넣어도 됨
+              height="40"
+              className="border-gray-1 rounded-[8px] object-cover"
             />
           </div>
           <p className="text-center text-main text-xs font-medium leading-6">
@@ -37,8 +38,8 @@ export const TeamItem = ({ isSelected, title, image }: TeamItemProps) => {
             <CldImage
               src={image} // 전체 URL을 넣어도 되고, 파일 ID만 넣어도 됨
               alt="image"
-              width="24" // 문자열로 넣어도 됨
-              height="24"
+              width="40" // 문자열로 넣어도 됨
+              height="40"
               className="border-gray-1 rounded-[8px]"
             />
           </div>

@@ -15,6 +15,8 @@ import { useViewSchedules } from "./hooks/use-view-schedules";
 import { useGroupDetail } from "./hooks/use-group-detail";
 import { useGroupStore } from "@/store/group-detail.store";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
+import { CldImage } from "next-cloudinary";
+import { DEFAULT_IMAGE } from "../../page";
 
 export default function DetailGroupPage() {
   const router = useRouter();
@@ -28,7 +30,6 @@ export default function DetailGroupPage() {
   const setGroup = useGroupStore((state) => state.setGroup);
   const { fixedYetData, fixedPromise, isPending } = useViewSchedules();
 
-  // TODO : 약속 조회 말고, 해당 그룹 내부 정보만 따로 주는 API가 있는게..
   const {
     data: groupDetail,
     groupKey,
@@ -39,11 +40,11 @@ export default function DetailGroupPage() {
     if (groupDetail && groupKey) {
       setGroup(groupDetail, groupKey);
       router.push(`/groups/detail/${groupId}/schedules/create`);
-    }    
+    }
   };
 
   if (isPending || isGroupFetching) {
-    return <DefaultLoading/>
+    return <DefaultLoading />
   }
 
   return (
@@ -57,7 +58,15 @@ export default function DetailGroupPage() {
         title={groupDetail?.groupName}
       />
       <div className="flex flex-col justify-center items-center gap-5 text-black-1 pt-7 pb-5">
-        <div className="w-16 h-16 bg-amber-500 border-gray-1 rounded-[8px]" />
+        {/* <div className="w-16 h-16 bg-amber-500 border-gray-1 rounded-[8px]" /> */}
+        <CldImage
+          src={groupDetail?.groupImg ?? DEFAULT_IMAGE} // 전체 URL을 넣어도 되고, 파일 ID만 넣어도 됨
+          alt="image"
+          width="64" // 문자열로 넣어도 됨
+          height="64"
+          className="border-gray-1 rounded-[8px]"
+          crop="fill"
+        />
         <span className="text-gray-1 text-sm font-normal leading-tight">
           {groupDetail?.explanation}
         </span>
@@ -92,7 +101,7 @@ export default function DetailGroupPage() {
                 return (
                   <GroupScheduleItem
                     key={promiseId}
-                    promiseInfo = {onProgressPromise}
+                    promiseInfo={onProgressPromise}
                     id={promiseId ?? ""}
                     category={type ?? ""}
                     title={title ?? ""}
@@ -118,7 +127,7 @@ export default function DetailGroupPage() {
           {openFixed && fixedPromise && fixedPromise.length > 0 ? (
             <div className="flex flex-col gap-2">
               {fixedPromise.map((schedule) => {
-                const {scheduleId, purpose, title, confirmedDateTime, placeName} = schedule
+                const { scheduleId, purpose, title, confirmedDateTime, placeName } = schedule
                 return (
                   <GroupScheduleItem
                     key={scheduleId}

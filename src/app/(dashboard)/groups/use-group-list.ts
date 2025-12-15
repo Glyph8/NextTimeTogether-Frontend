@@ -105,17 +105,17 @@ export const useDecryptedGroupList = () => {
 
     const decryptStep1Data = async () => {
       try {
-        console.log("🟡 [1단계 복호화] 시작 - 데이터 개수:", encData.length);
+        // console.log("🟡 [1단계 복호화] 시작 - 데이터 개수:", encData.length);
 
         const masterKey = await getMasterKey();
-        console.log("🟡 [1단계 복호화] 마스터키 로드 완료:", !!masterKey);
+        // console.log("🟡 [1단계 복호화] 마스터키 로드 완료:", !!masterKey);
 
         if (!masterKey) {
           throw new Error("마스터키를 찾을 수 없습니다.");
         }
 
         const decryptedPromises = encData.map(async (item, index) => {
-          console.log(`🟡 [1단계 복호화] ${index + 1}번째 항목 처리 중...`);
+          // console.log(`🟡 [1단계 복호화] ${index + 1}번째 항목 처리 중...`);
 
           const decryptedGroupId = await decryptDataClient(
             item.encGroupId,
@@ -130,7 +130,7 @@ export const useDecryptedGroupList = () => {
           );
 
           console.log(
-            `✅ [1단계 복호화] ${index + 1}번째 완료 - groupId:`,
+            // `✅ [1단계 복호화] ${index + 1}번째 완료 - groupId:`,
             decryptedGroupId
           );
 
@@ -166,17 +166,17 @@ export const useDecryptedGroupList = () => {
     queryKey: ["groupList", "step2", "encKeys", decryptedGroupObjects],
     queryFn: async () => {
       console.log("🔵 [2단계] 암호화된 그룹 키 조회 시작");
-      console.log("🔵 [2단계] 요청 데이터:", decryptedGroupObjects);
+      // console.log("🔵 [2단계] 요청 데이터:", decryptedGroupObjects);
 
       const result = await getEncGroupsKeyAction(decryptedGroupObjects!);
-      console.log("🔵 [2단계] 서버 응답:", result);
+      // console.log("🔵 [2단계] 서버 응답:", result);
 
       if (result.error) {
         console.error("🔴 [2단계] 에러:", result.error);
         throw new Error(result.error);
       }
 
-      console.log("✅ [2단계] 성공 - 데이터 개수:", result.data?.length);
+      // console.log("✅ [2단계] 성공 - 데이터 개수:", result.data?.length);
       return result.data as ViewGroupSecResponseData[];
     },
     // 빈 배열이면 2단계 실행 안 함
@@ -212,25 +212,19 @@ export const useDecryptedGroupList = () => {
         console.log("🟡 [2단계 복호화] 시작 - 데이터 개수:", encKeys.length);
 
         const masterKey = await getMasterKey();
-        console.log("🟡 [2단계 복호화] 마스터키 로드 완료:", !!masterKey);
+        // console.log("🟡 [2단계 복호화] 마스터키 로드 완료:", !!masterKey);
 
         if (!masterKey) {
           throw new Error("마스터키를 찾을 수 없습니다.");
         }
 
         const decryptedPromises = encKeys.map(async (item, index) => {
-          console.log(`🟡 [2단계 복호화] ${index + 1}번째 그룹 키 처리 중...`);
+          // console.log(`🟡 [2단계 복호화] ${index + 1}번째 그룹 키 처리 중...`);
 
           const groupKeyString = await decryptDataClient(
             item.encGroupKey,
             masterKey,
             "group_sharekey"
-          );
-
-          console.log(
-            `🟡 [2단계 복호화] ${
-              index + 1
-            }번째 그룹 키 복호화 완료, CryptoKey로 변환 중...`
           );
 
           const groupKeyArrayBuffer = base64ToArrayBuffer(groupKeyString);
@@ -243,7 +237,6 @@ export const useDecryptedGroupList = () => {
             ["decrypt"]
           );
 
-          console.log(`✅ [2단계 복호화] ${index + 1}번째 CryptoKey 생성 완료`);
 
           return cryptoKey;
         });
@@ -287,10 +280,8 @@ export const useDecryptedGroupList = () => {
         groupId: item.groupId,
       }));
 
-      console.log("🔵 [3단계] 요청 데이터:", groupIdObjects);
 
       const result = await getGroupsInfoAction(groupIdObjects);
-      console.log("🔵 [3단계] 서버 응답:", result);
 
       if (result.error) {
         console.error("🔴 [3단계] 에러:", result.error);
@@ -300,32 +291,22 @@ export const useDecryptedGroupList = () => {
       const finalEncData = result.data
       // const finalEncData = result.data as ViewGroupThirdResponseData[];
 
-      if(!finalEncData){
+      if (!finalEncData) {
         throw new Error("3단계 요청 응답이 undefined")
       }
 
-      console.log("🔵 [3단계] 암호화된 데이터 개수:", finalEncData.length);
 
       console.log("🟡 [3단계 복호화] 시작");
 
       const decryptedPromises = finalEncData.map(async (groupData, index) => {
-        console.log(`🟡 [3단계 복호화] ${index + 1}번째 그룹 처리 중...`);
 
         const groupCryptoKey = decryptedGroupKeys![index];
 
-        console.log(
-          `🟡 [3단계 복호화] ${index + 1}번째 그룹 - 멤버 ${
-            groupData.encUserId.length
-          }명 복호화 시작`
-        );
+
 
         const decryptionPromises = groupData.encUserId.map(
           async (encId, memberIndex) => {
-            console.log(
-              `🟡 [3단계 복호화] ${index + 1}번째 그룹 - ${
-                memberIndex + 1
-              }번째 멤버 복호화 중...`
-            );
+
             return await decryptDataClient(
               encId,
               groupCryptoKey,
@@ -336,10 +317,7 @@ export const useDecryptedGroupList = () => {
 
         const decryptedMemberIds = await Promise.all(decryptionPromises);
 
-        console.log(
-          `✅ [3단계 복호화] ${index + 1}번째 그룹 완료 - 멤버 IDs:`,
-          decryptedMemberIds
-        );
+
 
         return {
           groupId: groupData.groupId,

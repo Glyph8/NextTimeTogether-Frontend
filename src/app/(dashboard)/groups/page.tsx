@@ -9,6 +9,8 @@ import { EnterGroupDialog } from "./(components)/EnterGroupDialog";
 import { useDecryptedGroupList } from "./use-group-list";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
+export const DEFAULT_IMAGE = 'https://res.cloudinary.com/dg1apjunc/image/upload/v1765814505/cuxbrj0g2bohvgr5sl3d.png'
+
 export default function GroupsPage() {
   const router = useRouter();
   const [isOpenExitDialog, setIsOpenExitDialog] = useState(false);
@@ -21,7 +23,7 @@ export default function GroupsPage() {
   };
 
   if (isPending) {
-    return <DefaultLoading/>;
+    return <DefaultLoading />;
   }
 
   return (
@@ -56,10 +58,7 @@ export default function GroupsPage() {
                 <GroupItem
                   key={group.groupId}
                   groupId={group.groupId}
-                  // image={group.groupImg ?? ''}
-                  image={
-                    "https://res.cloudinary.com/dg1apjunc/image/upload/v1764595919/samples/cloudinary-icon.png"
-                  }
+                  image={group.groupImg ?? DEFAULT_IMAGE}
                   title={group.groupName}
                   description={group.explanation ?? "123"}
                   // members={group.encUserId.join(',')}

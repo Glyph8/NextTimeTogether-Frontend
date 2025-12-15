@@ -24,13 +24,13 @@ export const parseServerDateToScheduleId = (serverDateTime: string) => {
   try {
     // 1. 날짜와 시간 대역 분리
     const [datePart, timeRangePart] = serverDateTime.split("T"); // ["2025-12-06", "09:00:00-11:00:00"]
-    
+
     // 2. 시간 대역에서 시작/종료 시간 분리
     const [startTimeFull, endTimeFull] = timeRangePart.split("-"); // ["09:00:00", "11:00:00"]
 
     // 3. Compact 포맷 생성을 위한 클렌징 (Hyphen, Colon 제거)
     const cleanDate = datePart.replace(/-/g, ""); // "20251206"
-    
+
     // HH:mm:ss -> HHmm (초 단위 제거 및 콜론 제거)
     const cleanStartTime = startTimeFull.substring(0, 5).replace(/:/g, ""); // "0900"
     const cleanEndTime = endTimeFull.substring(0, 5).replace(/:/g, "");     // "1100"
@@ -41,6 +41,7 @@ export const parseServerDateToScheduleId = (serverDateTime: string) => {
     return {
       scheduleId,
       timeStampInfo: datePart // "2025-12-06" 그대로 사용
+      // timeStampInfo: scheduleId // TODO : 그대로 나오면 나중에 써먹을 여지가 없는데..?
     };
   } catch (error) {
     console.error("날짜 파싱 에러:", error);
