@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import Plus from "@/assets/svgs/icons/plus.svg"; // 아이콘 경로는 본인에 맞게
-import FullLogo from "@/assets/images/full-logo.png"; // 이미지 경로는 본인에 맞게
+import Plus from "@/assets/svgs/icons/plus-white.svg";
+import FullLogo from "@/assets/pngs/logo-full.png"; // 기본 이미지
+
 
 interface CloudinaryUploadProps {
   uploadPreset: string;

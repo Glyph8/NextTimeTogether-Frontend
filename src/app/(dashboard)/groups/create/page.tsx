@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button/Button";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import FullLogo from "@/assets/pngs/logo-full.png"; // 기본 이미지
 import { useCreateGroup } from "./use-create-group";
 import { useQueryClient } from "@tanstack/react-query";
 
