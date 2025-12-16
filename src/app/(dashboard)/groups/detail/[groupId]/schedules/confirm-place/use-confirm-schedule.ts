@@ -7,6 +7,7 @@ import { ScheduleConfirmReqDTO } from "@/apis/generated/Api"; // DTO 타입 확�
 import { parseServerDateToScheduleId } from "./utils/date-format";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
+import { useState } from "react";
 
 // 장소 확정 API의 결과값 타입 정의
 interface ServerConfirmResult {
@@ -29,6 +30,8 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
   const searchParams = useSearchParams(); // [추가] URL에서 title 가져오기 위함
   // 현재 URL에 있는 title을 가져오거나, 없으면 기본값 사용
   const currentTitle = searchParams.get("title") ?? "약속 상세";
+
+  const [createdScheduleId, setCreatedScheduleId] = useState<string | null>(null);
 
   // 사용자 리스트(userList)를 얻기 위한 쿼리
   const { data: memberData } = useQuery({
@@ -70,7 +73,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
         userList: memberData.userIds,
         encTimeStamp: encTimeStamp, // 개인키로 암호화
       };
-
+      setCreatedScheduleId(scheduleId)
       console.log("🚀 [API 요청] 일정 확정:", { groupId, body: requestData });
 
       // 4. API 호출 (Path: /schedule/confirm/{groupId})
@@ -80,11 +83,9 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
       console.log("✅ 일정 확정 완료:", data);
       // 관련 쿼리 무효화 후 결과 페이지 이동
       queryClient.invalidateQueries({ queryKey: ["promiseId"] });
-      const encodedTitle = encodeURIComponent(currentTitle);
 
-      // TODO : 확정된 일정 페이지로 이동시켜주기
       router.push(
-        `/groups/detail/${groupId}/schedules/detail/${promiseId}?title=${encodedTitle}`
+        `/appointment/${createdScheduleId}/detail`
       );
     },
     onError: (error) => {

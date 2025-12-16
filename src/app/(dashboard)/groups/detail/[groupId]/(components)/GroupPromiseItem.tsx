@@ -5,7 +5,7 @@ import { usePromiseStore } from "@/store/promise-detail.store";
 import { useRouter } from "next/navigation";
 import { formatEventTime } from "../utils/confirm-time-format";
 
-interface GroupScheduleItemProps {
+interface GroupPromiseItemProps {
     promiseInfo: PromiseView2Response | PromiseView4Response
     id: string;
     category: string;
@@ -16,16 +16,15 @@ interface GroupScheduleItemProps {
     groupId: string;
 }
 
-export const GroupScheduleItem = ({ id, category, title, time, place, promiseInfo, groupId }: GroupScheduleItemProps) => {
+export const GroupPromiseItem = ({ id, category, title, time, place, promiseInfo, groupId }: GroupPromiseItemProps) => {
     const router = useRouter();
     const setPromise = usePromiseStore((state) => state.setPromise);
     const handleNavToDetail = async () => {
 
         const promiseKey = "TODO : promiseKey API 필요"
         setPromise(promiseInfo, promiseKey);
-        router.push(
-            `/appointment/${id}/detail`
-        );
+        const encodedTitle = encodeURIComponent(title);
+        router.push(`/groups/detail/${groupId}/schedules/detail/${id}?title=${encodedTitle}`);
     }
     return (
         <div role="button" tabIndex={0} className="w-full p-4 rounded-[20px] shadow-[0px_0px_10px_0px_rgba(0,0,0,0.04)] outline-1 outline-offset-[-1px] outline-gray-3 bg-white inline-flex flex-col justify-start items-start gap-2"

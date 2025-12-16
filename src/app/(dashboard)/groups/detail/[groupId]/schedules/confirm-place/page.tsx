@@ -104,7 +104,7 @@ export default function ConfirmPlacePage() {
         setShadow={false}
       />
 
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="w-full flex flex-col flex-1 overflow-hidden">
         <div className="px-5 py-2 bg-white">
           <h2 className="text-black-1 text-xl font-semibold leading-tight mt-4 mb-6 whitespace-pre-line">
             확정할 장소를{"\n"}선택해주세요.
@@ -133,29 +133,16 @@ export default function ConfirmPlacePage() {
             </div>
           )}
         </div>
-
-        {/* <div className="w-full px-5 py-4 bg-white border-t border-gray-100 safe-area-bottom">
-          <button
-            onClick={handleConfirm}
-            disabled={selectedPlaceId === null || isConfirming}
-            className={`w-full rounded-[12px] py-4 text-white text-lg font-bold leading-tight text-center transition-colors
-              ${
-                selectedPlaceId !== null && !isConfirming
-                  ? "bg-main hover:bg-main/90"
-                  : "bg-gray-300 cursor-not-allowed"
-              }`}
-          >
-            {isConfirming ? "확정 중..." : "확정하기"}
-          </button>
-        </div> */}
-        <div className="w-full px-5 py-4 bg-white border-t border-gray-100 safe-area-bottom">
+        <div className="w-full flex justify-center items-center px-5 py-4 bg-white border-t border-gray-100 safe-area-bottom">
           <button
             onClick={handleConfirm}
             disabled={selectedPlaceId === null || isProcessing}
-            className={`w-full rounded-[12px] py-4 text-white text-lg font-bold leading-tight text-center transition-colors
-              ${selectedPlaceId !== null && !isProcessing
-                ? "bg-main hover:bg-main/90"
-                : "bg-gray-300 cursor-not-allowed"
+            // 1. flex와 justify-center, items-center를 유지합니다.
+            // 2. 혹시 모를 상황을 대비해 text-center를 추가합니다.
+            // 3. [중요] 템플릿 리터럴 내 줄바꿈을 없애 클래스명 끊김을 방지했습니다.
+            className={`w-full flex justify-center items-center text-center rounded-[12px] py-4 text-lg font-bold leading-tight transition-colors ${selectedPlaceId !== null && !isProcessing
+              ? "bg-main hover:bg-main/90 text-white"
+              : "bg-gray-300 text-white cursor-not-allowed"
               }`}
           >
             {isProcessing ? "확정 처리 중..." : "확정하기"}

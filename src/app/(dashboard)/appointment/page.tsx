@@ -5,7 +5,7 @@ import ArrowDown from "@/assets/svgs/icons/arrow-down-gray.svg";
 import ArrowUp from "@/assets/svgs/icons/arrow-up-gray.svg";
 import Checked from "@/assets/svgs/icons/checked.svg";
 import Unchecked from "@/assets/svgs/icons/unchecked.svg";
-import { useState } from "react"; // useMemo 제거 (현재 사용 안함)
+import { useEffect, useState } from "react"; // useMemo 제거 (현재 사용 안함)
 import Header from "@/components/ui/header/Header";
 import { useDecryptedGroupList } from "../groups/use-group-list";
 import { useSchedules } from "./hooks/useSchedules";
@@ -15,7 +15,6 @@ import { ScheduleItem } from "./components/ScheduleItem";
 import { TeamItem } from "./components/TeamItem";
 import { DEFAULT_IMAGE } from "@/constants";
 
-const CLOUDINARY_ICON = "https://res.cloudinary.com/dg1apjunc/image/upload/v1764595919/samples/cloudinary-icon.png"
 
 type FilterType = "전체" | "약속 제목" | "참여 인원" | "장소";
 
@@ -25,6 +24,8 @@ export default function SchedulePage() {
 
     // 상태 관리
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+    const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
+
     const [keyword, setKeyword] = useState<string>("");
     const [inputValue, setInputValue] = useState<string>("");
 
@@ -71,7 +72,7 @@ export default function SchedulePage() {
 
     return (
         <div className="flex flex-col w-full flex-1 bg-gray-1">
-            <ScheduleDialog isOpen={isOpenDialog} setIsOpen={setIsOpenDialog} />
+            <ScheduleDialog isOpen={isOpenDialog} setIsOpen={setIsOpenDialog} scheduleId={selectedScheduleId ?? ""} />
             <Header title={"약속 일정"} />
 
             <div className="flex flex-col w-full bg-[#F9F9F9] px-4 py-4 gap-2.5">
@@ -136,7 +137,10 @@ export default function SchedulePage() {
                                 type={schedule.purpose || "약속"}
                                 title={schedule.title}
                                 date={schedule.date || "날짜 미정"} // DTO에 date 필드가 있는지 확인 필요
-                                setIsOpen={setIsOpenDialog}
+                                setIsOpen={() => {
+                                    setIsOpenDialog(true);
+                                    setSelectedScheduleId(schedule.scheduleId);
+                                }}
                             />
                         ))
                     ) : (

@@ -72,25 +72,10 @@ export const useCalendarView = (date: Date) => {
       return await getCalendarInfoList(requestBody);
     },
     // ID 목록이 비어있지 않을 때만 실행하여 불필요한 호출 방지
-    enabled: scheduleIds.length > 0, 
+    enabled: scheduleIds.length > 0,
     staleTime: 1000 * 60 * 5,
   });
 
-  // 4. [Data Transformation] UI에 맞는 형태로 데이터 가공
-  // 서버 데이터를 그대로 내보내지 않고, FullCalendar가 이해하는 'events' 형태로 변환합니다.
-  // const events = (eventsData?.result || []).map((serverEvent: CalendarDetail) => {
-  //   // ScheduleId에서 날짜/시간 정보 복원
-  //   const { start, end } = parseScheduleIdToDates(serverEvent.scheduleId);
-    
-  //   return {
-  //     id: serverEvent.scheduleId,
-  //     title: serverEvent.title,
-  //     start: start || date.toISOString(), // 파싱 실패 시 현재 뷰 날짜로 폴백
-  //     end: end, 
-  //     memo: serverEvent.content,
-  //     place: serverEvent.placeName,
-  //   };
-  // });
 
   const events = useMemo(() => {
     const serverEvents = eventsData?.result || [];
@@ -102,7 +87,7 @@ export const useCalendarView = (date: Date) => {
       return {
         id: serverEvent.scheduleId,
         title: serverEvent.title,
-        
+
         // Query 1에서 파싱해둔 시간 정보 사용
         // (만약 Map에 없다면 Fallback으로 현재 날짜 사용)
         start: timeInfo?.start || date.toISOString(),

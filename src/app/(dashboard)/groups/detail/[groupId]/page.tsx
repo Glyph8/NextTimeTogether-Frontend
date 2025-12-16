@@ -17,6 +17,7 @@ import { useGroupStore } from "@/store/group-detail.store";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { CldImage } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
+import { GroupPromiseItem } from "./(components)/GroupPromiseItem";
 
 export default function DetailGroupPage() {
   const router = useRouter();
@@ -99,7 +100,7 @@ export default function DetailGroupPage() {
                 // TODO: startDate가 시간표로 확정한 시간이 와야되는 거 아닌가?
                 // TODO : 장소 데이터가 없는 이유는 장소 확정되면 fixed되서 스케쥴이 되기 떄문?
                 return (
-                  <GroupScheduleItem
+                  <GroupPromiseItem
                     key={promiseId}
                     promiseInfo={onProgressPromise}
                     id={promiseId ?? ""}

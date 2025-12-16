@@ -3,7 +3,7 @@
 import Header from "@/components/ui/header/Header";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import Menu from "@/assets/svgs/icons/menu-black.svg";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { When2Meet } from "./When2Meet";
 import { Where2Meet } from "./Where2Meet";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -22,6 +22,7 @@ import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { useAuthStore } from "@/store/auth.store";
 import { useGroupStore } from "@/store/group-detail.store";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
+import { CheckWhenConfirmed, CheckWhereConfirmed } from "@/api/appointment";
 
 interface PromiseData {
   encMembers: any; // 실제 타입으로 변경 (예: EncryptedPromiseMemberId)
@@ -167,6 +168,11 @@ export default function ScheduleDetailPage() {
     isMaster
   );
   const encPromiseMemberList = data?.encMembers;
+
+  useEffect(() => {
+    CheckWhenConfirmed(promiseId);
+    CheckWhereConfirmed(promiseId);
+  }, [])
 
   const handleBack = () => {
     if (groupId) {
