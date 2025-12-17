@@ -44,21 +44,23 @@ export const useJoinGroup = () => {
     // 로그인 안 되어 있으면 리다이렉트 (돌아올 때 Hash 유지를 위해 전체 URL 전달)
     if (!isAuthenticated) {
       const returnUrl = encodeURIComponent(window.location.href);
-      window.location.replace(`/login?redirect_url=${returnUrl}`);
+      window.location.replace(`/login?returnUrl=${returnUrl}`);
       return;
     }
 
+    setStatus("READY");
+
     // 로그인 되어 있으면 그룹 정보 조회 (GET API) - 이메일 보내는 로직이라 현재 지원 안됨.
-    apiGetGroupJoinRequest(groupId)
-      .then(() => {
-        setStatus("READY"); // 가입 버튼 활성화
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("그룹 정보를 확인할 수 없습니다.");
-        // 에러가 나도 일단 UI상 진행을 막지 않기 위해 READY로 두는 기존 로직 유지
-        setStatus("READY"); 
-      });
+    // apiGetGroupJoinRequest(groupId)
+    //   .then(() => {
+    //     setStatus("READY"); // 가입 버튼 활성화
+    //   })
+    //   .catch((err) => {
+    //     console.error(err);
+    //     toast.error("그룹 정보를 확인할 수 없습니다.");
+    //     // 에러가 나도 일단 UI상 진행을 막지 않기 위해 READY로 두는 기존 로직 유지
+    //     setStatus("READY");
+    //   });
   }, [groupId, isAuthenticated]);
 
   // 2. [가입하기] 버튼 클릭 핸들러
@@ -76,7 +78,7 @@ export const useJoinGroup = () => {
 
       // --- B. 데이터 암호화 (Client-Side Encryption) ---
       // NOTE: 기존 로직의 암호화 흐름 유지
-      
+
       const encGroupKey = await encryptDataClient(
         groupKey,
         masterKey,
@@ -93,7 +95,7 @@ export const useJoinGroup = () => {
       // TODO : 암호화할 때 그룹키인지 마스터 키인지..
       // 초대에서는 개인키를 쓰라고 명시함
       // TODO : iv도 초대에서는 proxy user 사용
-      
+
       const encUserId = await encryptDataClient(
         myUserId,
         groupKey,

@@ -68,17 +68,16 @@ export default function SharePromise({
         </span>
         <button
           onClick={handleCopy}
-          className={`text-xs font-bold px-3 py-2 rounded-lg transition-all ${
-            isCopied
-              ? "bg-green-500 text-white"
-              : "bg-main text-white hover:bg-main/90"
-          }`}
+          className={`text-xs font-bold px-3 py-2 rounded-lg transition-all ${isCopied
+            ? "bg-green-500 text-white"
+            : "bg-main text-white hover:bg-main/90"
+            }`}
         >
           {isCopied ? "복사됨" : "복사"}
         </button>
       </div>
 
-      <div className="w-full">
+      <div className="w-full flex justify-center">
         {/* 버튼 텍스트 변경: 목록 이동 -> 상세 이동 */}
         <Button text="확인 (상세 페이지로 이동)" onClick={onClose} />
       </div>

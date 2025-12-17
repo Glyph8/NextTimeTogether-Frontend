@@ -123,6 +123,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
 
         const params = new URLSearchParams(searchParams);
         params.set("newPromiseId", createResult.promiseId);
+        params.set("createdKey", newPromiseKey); // [FIX] 키 보존을 위해 URL에 추가
         router.replace(`${pathname}?${params.toString()}`);
       }
     } catch (e) {

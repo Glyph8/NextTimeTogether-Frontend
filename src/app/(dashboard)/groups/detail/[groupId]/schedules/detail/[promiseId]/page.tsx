@@ -48,7 +48,7 @@ export default function ScheduleDetailPage() {
 
   const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
   const userId = useAuthStore.getState().userId;
-  console.log("groupKey in detail page:", groupKey);
+  // console.log("groupKey in detail page:", groupKey);
 
   const { data: promiseKey, isLoading: isKeyLoading } = useQuery({
     queryKey: ["promiseKey", promiseId],
@@ -76,22 +76,6 @@ export default function ScheduleDetailPage() {
       );
 
       try {
-        // 서버에서 보내준 암호화된 promiseID 리스트 조회 - 잘 됨
-        // const test = await getEncPromiseId();
-        // const targetIds = test.encPromiseIdList || [];
-        // console.log("대상 배열 길이:", targetIds.length); //
-        // const decryptedPromiseIds = await Promise.all(
-        //   targetIds.map(async (id) => {
-        //     return await decryptDataWithCryptoKey(
-        //       id,
-        //       masterKey,
-        //       // "promise_sharekey"
-        //       "promise_proxy_user"
-        //     );
-        //   })
-        // );
-        // console.log("테스트 복호화된Promise 아이디들 :", decryptedPromiseIds);
-
         // 1. 여기서 실제 요청은 보냅니다. (서버 로그엔 404가 찍힘)
         const result = await getEncPromiseKey({ promiseId, encUserId });
 
@@ -123,25 +107,21 @@ export default function ScheduleDetailPage() {
       // result.userIds가 배열인지 확인 (방어 코드)
       const targetIds = result.userIds || [];
       if (!promiseKey) {
-        // throw new Error("암호화 키가 없습니다.");
         console.warn("⚠️ 암호화 키가 없어 더미 데이터를 사용하여 렌더링합니다.");
-        return {
-          encMembers: { userIds: [] }, // 빈 멤버 리스트 or 테스트용 멤버
-          managerId: decryptedUserId || "", // 내가 매니저인 것처럼 처리 (UI 테스트용)
-          memberDetails: []
-        };
+        throw new Error("암호화 키가 없습니다.");
       }
       // [핵심] 배열 내 모든 원소에 대해 비동기 복호화 수행
-      // const decryptedUserIds = await Promise.all(
-      //   targetIds.map(async (id) => {
-      //     return await decryptDataWithCryptoKey(
-      //       id,
-      //       promiseKey, // 상위 스코프의 promiseKey 사용
-      //       "promise_proxy_user"
-      //     );
-      //   })
-      // );
-      const decryptedUserIds = [""];
+      const decryptedUserIds = await Promise.all(
+        targetIds.map(async (id) => {
+          return await decryptDataWithCryptoKey(
+            id,
+            // promiseKey, // 상위 스코프의 promiseKey 사용
+            groupKey ?? '', // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐
+            // "promise_proxy_user",
+            "group_sharekey"
+          );
+        })
+      );
 
       // 복호화된 ID 목록(decryptedUserIds)을 상세 조회 함수에 전달 mem s2
       const memberDetails = await getPromiseMemberDetail(promiseId, { userIds: decryptedUserIds });
@@ -170,8 +150,8 @@ export default function ScheduleDetailPage() {
   const encPromiseMemberList = data?.encMembers;
 
   useEffect(() => {
-    CheckWhenConfirmed(promiseId);
-    CheckWhereConfirmed(promiseId);
+    // CheckWhenConfirmed(promiseId);
+    // CheckWhereConfirmed(promiseId);
   }, [])
 
   const handleBack = () => {
@@ -192,7 +172,7 @@ export default function ScheduleDetailPage() {
         isMaster={isMaster}
         managerId={data?.managerId ?? ""}
         promiseId={promiseId}
-        participants={encPromiseMemberList?.userIds ?? []}
+        participants={data?.memberDetails ?? encPromiseMemberList?.userIds ?? []}
         onConfirmClick={() => {
           setMenuOpen(false);
           setWhenConfirmOpen(true);

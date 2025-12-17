@@ -6,12 +6,18 @@ import {
 } from "@/components/ui/col-drawer";
 import { ParticipantCard } from "./ParticipantCard";
 
+interface Participant {
+  userId: string;
+  userName: string;
+  userImg?: string | null;
+}
+
 interface ScheduleDrawerProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   managerId: string;
   isMaster?: boolean;
-  participants: string[]
+  participants: Participant[]
   promiseId: string;
   onConfirmClick: () => void;
   onConfirmPlace: () => void;
@@ -27,8 +33,8 @@ export const ScheduleDrawer = ({
   onConfirmClick,
   onConfirmPlace,
 }: ScheduleDrawerProps) => {
-  const handleDisperse = () => {};
-  const handleExit = () => {};
+  const handleDisperse = () => { };
+  const handleExit = () => { };
 
 
   return (
@@ -51,9 +57,9 @@ export const ScheduleDrawer = ({
                 >
                   일시 확정하기
                 </button>
-                
+
                 <button className="w-full bg-gray-2 rounded-[8px] px-5 py-2.5 text-white"
-                onClick={onConfirmPlace}>
+                  onClick={onConfirmPlace}>
                   장소 확정하기
                 </button>
               </div>
@@ -71,11 +77,9 @@ export const ScheduleDrawer = ({
           <div className="flex flex-col gap-3">
             {participants.map((participant) => (
               <ParticipantCard
-                key={participant}
-                // TODO : mem/s2 userIds 배열 빈 배열 오류
-                // name={participant.userName}
-                name={participant}
-                isMaster={participant === managerId}
+                key={participant.userId}
+                name={participant.userName}
+                isMaster={participant.userId === managerId}
               />
             ))}
           </div>
