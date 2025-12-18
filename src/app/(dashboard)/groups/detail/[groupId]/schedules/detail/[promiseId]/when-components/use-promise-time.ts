@@ -2,12 +2,20 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 import { UserTimeSlotReqDTO, TimeSlotReqDTO } from "@/apis/generated/Api";
-import { AvailableMembers, confirmTimetable, getAvailableMemberTime, getPromiseTimeBoard, TimeBoardResponse, updateMyTimetable } from "@/api/when2meet";
+import {
+  AvailableMembers,
+  confirmTimetable,
+  getAvailableMemberTime,
+  getPromiseTimeBoard,
+  TimeBoardResponse,
+  updateMyTimetable,
+} from "@/api/when2meet";
 
 export const TIME_KEYS = {
   all: ["time"] as const,
   board: (promiseId: string) => [...TIME_KEYS.all, "board", promiseId] as const,
-  cell: (promiseId: string, timeKey: string) => [...TIME_KEYS.all, "cell", promiseId, timeKey] as const,
+  cell: (promiseId: string, timeKey: string) =>
+    [...TIME_KEYS.all, "cell", promiseId, timeKey] as const,
 };
 
 export const usePromiseTime = (promiseId: string) => {
@@ -20,7 +28,8 @@ export const usePromiseTime = (promiseId: string) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: UserTimeSlotReqDTO) => updateMyTimetable(promiseId, data),
+    mutationFn: (data: UserTimeSlotReqDTO) =>
+      updateMyTimetable(promiseId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TIME_KEYS.board(promiseId) });
       toast.success("시간표가 저장되었습니다!");
@@ -28,7 +37,7 @@ export const usePromiseTime = (promiseId: string) => {
     onError: (error) => {
       console.error("시간표 저장 실패:", error);
       toast.error("저장에 실패했습니다.");
-    }
+    },
   });
 
   const confirmMutation = useMutation({
@@ -36,12 +45,13 @@ export const usePromiseTime = (promiseId: string) => {
     onSuccess: () => {
       // 확정이 성공하면 약속 정보를 다시 불러오거나, 페이지를 이동시키는 등의 처리
       queryClient.invalidateQueries({ queryKey: TIME_KEYS.board(promiseId) });
+      queryClient.invalidateQueries({ queryKey: ["confirmedTime", promiseId] });
       toast.success("약속이 확정되었습니다! 🎉");
     },
     onError: (error) => {
       console.error("약속 확정 실패:", error);
       toast.error("약속 확정에 실패했습니다.");
-    }
+    },
   });
 
   return { boardQuery, updateMutation, confirmMutation };
@@ -53,12 +63,15 @@ export const useTimeSlotDetail = (
   selectedSlot: { date: string; time: string } | null
 ) => {
   return useQuery<AvailableMembers>({
-    queryKey: TIME_KEYS.cell(promiseId, `${selectedSlot?.date}_${selectedSlot?.time}`),
+    queryKey: TIME_KEYS.cell(
+      promiseId,
+      `${selectedSlot?.date}_${selectedSlot?.time}`
+    ),
     queryFn: () => {
       if (!selectedSlot) throw new Error("Slot not selected");
       const dto: TimeSlotReqDTO = {
         date: selectedSlot.date,
-        time: selectedSlot.time
+        time: selectedSlot.time,
       };
       return getAvailableMemberTime(promiseId, dto);
     },

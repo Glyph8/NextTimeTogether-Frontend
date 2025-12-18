@@ -56,10 +56,10 @@ export const WhenConfirmDrawer = ({
   // 3. Derived Data (Data Transformation)
   const dateOptions = useMemo(() => {
     if (!timeBoardData?.availableTimes) return [];
-    
+
     // API 데이터가 배열인지 확인 후 매핑
-    const timesArray = Array.isArray(timeBoardData.availableTimes) 
-      ? timeBoardData.availableTimes 
+    const timesArray = Array.isArray(timeBoardData.availableTimes)
+      ? timeBoardData.availableTimes
       : [timeBoardData.availableTimes];
 
     return timesArray.map((day) => {
@@ -83,10 +83,14 @@ export const WhenConfirmDrawer = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (dateRef.current && !dateRef.current.contains(target)) setIsDateOpen(false);
-      if (startTimeRef.current && !startTimeRef.current.contains(target)) setIsStartTimeOpen(false);
-      if (endTimeRef.current && !endTimeRef.current.contains(target)) setIsEndTimeOpen(false);
-      if (durationRef.current && !durationRef.current.contains(target)) setIsDurationOpen(false);
+      if (dateRef.current && !dateRef.current.contains(target))
+        setIsDateOpen(false);
+      if (startTimeRef.current && !startTimeRef.current.contains(target))
+        setIsStartTimeOpen(false);
+      if (endTimeRef.current && !endTimeRef.current.contains(target))
+        setIsEndTimeOpen(false);
+      if (durationRef.current && !durationRef.current.contains(target))
+        setIsDurationOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -98,13 +102,17 @@ export const WhenConfirmDrawer = ({
     for (let hour = 9; hour <= 24; hour++) {
       for (const minute of [0, 30]) {
         if (hour === 24 && minute === 30) continue;
-        const timeStr = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-        
+        const timeStr = `${String(hour).padStart(2, "0")}:${String(
+          minute
+        ).padStart(2, "0")}`;
+
         // UI 표시용 라벨 (오전/오후)
         const displayHour = hour === 24 ? 0 : hour > 12 ? hour - 12 : hour;
         const period = hour < 12 && hour !== 24 ? "오전" : "오후";
-        const label = `${displayHour === 0 ? 12 : displayHour}:${String(minute).padStart(2, "0")} ${period}`;
-        
+        const label = `${displayHour === 0 ? 12 : displayHour}:${String(
+          minute
+        ).padStart(2, "0")} ${period}`;
+
         options.push({ value: timeStr, label });
       }
     }
@@ -119,20 +127,22 @@ export const WhenConfirmDrawer = ({
   // 4. Recommendation Algorithm
   const calculateRecommendations = () => {
     if (!timeBoardData) return [];
-    
+
     const durationMinutes = parseInt(selectedDuration);
-    // TODO: 전체 멤버 수를 API에서 받아오거나 상위 컴포넌트에서 전달받아야 정확함. 
+    // TODO: 전체 멤버 수를 API에서 받아오거나 상위 컴포넌트에서 전달받아야 정확함.
     // 현재는 데이터 내 최대 count를 기준으로 추정
     let maxFoundMembers = 0;
-    
-    const timesArray = Array.isArray(timeBoardData.availableTimes) 
-      ? timeBoardData.availableTimes 
+
+    const timesArray = Array.isArray(timeBoardData.availableTimes)
+      ? timeBoardData.availableTimes
       : [timeBoardData.availableTimes];
 
     // 전체 멤버 수 추정 (데이터 순회)
-    timesArray.forEach(day => day.times.forEach((t:TimeCell) => {
-      if(t.count > maxFoundMembers) maxFoundMembers = t.count;
-    }));
+    timesArray.forEach((day) =>
+      day.times.forEach((t: TimeCell) => {
+        if (t.count > maxFoundMembers) maxFoundMembers = t.count;
+      })
+    );
     const totalMembers = maxFoundMembers || 1; // 0나누기 방지
 
     const recs: Array<{
@@ -164,14 +174,14 @@ export const WhenConfirmDrawer = ({
 
         for (let j = 0; j < requiredSlots; j++) {
           const slot = timeSlots[i + j];
-          
+
           // 연속성 체크 (시간이 이어지는지) - 데이터가 정렬되어 있다고 가정
           // 엄밀히 하려면 이전 슬롯 시간 + 30분 == 현재 슬롯 시간 체크 필요
           if (!slot) {
-             isValidRange = false; 
-             break; 
+            isValidRange = false;
+            break;
           }
-          
+
           if (slot.count < minAvailableCount) {
             minAvailableCount = slot.count;
           }
@@ -183,7 +193,9 @@ export const WhenConfirmDrawer = ({
         const endMinutesTotal = startH * 60 + startM + durationMinutes;
         const endH = Math.floor(endMinutesTotal / 60);
         const endM = endMinutesTotal % 60;
-        const currentEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+        const currentEndTime = `${String(endH).padStart(2, "0")}:${String(
+          endM
+        ).padStart(2, "0")}`;
 
         // 점수: (가능인원 / 전체인원) * 100
         const score = (minAvailableCount / totalMembers) * 100;
@@ -208,7 +220,8 @@ export const WhenConfirmDrawer = ({
     return recs.slice(0, 5); // Top 5
   };
 
-  const recommendations = recommendStep === "result" ? calculateRecommendations() : [];
+  const recommendations =
+    recommendStep === "result" ? calculateRecommendations() : [];
 
   // Duration Options
   const durationOptions = [
@@ -222,7 +235,7 @@ export const WhenConfirmDrawer = ({
 
   // 5. Handlers
   const handleConfirm = () => {
-   // 1. 시작 일시 포맷팅 (YYYY-MM-DDTHH:mm:ss)
+    // 1. 시작 일시 포맷팅 (YYYY-MM-DDTHH:mm:ss)
     const startDateTime = `${selectedDate}T${startTime}:00`;
 
     // 2. 종료 시간 포맷팅 (HH:mm:ss)
@@ -232,11 +245,13 @@ export const WhenConfirmDrawer = ({
     // 3. 최종 문자열 결합 (시작일시-종료시간)
     // 예: "2025-06-21T09:00:00-09:30:00"
     const finalString = `${startDateTime}-${endTimePart}`;
-    
+
     console.log("🔵 약속 확정 요청 데이터:", finalString);
-    
+
     // Mutation 실행
     confirmMutation.mutate(finalString);
+
+    setOpen(false);
   };
 
   const handleApplyRecommendation = () => {
@@ -245,7 +260,7 @@ export const WhenConfirmDrawer = ({
       setSelectedDate(selected.date);
       setStartTime(selected.startTime);
       setEndTime(selected.endTime);
-      
+
       setRecommendStep("main");
       setSelectedRecommendation(null);
     }
@@ -260,11 +275,11 @@ export const WhenConfirmDrawer = ({
             {recommendStep === "duration" ? "예상 소요 시간" : "약속 시간 확정"}
           </DrawerTitle>
           <DrawerDescription className="text-gray-500 text-sm mt-1">
-             {recommendStep === "result" 
-              ? "참여율이 가장 높은 시간대를 추천해드려요." 
+            {recommendStep === "result"
+              ? "참여율이 가장 높은 시간대를 추천해드려요."
               : "모두가 만족할 수 있는 시간을 선택해주세요."}
           </DrawerDescription>
-          
+
           {/* 닫기 버튼 */}
           <DrawerClose className="absolute right-4 top-6 text-gray-400 hover:text-gray-600">
             <X className="w-6 h-6" />
@@ -293,11 +308,16 @@ export const WhenConfirmDrawer = ({
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-left flex justify-between items-center hover:border-purple-300 transition-all focus:outline-none focus:ring-2 focus:ring-purple-100"
                       >
                         <span className="text-gray-800 font-medium">
-                          {dateOptions.find((opt) => opt.value === selectedDate)?.label || "날짜 선택"}
+                          {dateOptions.find((opt) => opt.value === selectedDate)
+                            ?.label || "날짜 선택"}
                         </span>
-                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isDateOpen ? "rotate-180" : ""}`} />
+                        <ChevronDown
+                          className={`w-5 h-5 text-gray-400 transition-transform ${
+                            isDateOpen ? "rotate-180" : ""
+                          }`}
+                        />
                       </button>
-                      
+
                       {isDateOpen && (
                         <div className="absolute z-20 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
                           {dateOptions.map((option) => (
@@ -308,7 +328,9 @@ export const WhenConfirmDrawer = ({
                                 setIsDateOpen(false);
                               }}
                               className={`w-full px-4 py-3 text-left text-sm hover:bg-purple-50 transition-colors ${
-                                selectedDate === option.value ? "text-purple-600 font-bold bg-purple-50" : "text-gray-600"
+                                selectedDate === option.value
+                                  ? "text-purple-600 font-bold bg-purple-50"
+                                  : "text-gray-600"
                               }`}
                             >
                               {option.label}
@@ -340,7 +362,9 @@ export const WhenConfirmDrawer = ({
                           onClick={() => setIsStartTimeOpen(!isStartTimeOpen)}
                           className="w-full px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-left flex justify-between items-center"
                         >
-                          <span className="text-sm font-medium text-gray-800">{getTimeLabel(startTime)}</span>
+                          <span className="text-sm font-medium text-gray-800">
+                            {getTimeLabel(startTime)}
+                          </span>
                           <ChevronDown className="w-4 h-4 text-gray-400" />
                         </button>
                         {isStartTimeOpen && (
@@ -352,7 +376,11 @@ export const WhenConfirmDrawer = ({
                                   setStartTime(opt.value);
                                   setIsStartTimeOpen(false);
                                 }}
-                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${startTime === opt.value ? "text-purple-600 font-bold" : ""}`}
+                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
+                                  startTime === opt.value
+                                    ? "text-purple-600 font-bold"
+                                    : ""
+                                }`}
                               >
                                 {opt.label}
                               </button>
@@ -369,10 +397,12 @@ export const WhenConfirmDrawer = ({
                           onClick={() => setIsEndTimeOpen(!isEndTimeOpen)}
                           className="w-full px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl text-left flex justify-between items-center"
                         >
-                          <span className="text-sm font-medium text-gray-800">{getTimeLabel(endTime)}</span>
+                          <span className="text-sm font-medium text-gray-800">
+                            {getTimeLabel(endTime)}
+                          </span>
                           <ChevronDown className="w-4 h-4 text-gray-400" />
                         </button>
-                         {isEndTimeOpen && (
+                        {isEndTimeOpen && (
                           <div className="absolute z-20 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {timeOptions.map((opt) => (
                               <button
@@ -381,7 +411,11 @@ export const WhenConfirmDrawer = ({
                                   setEndTime(opt.value);
                                   setIsEndTimeOpen(false);
                                 }}
-                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${endTime === opt.value ? "text-purple-600 font-bold" : ""}`}
+                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
+                                  endTime === opt.value
+                                    ? "text-purple-600 font-bold"
+                                    : ""
+                                }`}
                               >
                                 {opt.label}
                               </button>
@@ -398,16 +432,26 @@ export const WhenConfirmDrawer = ({
               {recommendStep === "duration" && (
                 <div className="flex flex-col gap-6 mt-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">소요 시간</label>
+                    <label className="text-sm font-semibold text-gray-700">
+                      소요 시간
+                    </label>
                     <div className="relative" ref={durationRef}>
                       <button
                         onClick={() => setIsDurationOpen(!isDurationOpen)}
                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-left flex justify-between items-center shadow-sm"
                       >
-                         <span className="text-gray-800 font-medium">
-                          {durationOptions.find((opt) => opt.value === selectedDuration)?.label}
+                        <span className="text-gray-800 font-medium">
+                          {
+                            durationOptions.find(
+                              (opt) => opt.value === selectedDuration
+                            )?.label
+                          }
                         </span>
-                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isDurationOpen ? "rotate-180" : ""}`} />
+                        <ChevronDown
+                          className={`w-5 h-5 text-gray-400 transition-transform ${
+                            isDurationOpen ? "rotate-180" : ""
+                          }`}
+                        />
                       </button>
                       {isDurationOpen && (
                         <div className="absolute z-20 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden">
@@ -419,7 +463,9 @@ export const WhenConfirmDrawer = ({
                                 setIsDurationOpen(false);
                               }}
                               className={`w-full px-4 py-3 text-left text-sm hover:bg-purple-50 transition-colors ${
-                                selectedDuration === option.value ? "text-purple-600 font-bold bg-purple-50" : "text-gray-600"
+                                selectedDuration === option.value
+                                  ? "text-purple-600 font-bold bg-purple-50"
+                                  : "text-gray-600"
                               }`}
                             >
                               {option.label}
@@ -440,44 +486,70 @@ export const WhenConfirmDrawer = ({
                 <div className="flex flex-col gap-3 mt-2 h-full">
                   {recommendations.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
-                       <span className="text-2xl">😢</span>
-                       <p>조건에 맞는 시간이 없어요.</p>
-                       <Button text="다시 설정하기" onClick={() => setRecommendStep("duration")} className="mt-4 w-auto px-6 h-10 text-sm" />
+                      <span className="text-2xl">😢</span>
+                      <p>조건에 맞는 시간이 없어요.</p>
+                      <Button
+                        text="다시 설정하기"
+                        onClick={() => setRecommendStep("duration")}
+                        className="mt-4 w-auto px-6 h-10 text-sm"
+                      />
                     </div>
                   ) : (
                     recommendations.map((rec, index) => {
-                      const dateLabel = dateOptions.find((opt) => opt.value === rec.date)?.label;
+                      const dateLabel = dateOptions.find(
+                        (opt) => opt.value === rec.date
+                      )?.label;
                       const isSelected = selectedRecommendation === index;
-                      
+
                       return (
                         <div
                           key={index}
                           onClick={() => setSelectedRecommendation(index)}
                           className={`relative flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 
-                            ${isSelected 
-                              ? "border-purple-500 bg-purple-50 shadow-md transform scale-[1.01]" 
-                              : "border-gray-200 bg-white hover:border-gray-300"
+                            ${
+                              isSelected
+                                ? "border-purple-500 bg-purple-50 shadow-md transform scale-[1.01]"
+                                : "border-gray-200 bg-white hover:border-gray-300"
                             }`}
                         >
                           {/* Badge */}
-                          <div className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg ${index === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>
-                            <span className="text-xs font-bold">{index + 1}순위</span>
-                            <span className="text-[10px] font-semibold">{rec.score}%</span>
+                          <div
+                            className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg ${
+                              index === 0
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-gray-100 text-gray-500"
+                            }`}
+                          >
+                            <span className="text-xs font-bold">
+                              {index + 1}순위
+                            </span>
+                            <span className="text-[10px] font-semibold">
+                              {rec.score}%
+                            </span>
                           </div>
 
                           <div className="flex-1">
                             <div className="font-semibold text-gray-800 text-sm">
-                               {dateLabel}
+                              {dateLabel}
                             </div>
                             <div className="text-gray-600 text-xs mt-0.5">
-                              {getTimeLabel(rec.startTime)} ~ {getTimeLabel(rec.endTime)}
+                              {getTimeLabel(rec.startTime)} ~{" "}
+                              {getTimeLabel(rec.endTime)}
                             </div>
                           </div>
-                          
+
                           {/* Radio Indicator */}
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
-                            ${isSelected ? 'border-purple-600' : 'border-gray-300'}`}>
-                              {isSelected && <div className="w-2.5 h-2.5 bg-purple-600 rounded-full" />}
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
+                            ${
+                              isSelected
+                                ? "border-purple-600"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            {isSelected && (
+                              <div className="w-2.5 h-2.5 bg-purple-600 rounded-full" />
+                            )}
                           </div>
                         </div>
                       );
@@ -492,17 +564,21 @@ export const WhenConfirmDrawer = ({
         {/* Footer Actions */}
         <div className="px-6 pb-8 pt-4 bg-white border-t border-gray-50">
           {recommendStep === "main" && (
-             <Button
-                text={confirmMutation.isPending ? "확정 중..." : "이 시간으로 확정하기"}
-                onClick={handleConfirm}
-                disabled={confirmMutation.isPending}
-                className="w-full h-12 text-base font-bold shadow-lg shadow-purple-200"
-             />
+            <Button
+              text={
+                confirmMutation.isPending
+                  ? "확정 중..."
+                  : "이 시간으로 확정하기"
+              }
+              onClick={handleConfirm}
+              disabled={confirmMutation.isPending}
+              className="w-full h-12 text-base font-bold shadow-lg shadow-purple-200"
+            />
           )}
 
           {recommendStep === "duration" && (
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setRecommendStep("main")}
                 className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50"
               >
@@ -518,7 +594,7 @@ export const WhenConfirmDrawer = ({
 
           {recommendStep === "result" && recommendations.length > 0 && (
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setRecommendStep("duration")}
                 className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50"
               >

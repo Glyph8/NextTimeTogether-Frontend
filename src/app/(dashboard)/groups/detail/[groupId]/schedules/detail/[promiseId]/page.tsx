@@ -22,7 +22,14 @@ import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { useAuthStore } from "@/store/auth.store";
 import { useGroupStore } from "@/store/group-detail.store";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
-import { CheckWhenConfirmed, CheckWhereConfirmed } from "@/api/appointment";
+import {
+  CheckWhenConfirmed,
+  CheckWhenConfirmedResDTO,
+  CheckWhereConfirmed,
+} from "@/api/appointment";
+import { ConfirmedTimeCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedTimeCard";
+import { parseScheduleString } from "@/app/(dashboard)/appointment/[scheduleId]/detail/utils/formatter";
+import { parseConfrimedPromiseDateTime } from "../utils/promise-utils";
 
 interface PromiseData {
   encMembers: any; // 실제 타입으로 변경 (예: EncryptedPromiseMemberId)
@@ -86,7 +93,6 @@ export default function ScheduleDetailPage() {
           "promise_proxy_user"
         );
         return decPromiseKey;
-
       } catch (error) {
         // ✅ [핵심] 에러가 발생해도 throw 하지 않고 콘솔에만 찍고 넘어갑니다.
         console.error("⚠️ 약속 키 조회 실패 (무시하고 진행):", error);
@@ -107,7 +113,9 @@ export default function ScheduleDetailPage() {
       // result.userIds가 배열인지 확인 (방어 코드)
       const targetIds = result.userIds || [];
       if (!promiseKey) {
-        console.warn("⚠️ 암호화 키가 없어 더미 데이터를 사용하여 렌더링합니다.");
+        console.warn(
+          "⚠️ 암호화 키가 없어 더미 데이터를 사용하여 렌더링합니다."
+        );
         throw new Error("암호화 키가 없습니다.");
       }
       // [핵심] 배열 내 모든 원소에 대해 비동기 복호화 수행
@@ -116,7 +124,7 @@ export default function ScheduleDetailPage() {
           return await decryptDataWithCryptoKey(
             id,
             // promiseKey, // 상위 스코프의 promiseKey 사용
-            groupKey ?? '', // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐
+            groupKey ?? "", // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐
             // "promise_proxy_user",
             "group_sharekey"
           );
@@ -124,12 +132,14 @@ export default function ScheduleDetailPage() {
       );
 
       // 복호화된 ID 목록(decryptedUserIds)을 상세 조회 함수에 전달 mem s2
-      const memberDetails = await getPromiseMemberDetail(promiseId, { userIds: decryptedUserIds });
+      const memberDetails = await getPromiseMemberDetail(promiseId, {
+        userIds: decryptedUserIds,
+      });
 
       return {
         encMembers: result || [],
         managerId: memberDetails.promiseManager,
-        memberDetails: memberDetails.users // 필요하다면 상세 정보도 리턴
+        memberDetails: memberDetails.users, // 필요하다면 상세 정보도 리턴
       };
     },
     // [중요] promiseKey가 존재할 때만 이 쿼리를 실행 (Dependent Query)
@@ -149,10 +159,16 @@ export default function ScheduleDetailPage() {
   );
   const encPromiseMemberList = data?.encMembers;
 
-  useEffect(() => {
-    // CheckWhenConfirmed(promiseId);
-    // CheckWhereConfirmed(promiseId);
-  }, [])
+  const { data: confirmedTime, isLoading: isConfirmedTimeLoading } = useQuery({
+    queryKey: ["confirmedTime", promiseId],
+    queryFn: async () => {
+      const result = await CheckWhenConfirmed(promiseId);
+      console.log("🔵 일시 확정 여부 조회", result);
+      return result;
+    },
+    staleTime: 1000 * 60 * 5,
+    enabled: !!promiseId,
+  });
 
   const handleBack = () => {
     if (groupId) {
@@ -172,7 +188,9 @@ export default function ScheduleDetailPage() {
         isMaster={isMaster}
         managerId={data?.managerId ?? ""}
         promiseId={promiseId}
-        participants={data?.memberDetails ?? encPromiseMemberList?.userIds ?? []}
+        participants={
+          data?.memberDetails ?? encPromiseMemberList?.userIds ?? []
+        }
         onConfirmClick={() => {
           setMenuOpen(false);
           setWhenConfirmOpen(true);
@@ -180,9 +198,12 @@ export default function ScheduleDetailPage() {
         onConfirmPlace={() => {
           // TODO : 장소 확정 페이지로 이동
           // router.push(`/schedules/confirm-place?promiseId=${promiseId}`);
-          const query = `promiseId=${promiseId}${groupId ? `&groupId=${groupId}` : ""
-            }`;
-          router.push(`/groups/detail/${groupId}/schedules/confirm-place?${query}`);
+          const query = `promiseId=${promiseId}${
+            groupId ? `&groupId=${groupId}` : ""
+          }`;
+          router.push(
+            `/groups/detail/${groupId}/schedules/confirm-place?${query}`
+          );
         }}
       />
 
@@ -222,10 +243,11 @@ export default function ScheduleDetailPage() {
           role="tab"
           aria-selected={tab}
           className={`w-full flex justify-center items-center border-b-2 
-                    ${tab
-              ? "text-main border-main"
-              : "text-[#999999] border-[#D4D4D4]"
-            }  transition-all duration-200`}
+                    ${
+                      tab
+                        ? "text-main border-main"
+                        : "text-[#999999] border-[#D4D4D4]"
+                    }  transition-all duration-200`}
           onClick={() => setTab(true)}
         >
           언제
@@ -235,10 +257,11 @@ export default function ScheduleDetailPage() {
           role="tab"
           aria-selected={tab}
           className={`w-full flex justify-center items-center border-b-2 
-                    ${tab
-              ? "text-[#999999] border-[#D4D4D4]"
-              : "text-main border-main"
-            }  transition-all duration-200`}
+                    ${
+                      tab
+                        ? "text-[#999999] border-[#D4D4D4]"
+                        : "text-main border-main"
+                    }  transition-all duration-200`}
           onClick={() => setTab(false)}
         >
           어디서
@@ -248,10 +271,19 @@ export default function ScheduleDetailPage() {
       {isPending || !encPromiseMemberList ? (
         <DefaultLoading />
       ) : tab ? (
-        <When2Meet
-          promiseId={promiseId}
-          encMemberIdList={encPromiseMemberList}
-        />
+        confirmedTime ? (
+          <div className="p-4">
+            <ConfirmedTimeCard
+              date={parseConfrimedPromiseDateTime(confirmedTime.dateTime).date}
+              time={parseConfrimedPromiseDateTime(confirmedTime.dateTime).time}
+            />
+          </div>
+        ) : (
+          <When2Meet
+            promiseId={promiseId}
+            encMemberIdList={encPromiseMemberList}
+          />
+        )
       ) : (
         <Where2Meet encMemberIdList={encPromiseMemberList} />
       )}
