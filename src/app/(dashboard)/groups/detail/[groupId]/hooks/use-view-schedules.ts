@@ -1,3 +1,4 @@
+import { getScheduleListPerGroups } from "@/api/appointment";
 import {
   getEncPromiseIdList,
   getPromiseInProgress,
@@ -69,7 +70,7 @@ export const useViewSchedules = () => {
               item.encPromiseId,
               masterKey,
               // TODO : 어떤 iv를 써야하는 지 명시 없음.. 약속 생성 시와 일치 시킬 것
-               "promise_proxy_user"
+              "promise_proxy_user"
               // "group_proxy_user"
             );
           })
@@ -151,8 +152,16 @@ export const useViewSchedules = () => {
       const result = await getScheduleIdPerFixedPromise({
         scheduleIdList: extractedIds,
       });
-      return result || [];
+
+      console.log("## result:", result);
+      const thisGroupOnlySchedules = result.filter(
+        (schedule) => schedule.groupId === groupId
+      );
+      console.log("$$ thisGroupOnlySchedules:", thisGroupOnlySchedules);
+
+      return thisGroupOnlySchedules || [];
     },
+
     // 1단계 완료 && 3단계 결과(스케줄ID)가 있어야 실행
     enabled: isStep1Finished && !!scheduleIdList && scheduleIdList.length > 0,
     staleTime: 1000 * 60 * 5,

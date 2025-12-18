@@ -3,9 +3,6 @@ import { parseScheduleString } from "@/app/(dashboard)/appointment/[scheduleId]/
 import { Button } from "@/components/ui/button/Button";
 import ArrowDown from "@/assets/svgs/icons/arrow-down-gray.svg";
 import ArrowUp from "@/assets/svgs/icons/arrow-up-gray.svg";
-import FullStar from "@/assets/svgs/fullfilled-star.svg";
-import HalfStar from "@/assets/svgs/halffilled-star.svg";
-import EmptyStar from "@/assets/svgs/empty-star.svg";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
@@ -52,8 +49,14 @@ export const RatingDialog = ({
       toast.error("별점을 선택해주세요.");
       return;
     }
-    ratePlace(Number(scheduleDetail?.scheduleData.placeName), data);
-    setIsOpen(false);
+    ratePlace(Number(scheduleDetail?.scheduleData.placeId), data)
+      .then(() => {
+        toast.success("별점이 성공적으로 제출되었습니다.");
+        setIsOpen(false);
+      })
+      .catch(() => {
+        toast.error("별점 제출에 실패했습니다. 다시 시도해주세요.");
+      });
   };
 
   return (

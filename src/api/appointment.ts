@@ -96,7 +96,10 @@ export interface GetScheduleDetailRes {
   scheduleId: string;
   title: string;
   type: string;
+  placeId: number;
+  placeAddress: string;
   placeName: string;
+  groupId: string;
   groupName: string;
   encUserIds: string[];
 }

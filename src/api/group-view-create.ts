@@ -7,7 +7,6 @@ import {
 } from "@/apis/generated/Api";
 import { ApiResponse, createServerApi } from "./server-index";
 
-
 export interface ViewGroupFirstResponseData {
   encGroupId: string;
   encencGroupMemberId: string;
@@ -20,12 +19,11 @@ export interface ViewGroupSecResponseData {
 export interface ViewGroupThirdResponseData {
   groupId: string;
   groupName: string;
-  explanation:string;
+  explanation: string;
   groupImg: string;
   managerId: string;
   encUserId: string[];
 }
-
 
 /** 참여한 그룹들의 암호화 된 groupId, groupMemberId 리스트 요청하기 */
 export const getEncGroupsIdRequest = async (): Promise<
@@ -36,10 +34,6 @@ export const getEncGroupsIdRequest = async (): Promise<
   return serverApi.api
     .viewGroup1()
     .then((response) => {
-      console.log(
-        // "step1 - 참여한 그룹들의 암호화된 그룹 ID, 그룹원 ID 배열: ",
-        response.data
-      );
       return response.data;
     })
     .catch((error) => {
@@ -129,7 +123,7 @@ export const createGroupRequest = async (
   return serverApi.api
     .createGroup1(groupInfo)
     .then((response) => {
-      console.log("그룹 생성 1 : ", response.data);
+      // console.log("그룹 생성 1 : ", response.data);
       return response.data;
     })
     .catch((error) => {
@@ -158,7 +152,7 @@ export const createGroupRequest2 = async (
   return serverApi.api
     .createGroup2(encGroupMetaInfo)
     .then((response) => {
-      console.log("암호화된 그룹의 메타데이터 (그룹 생성2) : ", response.data);
+      // console.log("암호화된 그룹의 메타데이터 (그룹 생성2) : ", response.data);
       return response.data;
     })
     .catch((error) => {

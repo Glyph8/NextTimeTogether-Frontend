@@ -52,7 +52,7 @@ export default function HistoryPage() {
           scheduleId={selectedScheduleId ?? ""}
         />
       )}
-      <Header title={"약속 일정"} />
+      <Header title={"히스토리"} />
 
       <div className="flex flex-col w-full bg-[#F9F9F9] px-4 py-4 gap-2.5">
         <div className="w-full h-11 flex justify-start items-center py-1.5 px-2 gap-3 bg-white rounded-[32px] focus-within:border-b-main border border-transparent">

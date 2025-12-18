@@ -45,7 +45,9 @@ export const usePromiseTime = (promiseId: string) => {
     onSuccess: () => {
       // 확정이 성공하면 약속 정보를 다시 불러오거나, 페이지를 이동시키는 등의 처리
       queryClient.invalidateQueries({ queryKey: TIME_KEYS.board(promiseId) });
-      queryClient.invalidateQueries({ queryKey: ["confirmedTime", promiseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["confirmedTime", promiseId, "groupDetail", "step1"],
+      });
       toast.success("약속이 확정되었습니다! 🎉");
     },
     onError: (error) => {
