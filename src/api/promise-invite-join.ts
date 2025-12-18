@@ -1,11 +1,18 @@
-import { InvitePromise1Request, JoinPromise1Request } from "@/apis/generated/Api";
+import {
+  InvitePromise1Request,
+  JoinPromise1Request,
+} from "@/apis/generated/Api";
 import { clientBaseApi } from ".";
 
-/** promise invite1 : 약속 초대 메일 보내기 - TODO : 현재는 생략한 상태 */
-export const sendPromiseInviteMail = async (data:InvitePromise1Request) => {
-  return clientBaseApi.promise.invitePromise1(data)
+/** promise invite1 : 약속 초대 메일 보내기 - LATER : 현재는 생략한 상태 */
+export const sendPromiseInviteMail = async (data: InvitePromise1Request) => {
+  return clientBaseApi.promise
+    .invitePromise1(data)
     .then((response) => {
-      console.log("선택한 그룹원에게 약속 초대 이메일 전송함 : ", response.data);
+      console.log(
+        "선택한 그룹원에게 약속 초대 이메일 전송함 : ",
+        response.data
+      );
       return response.data;
     })
     .catch((error) => {
@@ -35,9 +42,10 @@ export const sendPromiseInviteMail = async (data:InvitePromise1Request) => {
 // }
 
 /** promise join1 : 약속에 참가하기 (약속 생성자 포함) */
-export const joinPromise = (data: JoinPromise1Request) =>{
-    return clientBaseApi.promise.joinPromise1(data)
-        .then((response) => {
+export const joinPromise = (data: JoinPromise1Request) => {
+  return clientBaseApi.promise
+    .joinPromise1(data)
+    .then((response) => {
       console.log("약속 참여하기 : ", response.data);
       return response.data;
     })

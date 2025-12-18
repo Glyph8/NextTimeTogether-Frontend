@@ -1,18 +1,22 @@
 import { getCalendarInfoList, getEncTimeStampList } from "@/api/calendar";
 import { useAuthStore } from "@/store/auth.store";
-import { generateMonthDates, parseEncryptedString, parseScheduleIdToDates } from "../utils/date-util";
+import {
+  generateMonthDates,
+  parseEncryptedString,
+  parseScheduleIdToDates,
+} from "../utils/date-util";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarViewRequest2 } from "@/apis/generated/Api";
 import { useMemo } from "react";
 
 // TODO : 실제 데이터 받아보기 전까지 모름,,
 export interface CalendarDetail {
-  scheduleId: string
-  title: string
-  start: string
-  end: string
-  content: string
-  placeName: string
+  scheduleId: string;
+  title: string;
+  start: string;
+  end: string;
+  content: string;
+  placeName: string;
 }
 
 export const useCalendarView = (date: Date) => {
@@ -33,8 +37,6 @@ export const useCalendarView = (date: Date) => {
 
   // Query 1의 결과에서 ID 배열 추출
 
-
-
   // const scheduleIds: string[] = idListData?.result?.encTimeStampList || [];
 
   // Query 1의 결과(긴 문자열 배열)를 파싱하여 Map으로 변환
@@ -53,15 +55,16 @@ export const useCalendarView = (date: Date) => {
   }, [idListData]);
 
   // Query 2에 보낼 ID 배열 추출 (Map의 Key들만 모음)
-  const scheduleIds = useMemo(() => Array.from(scheduleMap.keys()), [scheduleMap]);
-
+  const scheduleIds = useMemo(
+    () => Array.from(scheduleMap.keys()),
+    [scheduleMap]
+  );
 
   // 3. [Query 2] 상세 일정 조회 (Dependent Query)
   // Query 1이 성공해서 scheduleIds가 있을 때만 실행됩니다.
   const { data: eventsData, isLoading: isEventsLoading } = useQuery({
     queryKey: ["calendarEvents", scheduleIds], // ID 목록이 바뀌면 재요청
     queryFn: async () => {
-
       // TODO : 복호화 필요 예상
       // TODO : 텍스트 파싱하여서, '97582bfc-1669-4e8d-b09c-043a0fa8b8f32025-12-12T00:00:00.0002025-12-13T23:59:00.000'
       // 앞에서 스케쥴 아이디를 요청에 담기, 해당 스케쥴 아이디의 응답을 파싱한 텍스트에서 시작 시간과 종료 시간과 함께 묶어서 반환하기
@@ -75,7 +78,6 @@ export const useCalendarView = (date: Date) => {
     enabled: scheduleIds.length > 0,
     staleTime: 1000 * 60 * 5,
   });
-
 
   const events = useMemo(() => {
     const serverEvents = eventsData?.result || [];
@@ -96,7 +98,7 @@ export const useCalendarView = (date: Date) => {
         // 상세 정보 매핑
         memo: serverEvent.content,
         place: serverEvent.placeName,
-        // color: serverEvent.color 
+        // color: serverEvent.color
       };
     });
   }, [eventsData, scheduleMap, date]);

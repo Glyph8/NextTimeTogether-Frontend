@@ -31,7 +31,9 @@ export const ScheduleDialog = ({
       const scheduleData = await getScheduleDetail(scheduleId);
 
       let decryptedUserIds: string[] = [];
-      decryptedUserIds = scheduleData.encUserIds.map(() => "알 수 없음");
+      decryptedUserIds = scheduleData.encUserIds.map(
+        (_id, index) => `익명 ${index + 1}`
+      );
 
       // TODO : scheduleId mem2 지원안됨.
       //   if (!groupId) {
@@ -134,7 +136,6 @@ export const ScheduleDialog = ({
                   <br />
                   인원
                 </span>
-                {/* TODO : 암호화된 아이디 복호화 필요 */}
                 <span className="text-black-1 text-base font-normal  leading-loose overflow-scroll no-scrollbar">
                   {scheduleDetail.userIds.map((member) => member).join(", ")}
                 </span>

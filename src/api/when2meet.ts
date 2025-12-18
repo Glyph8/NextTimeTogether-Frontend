@@ -127,17 +127,12 @@ export const updateMyTimetable = (
     });
 };
 
-
-// TODO : 시간 확정하면, 내 시간표 수정 가능한가?
 /** 약속 시간표 확정 API /time/confirm/{promiseId} */
-export const confirmTimetable = (
-  promiseId: string,
-  data: string
-) => {
+export const confirmTimetable = (promiseId: string, data: string) => {
   const clientApi = clientBaseApi;
 
   return clientApi.time
-    .confirmDateTime(promiseId, {dateTime: data})
+    .confirmDateTime(promiseId, { dateTime: data })
     .then((response) => {
       const data = response.data;
       if (!data.result) {

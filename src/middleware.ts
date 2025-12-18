@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
   // Cloudinary 위젯 도메인 (iframe용)
   const cloudinaryWidgetDomain = "https://upload-widget.cloudinary.com"; // ✅ 추가
 
-  // cloudinary 를 위해 임시로 strict-dynamic 해제 - TODO : 백엔드 측에서 이미지 처리 준비되면 대체예정
+  // cloudinary 를 위해 임시로 strict-dynamic 해제 - LATER : 백엔드 측에서 이미지 처리 준비되면 대체예정
   const scriptSrcPolicy = `'self' 'unsafe-inline' 'unsafe-eval' ${cloudinaryWidgetDomain}`;
 
   // CSP 정책 모음

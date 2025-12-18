@@ -4,10 +4,10 @@ import Search from "@/assets/svgs/icons/search.svg";
 import Header from "@/components/ui/header/Header";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { useState } from "react";
-import { ScheduleDialog } from "../../appointment/components/ScheduleDialog";
 import { ScheduleItem } from "../../appointment/components/ScheduleItem";
 import { useSchedules } from "../../appointment/hooks/useSchedules";
 import { generateThreeMonthsRange } from "./utils/histroy-range";
+import { RatingDialog } from "./components/RatingDialog";
 
 export default function HistoryPage() {
   const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -46,11 +46,10 @@ export default function HistoryPage() {
   return (
     <div className="flex flex-col w-full flex-1 bg-gray-1">
       {!!selectedScheduleId && (
-        <ScheduleDialog
+        <RatingDialog
           isOpen={isOpenDialog}
           setIsOpen={setIsOpenDialog}
           scheduleId={selectedScheduleId ?? ""}
-          groupId={null}
         />
       )}
       <Header title={"약속 일정"} />
