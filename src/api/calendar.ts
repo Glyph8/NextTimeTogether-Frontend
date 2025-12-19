@@ -102,7 +102,7 @@ export const createCalendarTimeInfo = async (data: CalendarCreateRequest2) => {
 };
 
 /** /api/v1/calendar/rewrite1 : 아마도 캘린더 일정 수정하기? */
-export const sendPromiseInviteMail = async (data: CalendarRewriteRequest1) => {
+export const updateCalendarSchedule = async (data: CalendarRewriteRequest1) => {
   return clientBaseApi.api.rewriteCalendar1(data)
     .then((response) => {
       console.log("캘린더 - 스케줄 정보, 장소 정보 조회하기 : ", response.data);

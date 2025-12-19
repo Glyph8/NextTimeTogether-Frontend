@@ -1,3 +1,4 @@
+// TODO : appointment utils로 이동 예정
 /**
  * 오늘로부터 3개월 전의 날짜들을 YYYY-MM-DD 형식의 배열로 생성합니다.
  * @returns string[] (예: ["2024-09-18", ..., "2024-12-18"])

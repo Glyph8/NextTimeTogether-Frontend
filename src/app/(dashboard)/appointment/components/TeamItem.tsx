@@ -14,7 +14,7 @@ export const TeamItem = ({ isSelected, title, image }: TeamItemProps) => {
     <button className="flex flex-col items-center justify-center" onClick={handleClick}>
       {isSelected ? (
         <>
-          <div className="w-10 h<-10 bg-stone-50 rounded-lg border border-main overflow-clip">
+          <div className="w-10 h-10 bg-stone-50 rounded-lg border border-main overflow-clip">
             {/* <Image src={image} 
                             width={24}
                             height={24}

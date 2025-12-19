@@ -21,6 +21,9 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
   // 1. Base64URL을 표준 Base64로 변환
   // '-' -> '+'
   // '_' -> '/'
+
+  console.log("Base64 변환 전:", base64);
+
   let normalizedBase64 = base64.replace(/-/g, '+').replace(/_/g, '/');
 
   // 2. 패딩('=')이 생략된 경우 복원
@@ -29,6 +32,8 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
   if (padding) {
     normalizedBase64 += '='.repeat(4 - padding);
   }
+
+  console.log("Base64 변환 결과:", normalizedBase64);
 
   // 3. 표준 Base64 문자열을 디코딩
   const binaryString = atob(normalizedBase64); // base64를 디코딩해 바이너리 문자열로 변환

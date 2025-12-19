@@ -14,6 +14,7 @@ import { ScheduleDialog } from "./components/ScheduleDialog";
 import { ScheduleItem } from "./components/ScheduleItem";
 import { TeamItem } from "./components/TeamItem";
 import { DEFAULT_IMAGE } from "@/constants";
+import { getFutureRangeDates } from "./utils/generate-date-range";
 
 type FilterType = "전체" | "약속 제목" | "참여 인원" | "장소";
 
@@ -40,7 +41,7 @@ export default function SchedulePage() {
   const { data: schedulesData, isPending: isSchedulesLoading } = useSchedules({
     groupId: selectedGroupId,
     keyword: keyword,
-    // targetDates: [] // 만약 특정 날짜들만 조회하고 싶다면 담아서 사용 (없으면 이번 달 전체)
+    targetDates: getFutureRangeDates(3) // 만약 특정 날짜들만 조회하고 싶다면 담아서 사용 (없으면 이번 달 전체)
   });
 
   const isValidUrl = (url: string) => {
@@ -130,11 +131,10 @@ export default function SchedulePage() {
       <div className="flex-1 flex flex-row bg-white">
         <div className="flex flex-col items-center border-r-1 border-[#F1F1F1] px-5 py-4 gap-4 w-[120px] min-w-[120px]">
           <button
-            className={`bg-white rounded-lg outline-1 outline-offset-[-1px] ${
-              selectedGroupId === null
+            className={`bg-white rounded-lg outline-1 outline-offset-[-1px] ${selectedGroupId === null
                 ? "outline-main text-main"
                 : "outline-gray-3 text-gray-3"
-            } px-2 py-1 text-sm font-medium leading-tight`}
+              } px-2 py-1 text-sm font-medium leading-tight`}
             onClick={() => setSelectedGroupId(null)}
           >
             전체

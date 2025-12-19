@@ -36,7 +36,6 @@ export const ScheduleDrawer = ({
   const handleDisperse = () => { };
   const handleExit = () => { };
 
-
   return (
     <Drawer open={open} onOpenChange={setOpen} direction="right" modal={true}>
       <DrawerContent className="flex flex-col justify-start w-[65%] max-h-[77vh] bg-[#EEF1F3] p-5 after:hidden">

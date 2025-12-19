@@ -8,6 +8,8 @@ import { ScheduleItem } from "../../appointment/components/ScheduleItem";
 import { useSchedules } from "../../appointment/hooks/useSchedules";
 import { generateThreeMonthsRange } from "./utils/histroy-range";
 import { RatingDialog } from "./components/RatingDialog";
+import Link from "next/link";
+import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg";
 
 export default function HistoryPage() {
   const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -52,7 +54,13 @@ export default function HistoryPage() {
           scheduleId={selectedScheduleId ?? ""}
         />
       )}
-      <Header title={"히스토리"} />
+      <Header
+        leftChild={
+          <Link href={"/my"}>
+            <ArrowLeft />
+          </Link>
+        }
+        title={"히스토리"} />
 
       <div className="flex flex-col w-full bg-[#F9F9F9] px-4 py-4 gap-2.5">
         <div className="w-full h-11 flex justify-start items-center py-1.5 px-2 gap-3 bg-white rounded-[32px] focus-within:border-b-main border border-transparent">

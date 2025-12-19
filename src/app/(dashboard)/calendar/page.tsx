@@ -8,8 +8,7 @@ import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction";
 import ArrowLeft from "@/assets/svgs/icons/arrow-left-gray.svg";
 import ArrowRight from "@/assets/svgs/icons/arrow-right-gray.svg";
 
-// useRouter는 현재 사용하지 않으므로 삭제
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { format, parseISO, startOfDay } from "date-fns";
 
 import "./calendar.css";
@@ -21,14 +20,18 @@ import {
   useCalendarCreate,
   useCalendarResisterBaseInfo,
 } from "./hooks/use-calendar-create";
-import { useMutation } from "@tanstack/react-query";
 import {
   CalendarCreateRequest1,
   CalendarCreateRequest2,
 } from "@/apis/generated/Api";
-import { createCalendarBaseInfo } from "@/api/calendar";
-import { convertToCompactISO, convertToLocalDateTime } from "./utils/date-util";
+import { convertToLocalDateTime, generateMonthDates, parseScheduleIdToDates } from "./utils/date-util";
 import { ko } from "date-fns/locale";
+import { useSchedules } from "../appointment/hooks/useSchedules";
+import { useQueryClient } from "@tanstack/react-query";
+import { updateCalendarSchedule } from "@/api/calendar";
+import { mapColor } from "./utils/calendar-helper";
+
+
 
 // CalendarEvent 인터페이스에 startTime, endTime이 string | undefined 일 수 있으므로
 // Omit을 사용할 때를 대비해 명확히 정의합니다.
@@ -62,6 +65,8 @@ export interface CalendarEvent {
   //  수정/생성 시 폼 데이터를 채우기 위해 Date 객체를 저장해두는 것이 편합니다.)
   //  하지만 여기서는 간단하게 유지하기 위해 기존 필드만 사용하겠습니다.
   //  대신, start/end를 Date 객체로 파싱해서 사용해야 합니다.
+
+  eventType?: 'PERSONAL' | 'APPOINTMENT'; // 캘린더 일정인지 약속인지 구분
 }
 
 // ScheduleCreateDrawer로 전달할 이벤트 데이터 타입 (id가 없는 버전)
@@ -73,34 +78,93 @@ interface ExtendedNewEventData extends NewEventData {
 }
 
 export default function CalendarPage() {
-  // const router = useRouter(); // 현재 사용하지 않음
+  const router = useRouter();
   const [calendarTitle, setCalendarTitle] = useState("");
-
-  // 현재 보고 있는 캘린더의 기준 날짜 상태 추가 (초기값: 오늘)
   const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date());
-  const { events: serverEvents, isLoading } = useCalendarView(currentViewDate);
-
-  const { mutateAsync: registerBaseInfo, isPending: isBasePending } =
-    useCalendarResisterBaseInfo();
-  const { mutateAsync: registerTimeInfo, isPending: isTimePending } =
-    useCalendarCreate();
-  const isSubmitting = isBasePending || isTimePending;
-
-  // --- 모든 상태를 page.tsx에서 관리 ---
+  const queryClient = useQueryClient();
+  // UI 상태 관리
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-
-  // DayScheduleDialog (작은 모달) 상태
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
-
-  // ScheduleCreateDrawer (풀스크린 드로워) 상태
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
-
-  // --- 수정할 이벤트를 저장할 상태 ---
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  // ---------------------------------
 
-  // 이벤트 데이터
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  // 2. 데이터 조회
+  const { events: serverEvents, isLoading } = useCalendarView(currentViewDate); //
+  const { data: schedulesData } = useSchedules({
+    targetDates: generateMonthDates(currentViewDate),
+  });
+
+  const { mutateAsync: registerBaseInfo } = useCalendarResisterBaseInfo();
+  const { mutateAsync: registerTimeInfo } = useCalendarCreate();
+
+  // 3. 약속 리스트 추출 (scheduleList)
+  const scheduleList =
+    schedulesData?.result?.promiseResDTOList ||
+    (Array.isArray(schedulesData?.result) ? schedulesData.result : []) ||
+    [];
+
+  const events = useMemo(() => {
+    let mergedEvents: CalendarEvent[] = [];
+
+    // 1) 개인 일정 (serverEvents) 매핑
+    if (serverEvents && serverEvents.length > 0) {
+      const mappedPersonalEvents = serverEvents.map((evt: any) => {
+        const startDate = parseISO(evt.start);
+        const endDate = evt.end ? parseISO(evt.end) : undefined;
+
+        return {
+          ...evt,
+          start: evt.start,
+          end: evt.end,
+          startTime: format(startDate, "a hh:mm", { locale: ko }),
+          endTime: endDate ? format(endDate, "a hh:mm", { locale: ko }) : undefined,
+          backgroundColor: mapColor(evt.color) || "#F9B283",
+          borderColor: mapColor(evt.color) || "#F9B283",
+          textColor: "#222",
+          allDay: false,
+          eventType: 'PERSONAL',
+        };
+      });
+      mergedEvents = [...mergedEvents, ...mappedPersonalEvents];
+    }
+
+    // 2) 약속/모임 일정 (scheduleList) 매핑
+    if (scheduleList && scheduleList.length > 0) {
+      const mappedScheduleList = scheduleList
+        .map((sch: any) => {
+          // ID 파싱 (예: "20251220T0900-...")
+          const { start, end } = parseScheduleIdToDates(sch.scheduleId); //
+
+          if (!start) return null; // 파싱 실패 시 제외
+
+          const startDate = parseISO(start);
+          const endDate = end ? parseISO(end) : undefined;
+
+          return {
+            id: sch.scheduleId,
+            title: sch.title,
+            start: start,
+            end: end,
+            startTime: format(startDate, "a hh:mm", { locale: ko }),
+            endTime: endDate ? format(endDate, "a hh:mm", { locale: ko }) : undefined,
+            // 약속은 파란색 계열로 표시
+            color: "blue",
+            backgroundColor: "#77ABF8",
+            borderColor: "#77ABF8",
+            textColor: "#222",
+            allDay: false,
+            memo: sch.purpose || "",
+            place: "", // 필요 시 데이터 매핑
+            eventType: 'APPOINTMENT',
+          };
+        })
+        .filter((evt: any): evt is CalendarEvent => evt !== null);
+
+      mergedEvents = [...mergedEvents, ...mappedScheduleList];
+    }
+
+    return mergedEvents;
+  }, [serverEvents, scheduleList]);
 
   const calendarRef = useRef<FullCalendar>(null);
 
@@ -113,49 +177,6 @@ export default function CalendarPage() {
     if (calendarApi) calendarApi.next();
   };
 
-  useEffect(() => {
-    if (serverEvents && serverEvents.length > 0) {
-      // 서버 데이터를 UI 포맷에 맞게 변환
-      const mappedEvents: CalendarEvent[] = serverEvents.map((evt: { start: string; end: string; color: string | undefined; }) => {
-        const startDate = parseISO(evt.start);
-        const endDate = evt.end ? parseISO(evt.end) : undefined;
-
-        return {
-          ...evt,
-          // 1) FullCalendar 필수 필드 (이미 Hook에서 start/end는 ISO로 옴)
-          start: evt.start,
-          end: evt.end,
-
-          // 2) UI 표시용 포맷 생성 (DayScheduleDialog 등에서 사용)
-          // 예: "2024-12-12T14:30:00" -> "오후 02:30"
-          startTime: format(startDate, "a hh:mm", { locale: ko }),
-          endTime: endDate ? format(endDate, "a hh:mm", { locale: ko }) : undefined,
-
-          // 3) 색상 및 스타일 지정 (서버에 색상 정보가 없으므로 클라이언트에서 지정)
-          // evt.color 값이 있다면 매핑하고, 없다면 기본값 할당
-          backgroundColor: mapColor(evt.color) || "#F9B283", // 기본: 오렌지
-          borderColor: mapColor(evt.color) || "#F9B283",
-          textColor: "#222",
-          allDay: false, // 시간 정보가 있으므로 false (필요시 로직 추가)
-        };
-      });
-      setEvents(mappedEvents);
-    }
-  }, [serverEvents]);
-
-  // [Helper] 색상 매핑 함수 (컴포넌트 내부 혹은 외부에 정의)
-  const mapColor = (colorKey?: string) => {
-    const colorHexMap: { [key: string]: string } = {
-      salmon: "#FDB0A8",
-      orange: "#F9B283",
-      yellow: "#FADF84",
-      lightPurple: "#B8B3F9",
-      darkPurple: "#8668F9",
-      blue: "#77ABF8",
-    };
-    return colorKey ? colorHexMap[colorKey] : undefined;
-  };
-
   // 날짜 클릭 핸들러 (작은 모달 열기)
   const handleDateClick = (arg: DateClickArg) => {
     setSelectedDate(arg.date); // 날짜 저장
@@ -164,8 +185,19 @@ export default function CalendarPage() {
 
   // 이벤트 클릭 핸들러 (다이얼로그에서만 사용)
   const handleEventClickFromDialog = (event: CalendarEvent) => {
-    setEditingEvent(event); // 수정할 이벤트 설정
-    setIsCreateDrawerOpen(true); // 드로워 열기 (수정 모드)
+    if (event.eventType === 'APPOINTMENT') {
+      // 1. 약속(모임) 일정이면 상세 페이지로 이동
+      // ID가 "20251220T0900-..." 형식이므로 URL에 그대로 사용하거나 
+      // 만약 백엔드에서 별도의 숫자 ID를 준다면 그것을 써야 합니다.
+      // 현재 코드상으로는 scheduleId가 유일한 식별자입니다.
+      router.push(`/appointment/${event.id}/detail`);
+      setIsScheduleDialogOpen(false); // 다이얼로그 닫기
+    } else {
+      // 2. 개인 일정이면 기존처럼 수정 드로워 오픈
+      setEditingEvent(event);
+      setIsCreateDrawerOpen(true);
+      // setIsScheduleDialogOpen(false); // (선택사항) 드로워 열 때 모달 닫고 싶으면 주석 해제
+    }
   };
 
   const handleDatesSet = (arg: {
@@ -177,19 +209,35 @@ export default function CalendarPage() {
   // DayScheduleDialog에 전달할 이벤트 필터링
   const eventsForSelectedDate = useMemo(() => {
     if (!selectedDate) return [];
-    const selectedDayStart = startOfDay(selectedDate);
+
+    // 선택한 날짜의 시작 시간 (00:00:00)
+    const targetDate = startOfDay(selectedDate);
 
     return events.filter((event) => {
+      // 이벤트 시작 날짜 (00:00:00)
       const eventStart = startOfDay(parseISO(event.start));
-      // FullCalendar의 end는 exclusive이므로 -1일 해야 실제 종료일
-      const eventEnd = event.end
-        ? startOfDay(
-          new Date(parseISO(event.end).getTime() - 24 * 60 * 60 * 1000)
-        )
-        : eventStart;
 
-      // 선택한 날짜가 이벤트 범위에 포함되는지 확인
-      return selectedDayStart >= eventStart && selectedDayStart <= eventEnd;
+      let eventEnd = eventStart; // 종료일이 없으면 시작일과 동일하게 간주
+
+      if (event.end) {
+        const parsedEnd = parseISO(event.end);
+
+        if (event.allDay) {
+          // [Case 1] 하루 종일(allDay) 이벤트
+          // FullCalendar는 종료일을 '다음날 00:00'으로 잡으므로 하루를 빼줘야 실제 종료일이 됨
+          // 예: 12일 하루 종일 -> start: 12일, end: 13일 -> 13일에서 1ms를 빼서 12일로 만듦
+          eventEnd = startOfDay(new Date(parsedEnd.getTime() - 1));
+        } else {
+          // [Case 2] 시간 지정 이벤트 (약속 포함)
+          // 종료일이 같은 날이거나 다른 날일 수 있음. 날짜 그대로 사용해야 함.
+          // 예: 12일 09:00 ~ 12일 11:00 -> start: 12일, end: 12일
+          eventEnd = startOfDay(parsedEnd);
+        }
+      }
+
+      // 비교: 선택한 날짜가 [시작일]과 [종료일] 범위 내에 있는지 (Start <= Target <= End)
+      return targetDate.getTime() >= eventStart.getTime() &&
+        targetDate.getTime() <= eventEnd.getTime();
     });
   }, [selectedDate, events]);
 
@@ -285,32 +333,42 @@ export default function CalendarPage() {
   };
 
   // ScheduleCreateDrawer가 호출할 함수 (이벤트 수정)
-  const handleEventUpdated = (updatedEvent: CalendarEvent) => {
-    // 색상 hex값 매핑
-    const colorHexMap: { [key: string]: string } = {
-      salmon: "#FDB0A8",
-      orange: "#F9B283",
-      yellow: "#FADF84",
-      lightPurple: "#B8B3F9",
-      darkPurple: "#8668F9",
-      blue: "#77ABF8",
-    };
-    const updatedEventWithColor = {
-      ...updatedEvent,
-      backgroundColor: colorHexMap[updatedEvent.color || "orange"],
-      borderColor: colorHexMap[updatedEvent.color || "orange"],
-      textColor: "#222",
-    };
-    setEvents(
-      events.map((e) => (e.id === updatedEvent.id ? updatedEventWithColor : e))
-    );
-    setIsCreateDrawerOpen(false); // 드로워 닫기
+  const handleEventUpdated = async (updatedEvent: CalendarEvent) => {
+    try {
+      // 1. 서버에 수정 요청 (API 함수와 훅이 필요합니다)
+      await updateCalendarSchedule(updatedEvent);
+      console.log("수정 요청 보냄:", updatedEvent);
+
+      // 2. 데이터 갱신 (성공 시 캘린더 다시 불러오기)
+      await queryClient.invalidateQueries({ queryKey: ["calendarIds"] });
+
+      // 3. 성공 후 드로워 닫기
+      setIsCreateDrawerOpen(false);
+      toast.success("일정이 수정되었습니다.");
+    } catch (error) {
+      console.error(error);
+      toast.error("일정 수정 실패");
+    }
   };
 
   // ScheduleCreateDrawer가 호출할 함수 (이벤트 삭제)
-  const handleEventDeleted = (eventId: string) => {
-    setEvents(events.filter((e) => e.id !== eventId));
-    setIsCreateDrawerOpen(false); // 드로워 닫기
+  const handleEventDeleted = async (eventId: string) => {
+    try {
+      // 1) 서버에 삭제 요청 API 호출 (예시)
+      // await deleteSchedule(eventId); TODO : 삭제 api 없는데?
+
+      console.log("삭제 요청 완료:", eventId);
+
+      // 2) 성공 시 'calendarIds' 쿼리 무효화 -> 데이터를 다시 받아와서 UI가 자동 갱신됨
+      await queryClient.invalidateQueries({ queryKey: ["calendarIds"] });
+
+      // 3) 드로워 닫기
+      setIsCreateDrawerOpen(false);
+
+    } catch (error) {
+      console.error("삭제 실패", error);
+      toast.error("일정 삭제에 실패했습니다.");
+    }
   };
 
   // --- 드로워 닫기 처리 ---
@@ -338,7 +396,7 @@ export default function CalendarPage() {
           </div>
           <div className="flex-1 p-4 bg-white">
             <FullCalendar
-              key={events.length}
+              key={events.length} // 리렌더링 유발 가능
               ref={calendarRef}
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
