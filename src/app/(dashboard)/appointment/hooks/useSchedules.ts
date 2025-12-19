@@ -3,6 +3,8 @@ import { getAllScheduleList, getScheduleListPerGroups, getTimeStampList, searchS
 import { GetPromiseBatchReqDTO } from '@/apis/generated/Api';
 import { getMasterKey } from '@/utils/client/key-storage';
 import decryptDataWithCryptoKey from '@/utils/client/crypto/decryptClient';
+import { encryptDataClient } from '@/utils/client/crypto/encryptClient';
+import { useAuthStore } from '@/store/auth.store';
 
 const generateCurrentMonthDates = (): string[] => {
   const date = new Date();
@@ -62,23 +64,28 @@ const processTimestampItem = async (timestamp: string, masterKey: CryptoKey): Pr
 
 // --- 메인 로직 ---
 
-
-
 export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProps) => {
 
   return useQuery({
     queryKey: ['schedules', { groupId, keyword }],
     queryFn: async () => {
-      // 1. 검색어가 있을 경우 검색 API 호출
-      if (keyword) {
-        console.log("keyword 존재함", keyword);
-        return await searchScheduleList(keyword);
+      const userId = useAuthStore.getState().userId;
+      if (!userId) {
+        console.warn("유저 ID가 없어 복호화를 진행할 수 없습니다.");
+        return { result: [] };
       }
-
       const masterKey = await getMasterKey();
       if (!masterKey) {
         console.warn("개인키가 없어 복호화를 진행할 수 없습니다.");
         return { result: [] }; // 혹은 에러 처리
+      }
+
+      // 1. 검색어가 있을 경우 검색 API 호출
+      if (keyword) {
+        console.log("keyword 존재함", keyword);
+        return await searchScheduleList(keyword, {
+          pseudoId: await encryptDataClient(userId, masterKey, "psudo_id") || ""
+        });
       }
 
       try {

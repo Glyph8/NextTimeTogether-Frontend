@@ -222,13 +222,40 @@ export interface PromiseView2Response {
   promiseImg?: string;
 }
 
+export interface PromiseSearchReqDTO {
+  pseudoId?: string;
+}
+
 export interface GetPromiseRequest {
   promiseId?: string;
   encUserId?: string;
 }
 
+export interface GetPromiseKey2 {
+  encPromiseKey?: string;
+}
+
+export interface GetPromiseKey1 {
+  encPromiseIdList?: string[];
+}
+
 export interface UserIdsResDTO {
   userIds?: string[];
+}
+
+export interface UserInfoDTO {
+  userId?: string;
+  userName?: string;
+  userImg?: string;
+}
+
+export interface UserInfoListResDTO {
+  userInfoDTOList?: UserInfoDTO[];
+}
+
+export interface UserInfoResDTO {
+  promiseManager?: string;
+  users?: UserInfoDTO[];
 }
 
 export interface JoinPromise1Request {
@@ -254,6 +281,18 @@ export interface InvitePromise1Response {
 
 export interface GetPromiseBatchReqDTO {
   scheduleIdList?: string[];
+  pseudoId?: string;
+}
+
+export interface PromiseListResDTO {
+  promiseResDTOList?: PromiseResDTO[];
+}
+
+export interface PromiseResDTO {
+  scheduleId?: string;
+  title?: string;
+  purpose?: string;
+  isRated?: boolean;
 }
 
 export interface CreatePromise4Request {
@@ -268,8 +307,20 @@ export interface CreatePromise4Request {
   endDate?: string;
 }
 
+export interface CreatePromise4Response {
+  promiseId?: string;
+}
+
 export interface CreatePromise3Request {
   groupId?: string;
+}
+
+export interface CreatePromise3Response {
+  groupId?: string;
+  groupName?: string;
+  groupImg?: string;
+  managerId?: string;
+  encUserId?: string[];
 }
 
 export interface CreatePromise2Request {
@@ -277,13 +328,22 @@ export interface CreatePromise2Request {
   encGroupMemberId?: string;
 }
 
+export interface CreatePromise2Response {
+  encGroupKey?: string;
+}
+
 export interface CreatePromise1Request {
   encGroupId?: string;
 }
 
+export interface CreatePromise1Response {
+  encGroupId?: string;
+  encencGroupMemberId?: string;
+}
+
 export interface PlaceRegisterDTO {
   placeName: string;
-  placeAddress?: string;
+  placeAddress: string;
   placeInfo?: string;
   aiPlace?: boolean;
   /** @format int32 */
@@ -1022,6 +1082,32 @@ export class Api<
       }),
 
     /**
+     * @description 약속일정을 검색한다
+     *
+     * @tags 약속일정 및 히스토리 조회
+     * @name SearchPromiseView
+     * @summary 약속일정 검색
+     * @request POST:/promise/search
+     * @secure
+     */
+    searchPromiseView: (
+      query: {
+        query: string;
+      },
+      data: PromiseSearchReqDTO,
+      params: RequestParams = {},
+    ) =>
+      this.request<BaseResponse, any>({
+        path: `/promise/search`,
+        method: "POST",
+        query: query,
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
      * @description encPromiseIdList의 각 원소들을 개인키로 복호화한 후, 요청하고 싶은 promise_id를 고르기. - 요청: promiseId, encUserId(그룹키로 암호화한 사용자 아이디) 로 요청 - 응답: promise_id에 해당하는 enc_promise_key (개인키로 암호화한 promise_key) 반환받음
      *
      * @tags 약속
@@ -1031,7 +1117,7 @@ export class Api<
      * @secure
      */
     getPromiseKey2: (data: GetPromiseRequest, params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<GetPromiseKey2, ErrorResponse>({
         path: `/promise/promisekey2`,
         method: "POST",
         body: data,
@@ -1051,7 +1137,7 @@ export class Api<
      * @secure
      */
     getPromiseKey1: (params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<GetPromiseKey1, ErrorResponse>({
         path: `/promise/promisekey1`,
         method: "POST",
         secure: true,
@@ -1063,8 +1149,27 @@ export class Api<
      * @description 약속원에 대한 정보를 조회한다
      *
      * @tags 약속
+     * @name GetUsersByPromiseTime3
+     * @summary 약속원 정보 조회(전체)
+     * @request POST:/promise/mem/s2
+     * @secure
+     */
+    getUsersByPromiseTime3: (data: UserIdsResDTO, params: RequestParams = {}) =>
+      this.request<UserInfoListResDTO, any>({
+        path: `/promise/mem/s2`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description 약속원에 대한 정보를 조회한다
+     *
+     * @tags 약속
      * @name GetUsersByPromiseTime2
-     * @summary 약속원 정보 조회
+     * @summary 약속원 정보 조회(약속아이디)
      * @request POST:/promise/mem/s2/{promiseId}
      * @secure
      */
@@ -1073,7 +1178,7 @@ export class Api<
       data: UserIdsResDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponse, any>({
+      this.request<UserInfoResDTO, any>({
         path: `/promise/mem/s2/${promiseId}`,
         method: "POST",
         body: data,
@@ -1135,7 +1240,7 @@ export class Api<
       data: GetPromiseBatchReqDTO,
       params: RequestParams = {},
     ) =>
-      this.request<BaseResponse, any>({
+      this.request<PromiseListResDTO, any>({
         path: `/promise/get`,
         method: "POST",
         body: data,
@@ -1177,7 +1282,7 @@ export class Api<
      * @secure
      */
     createPromise4: (data: CreatePromise4Request, params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<CreatePromise4Response, ErrorResponse>({
         path: `/promise/create4`,
         method: "POST",
         body: data,
@@ -1197,7 +1302,7 @@ export class Api<
      * @secure
      */
     createPromise3: (data: CreatePromise3Request, params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<CreatePromise3Response, ErrorResponse>({
         path: `/promise/create3`,
         method: "POST",
         body: data,
@@ -1217,7 +1322,7 @@ export class Api<
      * @secure
      */
     createPromise2: (data: CreatePromise2Request, params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<CreatePromise2Response, ErrorResponse>({
         path: `/promise/create2`,
         method: "POST",
         body: data,
@@ -1237,7 +1342,7 @@ export class Api<
      * @secure
      */
     createPromise1: (data: CreatePromise1Request, params: RequestParams = {}) =>
-      this.request<BaseResponse, ErrorResponse>({
+      this.request<CreatePromise1Response, ErrorResponse>({
         path: `/promise/create1`,
         method: "POST",
         body: data,
@@ -1266,29 +1371,6 @@ export class Api<
       }),
 
     /**
-     * @description 약속일정을 검색한다
-     *
-     * @tags 약속일정 및 히스토리 조회
-     * @name SearchPromiseView
-     * @summary 약속일정 검색
-     * @request GET:/promise/search
-     * @secure
-     */
-    searchPromiseView: (
-      query: {
-        query: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<BaseResponse, any>({
-        path: `/promise/search`,
-        method: "GET",
-        query: query,
-        secure: true,
-        ...params,
-      }),
-
-    /**
      * @description 암호화된 약속원들의 아이디를 조회한다
      *
      * @tags 약속
@@ -1298,7 +1380,7 @@ export class Api<
      * @secure
      */
     getUsersByPromiseTime1: (promiseId: string, params: RequestParams = {}) =>
-      this.request<BaseResponse, any>({
+      this.request<UserIdsResDTO, any>({
         path: `/promise/mem/s1/${promiseId}`,
         method: "GET",
         secure: true,

@@ -8,3 +8,4 @@ export const User_iv = new Uint8Array([92, 18, 37, 201, 63, 144, 8, 76, 154, 3, 
 export const GroupShareKey_iv = new Uint8Array([199, 24, 57, 16, 108, 251, 49, 33, 87, 205, 60, 111]);
 export const PromiseProxyUser_iv = new Uint8Array([21, 99, 190, 45, 128, 77, 222, 54, 111, 225, 199, 34]);
 export const PromiseShareKey_iv = new Uint8Array([12, 214, 7, 6, 8, 51, 19, 13, 17, 25, 160, 212]);
+export const PsudoId_iv = new Uint8Array([4, 214, 12, 46, 28, 15, 129, 3, 1, 65, 151, 24]);

@@ -10,6 +10,7 @@ import { generateThreeMonthsRange } from "./utils/histroy-range";
 import { RatingDialog } from "./components/RatingDialog";
 import Link from "next/link";
 import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg";
+import { UnratedScheduleItem } from "./components/UnratedScheduleItem";
 
 export default function HistoryPage() {
   const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -18,7 +19,7 @@ export default function HistoryPage() {
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(
     null
   );
-
+  const [selectedScheduleIsRated, setSelectedScheduleIsRated] = useState<boolean>(false);
   const [keyword, setKeyword] = useState<string>("");
   const [inputValue, setInputValue] = useState<string>("");
 
@@ -52,8 +53,10 @@ export default function HistoryPage() {
           isOpen={isOpenDialog}
           setIsOpen={setIsOpenDialog}
           scheduleId={selectedScheduleId ?? ""}
+          isRated={selectedScheduleIsRated}
         />
       )}
+
       <Header
         leftChild={
           <Link href={"/my"}>
@@ -78,16 +81,35 @@ export default function HistoryPage() {
       <div className="flex-1 flex flex-col bg-white">
         {scheduleList.length > 0 ? (
           scheduleList.map((schedule: any) => (
-            <ScheduleItem
-              key={schedule.scheduleId} // 고유 ID 사용 확인
-              type={schedule.purpose || "약속"}
-              title={schedule.title}
-              date={schedule.date || "날짜 미정"} // DTO에 date 필드가 있는지 확인 필요
-              setIsOpen={() => {
-                setIsOpenDialog(true);
-                setSelectedScheduleId(schedule.scheduleId);
-              }}
-            />
+            <>
+              {
+                schedule.isRated ? (
+                  <ScheduleItem
+                    key={schedule.scheduleId} // 고유 ID 사용 확인
+                    type={schedule.purpose || "약속"}
+                    title={schedule.title}
+                    date={schedule.date || "날짜 미정"} // DTO에 date 필드가 있는지 확인 필요
+                    setIsOpen={() => {
+                      setIsOpenDialog(true);
+                      setSelectedScheduleId(schedule.scheduleId);
+                      setSelectedScheduleIsRated(schedule.isRated);
+                    }}
+                  />
+                ) : (
+                  <UnratedScheduleItem
+                    key={schedule.scheduleId} // 고유 ID 사용 확인
+                    type={schedule.purpose || "약속"}
+                    title={schedule.title}
+                    date={schedule.date || "날짜 미정"} // DTO에 date 필드가 있는지 확인 필요
+                    setIsOpen={() => {
+                      setIsOpenDialog(true);
+                      setSelectedScheduleId(schedule.scheduleId);
+                      setSelectedScheduleIsRated(schedule.isRated);
+                    }}
+                  />
+                )
+              }
+            </>
           ))
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">

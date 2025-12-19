@@ -1,5 +1,6 @@
 import {
   GetPromiseBatchReqDTO,
+  PromiseSearchReqDTO,
   TimestampReqDTO,
   UserBoardReqDTO,
 } from "@/apis/generated/Api";
@@ -67,9 +68,9 @@ export const getScheduleListPerGroups = async (
 };
 
 /** /promise/search : 약속 일정 검색 */
-export const searchScheduleList = async (query: string) => {
+export const searchScheduleList = async (query: string, data: PromiseSearchReqDTO) => {
   return clientBaseApi.promise
-    .searchPromiseView({ query })
+    .searchPromiseView({ query }, data)
     .then((response) => {
       console.log("약속 일정 탭 - 약속 일정 리스트 받음 : ", response.data);
       return response.data;
