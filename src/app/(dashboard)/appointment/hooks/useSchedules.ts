@@ -89,11 +89,6 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
       }
 
       try {
-        // 2. 타임스탬프(암호화된 스케줄 ID) 조회
-        // props로 받은 날짜가 없으면 이번 달 전체 날짜를 생성해서 요청
-        // console.log("groupId", groupId);
-        // console.log("keyword", keyword);
-        // console.log("targetDates", targetDates);
         const reqDates = targetDates || generateCurrentMonthDates();
 
         const apiResponse = await getTimeStampList({ dates: reqDates }) as any;
@@ -129,9 +124,14 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
           return { result: [] };
         }
 
+        const data = {
+          pseudoId: await encryptDataClient(userId, masterKey, "psudo_id") || "",
+        };
+
         // 4. 복호화된 ID 리스트로 DTO 구성
         const batchReqData: GetPromiseBatchReqDTO = {
-          scheduleIdList: validScheduleIds.map((item: ProcessedScheduleResult) => item.id)
+          scheduleIdList: validScheduleIds.map((item: ProcessedScheduleResult) => item.id),
+          pseudoId: data.pseudoId
         };
 
         // 5. 최종 일정 데이터 조회 API 호출

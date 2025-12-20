@@ -19,13 +19,15 @@ interface RatingDialogProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   scheduleId: string;
   isRated?: boolean;
+  onRateSuccess?: () => void;
 }
 
 export const RatingDialog = ({
   isOpen,
   setIsOpen,
   scheduleId,
-  isRated
+  isRated,
+  onRateSuccess,
 }: RatingDialogProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const userId = useAuthStore.getState().userId;
@@ -59,6 +61,7 @@ export const RatingDialog = ({
       .then(() => {
         toast.success("별점이 성공적으로 제출되었습니다.");
         setIsOpen(false);
+        if (onRateSuccess) onRateSuccess();
       })
       .catch(() => {
         toast.error("별점 제출에 실패했습니다. 다시 시도해주세요.");

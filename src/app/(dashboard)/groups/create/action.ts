@@ -9,7 +9,6 @@ interface GroupData {
   groupName: string;
   groupExplain: string;
   groupImg: string;
-  explain: string;
 }
 
 /**
@@ -29,8 +28,8 @@ export async function createGroupInfoAction(groupData: GroupData) {
     return { success: true, groupId: response.result.groupId };
   } catch (error) {
     console.error("1단계 액션 실패:", error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : "1단계 API 호출 오류"
     };
   }

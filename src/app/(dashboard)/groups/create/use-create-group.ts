@@ -12,26 +12,22 @@ interface CreateGroupParams {
   groupName: string;
   groupExplain: string;
   groupImg: string;
-  explain: string;
 }
 
 export const useCreateGroup = () => {
-  // Race Conditon 문제가 발생할 수 있음. 사용하기 직전에 가져오도록 수정
-  // const { userId } = useAuthStore();
-  
   return useMutation<void, Error, CreateGroupParams>({
     mutationFn: async (groupData) => {
 
       const userId = useAuthStore.getState().userId;
       console.log("🔵 [E2EE 그룹 생성 1단계] 그룹 '정보' 전송 시작");
-      
+
       // 1. (API 1) E2EE가 아닌 정보(그룹명 등)로 그룹 생성 요청
       const firstApiResponse = await createGroupInfoAction(groupData);
 
       if (!firstApiResponse.success || !firstApiResponse.groupId) {
         throw new Error(firstApiResponse.error || "1단계 그룹 정보 생성 실패");
       }
-      
+
       const { groupId } = firstApiResponse;
       console.log(`✅ [E2EE 1단계] 성공, groupId: ${groupId}`);
       console.log("🟡 [E2EE 2단계] 클라이언트 암호화 시작");
@@ -49,7 +45,7 @@ export const useCreateGroup = () => {
 
       if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
       if (!userId) throw new Error("유저 ID를 찾을 수 없습니다.");
-      
+
       console.log("🟡 [E2EE 2단계] 키 로드 및 생성 완료, 암호화 진행");
 
       // 3. (Client Crypto) 기존 action.ts에 있던 모든 암호화 로직을 클라이언트에서 수행

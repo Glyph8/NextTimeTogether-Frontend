@@ -93,7 +93,6 @@ export const useCreatePromise = (groupId: string | undefined) => {
       title: topic,
       type: purpose,
       promiseImg: "default_image.png",
-      // managerId: userId,
       managerId: decryptedUserId,
       startDate: startIso,
       endDate: endIso,

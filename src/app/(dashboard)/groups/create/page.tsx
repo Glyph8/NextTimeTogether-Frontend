@@ -37,7 +37,6 @@ export default function CreateGroupPage() {
         groupExplain: groupDescription,
         // ✅ 수정: 실제 업로드된 이미지 URL 전송 (없으면 빈 문자열 혹은 기본값)
         groupImg: groupImg,
-        explain: groupDescription,
       },
       {
         onSuccess: () => {

@@ -4,6 +4,7 @@ import Search from "@/assets/svgs/icons/search.svg";
 import Header from "@/components/ui/header/Header";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { ScheduleItem } from "../../appointment/components/ScheduleItem";
 import { useSchedules } from "../../appointment/hooks/useSchedules";
 import { generateThreeMonthsRange } from "./utils/histroy-range";
@@ -13,6 +14,7 @@ import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg";
 import { UnratedScheduleItem } from "./components/UnratedScheduleItem";
 
 export default function HistoryPage() {
+  const queryClient = useQueryClient();
   const [isOpenDialog, setIsOpenDialog] = useState(false);
 
   // 상태 관리
@@ -54,6 +56,9 @@ export default function HistoryPage() {
           setIsOpen={setIsOpenDialog}
           scheduleId={selectedScheduleId ?? ""}
           isRated={selectedScheduleIsRated}
+          onRateSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["schedules"] });
+          }}
         />
       )}
 

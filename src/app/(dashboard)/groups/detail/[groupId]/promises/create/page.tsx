@@ -93,7 +93,6 @@ export default function CreateSchedulePage() {
   if (activeGroup) {
     return (
       <div className="bg-white h-dvh flex flex-col">
-        {/* TODO : 글자 길어지는 경우 모달 삐져나옴 문제 존재. */}
         <YesNoDialog
           isOpen={isOpen}
           setIsOpen={setIsOpen}

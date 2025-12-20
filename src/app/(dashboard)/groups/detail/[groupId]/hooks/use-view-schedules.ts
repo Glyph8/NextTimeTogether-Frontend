@@ -1,4 +1,3 @@
-import { getScheduleListPerGroups } from "@/api/appointment";
 import {
   getEncPromiseIdList,
   getPromiseInProgress,
