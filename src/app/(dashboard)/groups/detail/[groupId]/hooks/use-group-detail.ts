@@ -64,7 +64,10 @@ export const useGroupDetail = (targetGroupId: string | null) => {
       throw new Error("해당 그룹을 찾을 수 없거나 접근 권한이 없습니다.");
     },
     enabled: !!targetGroupId, // groupId가 있을 때만 실행
-    staleTime: 1000 * 60 * 5,
+    refetchInterval: 4000,
+    refetchIntervalInBackground: false,
+    staleTime: 0,
+    placeholderData: (prev) => prev,
   });
 
   // --- 2단계: 해당 그룹의 암호화 키(Group Key) 조회 & 복호화 ---
@@ -106,7 +109,8 @@ export const useGroupDetail = (targetGroupId: string | null) => {
     },
     // 1단계 데이터(groupMetadata)가 준비되어야 실행
     enabled: !!groupMetadata,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // Step 1이 변하면 즉시 다시 가져오도록
+    placeholderData: (prev) => prev,
   });
 
   // --- 3단계: 그룹 정보(멤버 포함) 조회 & 멤버 목록 복호화 ---
@@ -147,7 +151,8 @@ export const useGroupDetail = (targetGroupId: string | null) => {
     },
     // 1단계(메타데이터)와 2단계(키)가 모두 준비되어야 실행
     enabled: !!groupMetadata && !!groupKey,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // Step 1이 변하면 즉시 다시 가져오도록
+    placeholderData: (prev) => prev,
   });
 
   // [성장 포인트] 로딩 및 에러 상태를 통합하여 사용하는 쪽에서 편하게 만듦
