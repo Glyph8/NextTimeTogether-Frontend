@@ -6,7 +6,7 @@ export const usePlaceVote = (promiseId: string) => {
   const queryClient = useQueryClient();
 
   // 투표 Mutation
-  const { mutate: vote } = useMutation({
+  const { mutate: vote, isPending: isVotePending } = useMutation({
     mutationFn: async (placeId: number) => {
       const result = await votePlace(promiseId, placeId);
       if (result.code !== 200) throw new Error(result.message);
@@ -25,7 +25,7 @@ export const usePlaceVote = (promiseId: string) => {
   });
 
   // 투표 취소 Mutation
-  const { mutate: unvote } = useMutation({
+  const { mutate: unvote, isPending: isUnvotePending } = useMutation({
     mutationFn: async (placeId: number) => {
       const result = await unvotePlace(placeId);
       if (result.code !== 200) throw new Error(result.message);
@@ -42,5 +42,6 @@ export const usePlaceVote = (promiseId: string) => {
     },
   });
 
-  return { vote, unvote };
+  return { vote, unvote, isPending: isVotePending || isUnvotePending };
+
 };

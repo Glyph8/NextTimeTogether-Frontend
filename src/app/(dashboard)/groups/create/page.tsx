@@ -18,6 +18,7 @@ import FullLogo from "@/assets/pngs/logo-full.png"; // 기본 이미지
 import { CldUploadWidget } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
 // import CloudinaryUpload from "@/components/shared/Cloudinary/ImageUpload";
+import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -52,9 +53,12 @@ export default function CreateGroupPage() {
     );
   };
 
+
+  // 로딩 상태 처리
   if (isPending) {
-    return <div>그룹 생성 로딩중</div>;
+    return <DefaultLoading />;
   }
+
 
   return (
     <div className="flex flex-col w-full flex-1 bg-white pb-5">

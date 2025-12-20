@@ -30,6 +30,7 @@ import { useSchedules } from "../appointment/hooks/useSchedules";
 import { useQueryClient } from "@tanstack/react-query";
 import { updateCalendarSchedule } from "@/api/calendar";
 import { mapColor } from "./utils/calendar-helper";
+import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 
 
@@ -89,13 +90,14 @@ export default function CalendarPage() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   // 2. 데이터 조회
-  const { events: serverEvents, isLoading } = useCalendarView(currentViewDate); //
-  const { data: schedulesData } = useSchedules({
+  const { events: serverEvents, isLoading: isEventsLoading } = useCalendarView(currentViewDate); //
+  const { data: schedulesData, isPending: isSchedulesLoading } = useSchedules({
     targetDates: generateMonthDates(currentViewDate),
   });
 
   const { mutateAsync: registerBaseInfo } = useCalendarResisterBaseInfo();
   const { mutateAsync: registerTimeInfo } = useCalendarCreate();
+
 
   // 3. 약속 리스트 추출 (scheduleList)
   const scheduleList =
@@ -380,6 +382,13 @@ export default function CalendarPage() {
       setEditingEvent(null);
     }
   };
+
+  // 로딩 상태 통합
+  const isLoading = isEventsLoading || isSchedulesLoading;
+
+  if (isLoading) {
+    return <DefaultLoading />;
+  }
 
   return (
     <>

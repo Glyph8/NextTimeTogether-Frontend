@@ -17,17 +17,19 @@ export const PlaceCard = ({
 }: PlaceCardProps) => {
   const { id, voting, placeName, placeAddr, isRemoved, voted } = placeInfo;
 
-  const { vote, unvote } = usePlaceVote(promiseId);
+  const { vote, unvote, isPending } = usePlaceVote(promiseId);
   const handleVote = (id: number) => {
+    if (isPending) return;
     vote(id);
   };
 
   const hanldeCancelVote = (id: number) => {
+    if (isPending) return;
     unvote(id);
   };
 
   return (
-    <div className="w-full flex justify-between rounded-[20px] p-4 bg-white border-gray-3 border-1 ">
+    <div className="w-full flex-col lg:flex-row flex justify-between rounded-[20px] p-4 bg-white border-gray-3 border-1 gap-2 lg:gap-0">
       <div className="flex flex-col gap-2.5">
         <div className="flex justify-start items-center gap-2 text-base font-medium">
           <span className="text-gray-2">
@@ -35,7 +37,7 @@ export const PlaceCard = ({
           </span>
           <span className="text-black-1 leading-tight">{placeName}</span>
           {isRemoved && (
-            <button>
+            <button disabled={isPending}>
               <X className="text-gray-1" />
             </button>
           )}
@@ -45,14 +47,25 @@ export const PlaceCard = ({
         </span>
       </div>
       {voted ? (
-        <button type="button" onClick={() => hanldeCancelVote(id)}>
+        <button
+          type="button"
+          onClick={() => hanldeCancelVote(id)}
+          disabled={isPending}
+          className={`${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
           <Checked className="w-7 h-7" />
         </button>
       ) : (
-        <button type="button" onClick={() => handleVote(id)}>
+        <button
+          type="button"
+          onClick={() => handleVote(id)}
+          disabled={isPending}
+          className={`${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
           <Unchecked className="w-7 h-7" />
         </button>
       )}
+
     </div>
   );
 };

@@ -28,7 +28,7 @@ export default function AiSearchLoadingPage() {
     purpose
   );
 
-  const { mutate } = useAddPlaceDirect(promiseId);
+  const { mutate, isPending: isAddPending } = useAddPlaceDirect(promiseId);
 
   const { selectedItems, toggleItem } = useSelection();
   const [openEnroll, setOpenEnroll] = useState(false);
@@ -67,7 +67,7 @@ export default function AiSearchLoadingPage() {
   const labelClass =
     "flex gap-5 text-gray-2 text-base font-normal leading-loose";
 
-  if (isPending) {
+  if (isPending || isAddPending) {
     return <Loading />;
   }
 
