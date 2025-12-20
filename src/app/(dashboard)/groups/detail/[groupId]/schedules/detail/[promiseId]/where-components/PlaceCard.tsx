@@ -29,7 +29,7 @@ export const PlaceCard = ({
   };
 
   return (
-    <div className="w-full flex-col lg:flex-row flex justify-between rounded-[20px] p-4 bg-white border-gray-3 border-1 gap-2 lg:gap-0">
+    <div className="w-full flex flex-row justify-between items-center rounded-[20px] p-4 bg-white border-gray-3 border-1 gap-2">
       <div className="flex flex-col gap-2.5">
         <div className="flex justify-start items-center gap-2 text-base font-medium">
           <span className="text-gray-2">
