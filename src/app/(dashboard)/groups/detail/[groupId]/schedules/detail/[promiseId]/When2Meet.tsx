@@ -36,7 +36,8 @@ export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
   // 1. Server State Management (React Query Custom Hook)
   // --------------------------------------------------------------------------
   // UI는 데이터를 어떻게 가져오는지 알 필요가 없습니다. Hook이 모든 것을 처리합니다.
-  const { boardQuery, updateMutation } = usePromiseTime(promiseId);
+  const [isInputMode, setIsInputMode] = useState(false);
+  const { boardQuery, updateMutation } = usePromiseTime(promiseId, isInputMode);
   const { data: timeBoardData, isLoading: isBoardLoading } = boardQuery;
 
   // --------------------------------------------------------------------------
@@ -75,6 +76,7 @@ export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
     time: string;     // "09:00:00"
     dayOfWeek: string;// "금"
   } | null>(null);
+
 
   // --------------------------------------------------------------------------
   // 4. On-Demand Data Fetching (Time Slot Detail)
@@ -211,6 +213,8 @@ export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
             dates={dates}
             days={days}
             disabledSlots={disabledSlots}
+            onDragStart={() => setIsInputMode(true)} // 드래그 시작 -> 폴링 멈춤
+            onDragEnd={() => setIsInputMode(false)}  // 드래그 끝 -> 5초 뒤 폴링 재개
           />
         </div>
 

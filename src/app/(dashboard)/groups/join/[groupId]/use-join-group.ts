@@ -31,13 +31,16 @@ export const useJoinGroup = () => {
     // URL Hash에서 키 추출 (#key=ABC...)
     const hashString = window.location.hash;
     const searchParams = new URLSearchParams(hashString.substring(1));
-    const extractedKey = searchParams.get("key");
+    const extractedKeyRaw = searchParams.get("key");
 
-    if (!extractedKey) {
+    if (!extractedKeyRaw) {
       toast.error("잘못된 초대 링크입니다. (암호화 키 누락)");
       setStatus("ERROR");
       return;
     }
+
+    // FIXED : url로 전달하는 경우 '+'를 공백으로 변환해버린 것 복구하기
+    const extractedKey = extractedKeyRaw.replace(/ /g, '+');
 
     setGroupKey(extractedKey);
 

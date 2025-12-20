@@ -12,6 +12,8 @@ interface TimeTableGridProps {
   days?: string[]; // ["금", "토", ...]
   disabledSlots?: boolean[][]; // [dayIndex][timeIndex] -> true = 비활성화 (내 일정 있음)
   onCellClick?: (dayIndex: number, timeIndex: number) => void; // view 모드에서 셀 클릭 시
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
 const DEFAULT_DAYS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -50,6 +52,8 @@ export const TimeTableGrid = ({
   days = DEFAULT_DAYS,
   disabledSlots,
   onCellClick,
+  onDragStart,
+  onDragEnd,
 }: TimeTableGridProps) => {
   const DAYS = days;
   const DATES = dates;
@@ -66,9 +70,9 @@ export const TimeTableGrid = ({
   // Initialize selection if not provided
   const [internalSelection, setInternalSelection] = useState<boolean[][]>(
     mySelection ||
-      Array(7)
-        .fill(null)
-        .map(() => Array(TIME_SLOTS.length).fill(false))
+    Array(7)
+      .fill(null)
+      .map(() => Array(TIME_SLOTS.length).fill(false))
   );
 
   useEffect(() => {
@@ -101,6 +105,7 @@ export const TimeTableGrid = ({
     e.preventDefault();
 
     setIsDragging(true);
+    if (onDragStart) onDragStart();
     setStartCell({ day, time });
     setCurrentCell({ day, time });
   };
@@ -111,8 +116,17 @@ export const TimeTableGrid = ({
   };
 
   const handlePointerUp = () => {
-    if (mode !== "select" || !isDragging || !startCell || !currentCell) return;
+    if (isDragging) {
+      if (onDragEnd) onDragEnd(); // -> 부모가 Polling 재개
+    }
 
+    if (mode !== "select" || !isDragging || !startCell || !currentCell) {
+      // 드래그 중이 아니었어도 상태 초기화를 위해 리턴 전 cleanup은 필요할 수 있음
+      // 여기서는 기존 로직 흐름상 리턴해도 무방하지만,
+      // isDragging을 false로 확실히 꺼주는 것이 안전합니다.
+      setIsDragging(false);
+      return;
+    }
     // Apply changes
     const newSelection = internalSelection.map((d) => [...d]);
     const minDay = Math.min(startCell.day, currentCell.day);
