@@ -1,4 +1,4 @@
-import { PlaceBoardItem} from "@/api/where2meet";
+import { PlaceBoardItem } from "@/api/where2meet";
 import Checked from "@/assets/svgs/icons/checked.svg";
 import Unchecked from "@/assets/svgs/icons/unchecked.svg";
 import X from "@/assets/svgs/icons/x-gray.svg";
@@ -10,7 +10,6 @@ interface PlaceCardProps {
   totalMemberCount: number;
 }
 
-// TODO: 내가 만든 장소임을 의미하는 데이터가 isRemoved인지? 어떤 의미의 데이터임? + 트펴
 export const PlaceCard = ({
   promiseId,
   placeInfo,

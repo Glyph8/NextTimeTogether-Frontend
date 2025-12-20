@@ -98,7 +98,7 @@ export default function DetailGroupPage() {
                   onProgressPromise;
 
                 // TODO: startDate가 시간표로 확정한 시간이 와야되는 거 아닌가?
-                // TODO : 장소 데이터가 없는 이유는 장소 확정되면 fixed되서 스케쥴이 되기 떄문?
+                // 장소 데이터가 없는 이유는 장소 확정되면 fixed되서 스케쥴이 되기 떄문?
                 return (
                   <GroupPromiseItem
                     key={promiseId}

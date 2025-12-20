@@ -55,7 +55,6 @@ export default function ScheduleDetailPage() {
 
   const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
   const userId = useAuthStore.getState().userId;
-  // console.log("groupKey in detail page:", groupKey);
 
   const { data: promiseKey, isLoading: isKeyLoading } = useQuery({
     queryKey: ["promiseKey", promiseId],
@@ -196,11 +195,8 @@ export default function ScheduleDetailPage() {
           setWhenConfirmOpen(true);
         }}
         onConfirmPlace={() => {
-          // TODO : 장소 확정 페이지로 이동
-          // router.push(`/schedules/confirm-place?promiseId=${promiseId}`);
-          const query = `promiseId=${promiseId}${
-            groupId ? `&groupId=${groupId}` : ""
-          }`;
+          const query = `promiseId=${promiseId}${groupId ? `&groupId=${groupId}` : ""
+            }`;
           router.push(
             `/groups/detail/${groupId}/schedules/confirm-place?${query}`
           );
@@ -243,11 +239,10 @@ export default function ScheduleDetailPage() {
           role="tab"
           aria-selected={tab}
           className={`w-full flex justify-center items-center border-b-2 
-                    ${
-                      tab
-                        ? "text-main border-main"
-                        : "text-[#999999] border-[#D4D4D4]"
-                    }  transition-all duration-200`}
+                    ${tab
+              ? "text-main border-main"
+              : "text-[#999999] border-[#D4D4D4]"
+            }  transition-all duration-200`}
           onClick={() => setTab(true)}
         >
           언제
@@ -257,11 +252,10 @@ export default function ScheduleDetailPage() {
           role="tab"
           aria-selected={tab}
           className={`w-full flex justify-center items-center border-b-2 
-                    ${
-                      tab
-                        ? "text-[#999999] border-[#D4D4D4]"
-                        : "text-main border-main"
-                    }  transition-all duration-200`}
+                    ${tab
+              ? "text-[#999999] border-[#D4D4D4]"
+              : "text-main border-main"
+            }  transition-all duration-200`}
           onClick={() => setTab(false)}
         >
           어디서

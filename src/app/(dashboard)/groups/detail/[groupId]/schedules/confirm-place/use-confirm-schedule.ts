@@ -25,13 +25,9 @@ interface ConfirmScheduleParams {
 export const useConfirmSchedule = (promiseId: string, groupId: string) => {
   const router = useRouter();
   const queryClient = useQueryClient();
-  // TODO : 나중에 useQuery 요청으로 대체 필요
-  // const { selectedGroup } = useGroupStore();
   const searchParams = useSearchParams(); // [추가] URL에서 title 가져오기 위함
   // 현재 URL에 있는 title을 가져오거나, 없으면 기본값 사용
   const currentTitle = searchParams.get("title") ?? "약속 상세";
-
-  const [createdScheduleId, setCreatedScheduleId] = useState<string | null>(null);
 
   // 사용자 리스트(userList)를 얻기 위한 쿼리
   const { data: memberData } = useQuery({
@@ -44,7 +40,6 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
   const mutation = useMutation({
     mutationFn: async ({ placeId, serverResult }: ConfirmScheduleParams) => {
       // 1. 유효성 검사 (Fail Fast)
-      // const groupId = selectedGroup?.groupId;
       const masterKey = await getMasterKey();
       if (!groupId) throw new Error("그룹 정보를 찾을 수 없습니다.");
       if (!memberData?.userIds)
@@ -58,7 +53,6 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
 
       const encTimeStamp = await encryptDataClient(
         scheduleId,
-        // timeStampInfo,
         masterKey,
         "promise_proxy_user"
       );
@@ -73,11 +67,11 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
         userList: memberData.userIds,
         encTimeStamp: encTimeStamp, // 개인키로 암호화
       };
-      setCreatedScheduleId(scheduleId)
       console.log("🚀 [API 요청] 일정 확정:", { groupId, body: requestData });
 
       // 4. API 호출 (Path: /schedule/confirm/{groupId})
-      return await createSchedule(groupId, requestData);
+      const apiResult = await createSchedule(groupId, requestData);
+      return { ...apiResult, scheduleId }; // scheduleId를 반환 객체에 포함
     },
     onSuccess: (data) => {
       console.log("✅ 일정 확정 완료:", data);
@@ -85,7 +79,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
       queryClient.invalidateQueries({ queryKey: ["promiseId"] });
 
       router.push(
-        `/appointment/${createdScheduleId}/detail`
+        `/appointment/${data.scheduleId}/detail`
       );
     },
     onError: (error) => {

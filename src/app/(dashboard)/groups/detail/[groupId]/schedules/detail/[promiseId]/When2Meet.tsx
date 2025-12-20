@@ -135,7 +135,7 @@ export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
     updateMutation.mutate(payload);
   };
 
-  // [SELECT 모드] 캘린더 불러오기 토글 핸들러
+  // [SELECT 모드] 캘린더 불러오기 토글 핸들러 - 삭제 권장
   const handleToggleCalendar = () => {
     if (disabledSlots) {
       setDisabledSlots(undefined);
@@ -215,17 +215,14 @@ export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
         </div>
 
         {/* 하단 버튼 그룹 */}
-        <div className="flex w-full gap-2 mt-6">
+        {/* <div className="flex w-full gap-2 mt-6">
           <button
             className="flex-1 h-12 rounded-lg border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors"
             onClick={handleToggleCalendar}
           >
             {disabledSlots ? "캘린더 해제" : "캘린더 불러오기"}
           </button>
-          <button className="flex-1 h-12 rounded-lg border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors">
-            우선순위 설정하기
-          </button>
-        </div>
+        </div> */}
 
         <div className="w-full mt-2 flex justify-center">
           <Button
