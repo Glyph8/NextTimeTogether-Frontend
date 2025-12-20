@@ -148,6 +148,12 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
     },
     // 개인키가 준비되었을 때만 쿼리 실행 (enabled 옵션 활용 추천)
     // enabled: !!keyword,
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 15,
+    refetchInterval: keyword ? false : 1000 * 60,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    placeholderData: (prev) => prev,
+
   });
 };
