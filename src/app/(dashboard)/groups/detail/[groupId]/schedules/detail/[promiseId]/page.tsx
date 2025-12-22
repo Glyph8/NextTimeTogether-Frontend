@@ -76,10 +76,10 @@ export default function ScheduleDetailPage() {
       const encUserId = await encryptDataClient(
         decryptedUserId,
         // userId,
-        // masterKey,
-        groupKey,
-        // "promise_proxy_user"
-        "group_sharekey"
+        masterKey,
+        // groupKey,
+        "promise_proxy_user"
+        // "group_sharekey"
       );
 
       try {
