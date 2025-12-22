@@ -119,12 +119,14 @@ export const useViewSchedules = () => {
     staleTime: 0,
     placeholderData: (prev) => prev,
   });
-
+  const isFinalPending =
+    isPending1 || (hasPromiseIds && (isPending2 || isPending3 || isPending4));
   // 최종 리턴 (useState 제거로 훨씬 깔끔해짐)
   return {
     fixedYetData: promiseInProgressData || [],
     fixedPromise: fixedScheduleInfo || [],
-    isPending: isPending1 || isPending2 || isPending3 || isPending4,
-    error: error1?.message || error2?.message || error3?.message || error4?.message,
+    isPending: isFinalPending, // 수정된 변수 사용
+    error:
+      error1?.message || error2?.message || error3?.message || error4?.message,
   };
 };

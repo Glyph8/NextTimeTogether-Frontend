@@ -24,7 +24,9 @@ export default function JoinPromisePage() {
     error: keyError,
   } = useGroupDetail(groupId);
 
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading"
+  );
   const [message, setMessage] = useState("보안 정보를 확인하고 있습니다...");
   const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
 
@@ -47,7 +49,9 @@ export default function JoinPromisePage() {
       // 키가 URL에 없으면 -> 이미 멤버이거나, 잘못된 링크일 수 있음 (일단 진행해보고 실패 시 처리)
       // 하지만 초대 흐름에서는 키가 필수이므로 체크하는 것이 좋음.
       if (!extractedKeyString) {
-        console.warn("URL에 약속 키가 없습니다. 기존 멤버인지 확인이 필요할 수 있습니다.");
+        console.warn(
+          "URL에 약속 키가 없습니다. 기존 멤버인지 확인이 필요할 수 있습니다."
+        );
       }
 
       // 1. 로그인 체크 및 리다이렉트 처리
@@ -86,7 +90,7 @@ export default function JoinPromisePage() {
         isJoinAttempted.current = true;
 
         try {
-          setMessage("약속 목록에 추가하는 중입니다...")
+          setMessage("약속 목록에 추가하는 중입니다...");
 
           const result = await invitePromiseService(
             // userId,
@@ -101,7 +105,11 @@ export default function JoinPromisePage() {
             setMessage("성공적으로 약속에 참여했습니다!");
 
             // [수정 1] 성공 시 목록이 아닌 '해당 약속의 상세 페이지'로 이동
-            router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}#pkey=${encodeURIComponent(extractedKeyString)}`);
+            router.push(
+              `/groups/detail/${groupId}/schedules/detail/${
+                params.promiseId
+              }#pkey=${encodeURIComponent(extractedKeyString)}`
+            );
           } else {
             throw new Error("서버 응답 없음");
           }
@@ -111,14 +119,26 @@ export default function JoinPromisePage() {
           setMessage("참여에 실패했거나 이미 참여한 약속입니다.");
           // 이미 참여한 경우라도 상세 페이지로 이동시켜주는 것이 UX상 좋음
           setTimeout(() => {
-            router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}#pkey=${encodeURIComponent(extractedKeyString)}`);
+            router.push(
+              `/groups/detail/${groupId}/schedules/detail/${
+                params.promiseId
+              }#pkey=${encodeURIComponent(extractedKeyString)}`
+            );
           }, 1500);
         }
       }
     };
 
     handleJoin();
-  }, [userId, groupId, params.promiseId, groupKey, isKeyLoading, keyError, router]);
+  }, [
+    userId,
+    groupId,
+    params.promiseId,
+    groupKey,
+    isKeyLoading,
+    keyError,
+    router,
+  ]);
 
   // 로딩 중이거나 자동 이동 전 보여줄 UI
   return (
@@ -150,7 +170,9 @@ export default function JoinPromisePage() {
                 // [수정 3] 버튼 클릭 시에도 변경된 경로로 이동
                 // 여기서도 키를 유지하고 싶다면 hash 추가
                 const hash = window.location.hash;
-                router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`);
+                router.push(
+                  `/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`
+                );
               } else {
                 router.push("/");
               }

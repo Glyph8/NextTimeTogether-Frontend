@@ -22,7 +22,12 @@ export const useJoinGroup = () => {
   const [groupKey, setGroupKey] = useState<string | null>(null);
 
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
-  const myUserId = useAuthStore((state) => state.userId);
+
+  const originalUserId =
+    localStorage.getItem("hashed_user_id_for_manage") || "";
+  // const myUserId = useAuthStore((state) => state.userId);
+
+  const myUserId = originalUserId;
 
   // 1. 초기화: URL 해시에서 키 추출 및 로그인/그룹 유효성 체크
   useEffect(() => {
