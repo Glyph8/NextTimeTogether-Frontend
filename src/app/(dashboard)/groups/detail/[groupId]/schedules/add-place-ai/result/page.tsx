@@ -85,11 +85,14 @@ export default function AiSearchLoadingPage() {
         ))}
       </div>
 
-      <Button
+        <div className="w-full flex items-center justify-center">
+<Button
         text={`장소 추가하기 (${selectedItems.size}/5)`}
         disabled={selectedItems.size === 0}
         onClick={handleAiRecommand}
       />
+        </div>
+      
 
       <YesNoDialog
         isOpen={openEnroll}

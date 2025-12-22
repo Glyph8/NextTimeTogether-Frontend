@@ -3,6 +3,7 @@ import {
   PromiseSearchReqDTO,
   TimestampReqDTO,
   UserBoardReqDTO,
+  UserIdsResDTO,
 } from "@/apis/generated/Api";
 import { BackendResponse, clientBaseApi } from ".";
 import { AxiosError } from "axios";
@@ -255,6 +256,40 @@ export const ratePlace = async (placeId: number, data: UserBoardReqDTO) => {
       console.log("where탭 확정된 장소 데이터 받음 : ", response.data);
       const realData =
         response.data as unknown as BackendResponse<CheckWhereConfirmedResDTO>;
+      return realData.result || null;
+    })
+    .catch((error) => {
+      if (error.response) {
+        // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
+        console.error("API Error Response Data:", error.response.data);
+        console.error("API Error Response Status:", error.response.status);
+        console.error("API Error Response Headers:", error.response.headers);
+      } else if (error.request) {
+        // 요청이 전송되었지만, 응답을 받지 못한 경우
+        console.error("API Error Request:", error.request);
+      } else {
+        // 요청을 설정하는 중에 에러가 발생한 경우
+        console.error("API Error Message:", error.message);
+      }
+      console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
+      throw error;
+    });
+};
+
+export interface GetNickNameResDTO {
+  userInfoDTOList: {
+    userId: string;
+    userName: string;
+    userImg: string;
+  }[];
+}
+
+export const getNickName = async (data: UserIdsResDTO) => {
+  return clientBaseApi.promise.getUsersByPromiseTime3(data)
+    .then((response) => {
+      console.log("닉네임 받음 : ", response.data);
+      const realData =
+        response.data as unknown as BackendResponse<GetNickNameResDTO>;
       return realData.result || null;
     })
     .catch((error) => {

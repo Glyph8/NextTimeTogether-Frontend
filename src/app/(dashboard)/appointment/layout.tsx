@@ -10,8 +10,8 @@ export default function SchedulePageLayout({
 }>) {
   const pathName = usePathname();
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <main className="flex-1 flex flex-col overflow-y-auto bg-white">
+    <div className="flex flex-col h-[100dvh] bg-white overflow-hidden">
+      <main className="flex-1 flex flex-col bg-white overflow-hidden">
         {children}
       </main>
       <BottomNav />

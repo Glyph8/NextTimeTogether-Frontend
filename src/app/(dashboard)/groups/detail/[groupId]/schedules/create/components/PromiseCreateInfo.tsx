@@ -3,6 +3,7 @@ import { useCreatePromise } from "../hooks/use-create-promise";
 import { GroupMemberItem } from "@/app/(dashboard)/groups/detail/[groupId]/(components)/GroupMemberItem";
 import { DecryptedGroupInfo } from "@/app/(dashboard)/groups/use-group-list";
 import XWhite from "@/assets/svgs/icons/x-white.svg";
+import { GroupMemberItemContainer } from "../../../(components)/GroupMemberItemContainer";
 
 interface CreatePromiseFormProps {
   // 훅의 리턴값을 통째로 받거나, 필요한 데이터만 정의
@@ -15,7 +16,7 @@ export default function PromiseCreateInfo({
   groupData,
 }: CreatePromiseFormProps) {
   const { values, actions, helpers } = form;
-
+  const userId = localStorage.getItem("hashed_user_id_for_manager");
   return (
     <>
       <nav className="text-black-1 text-xl font-medium leading-loose">
@@ -51,16 +52,16 @@ export default function PromiseCreateInfo({
           </span>
         </div>
 
-        {/* 멤버 선택 (복잡한 로직 없이 맵핑만 수행) */}
-        <div className="flex p-4 bg-[#F9F9F9] gap-3 rounded-[20px]">
-          {groupData?.userIds.map((member: string) => (
-            <GroupMemberItem
-              key={member}
-              name={member}
+        <div className="flex p-4 bg-white gap-3 rounded-[20px] overflow-x-auto">
+          {(groupData?.userIds ?? []).map((memberId) => (
+            <GroupMemberItemContainer
+              key={memberId}
+              memberId={memberId}
               selectable={true}
-              isSelected={helpers.isSelected(member)}
-              onClick={() => actions.handleMemberChange(member)}
-              marker={groupData?.managerId === member ? ["그룹장"] : undefined}
+              isSelected={helpers.isSelected(memberId)}
+              onClick={() => actions.handleMemberChange(memberId)}
+              isManager={groupData?.managerId === memberId}
+              isCurrentUser={userId === memberId} // userId는 localStorage에서 가져온 값
             />
           ))}
         </div>

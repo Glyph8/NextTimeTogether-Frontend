@@ -14,10 +14,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useViewSchedules } from "./hooks/use-view-schedules";
 import { useGroupDetail } from "./hooks/use-group-detail";
 import { useGroupStore } from "@/store/group-detail.store";
+import { useAuthStore } from "@/store/auth.store";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { CldImage } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
 import { GroupPromiseItem } from "./(components)/GroupPromiseItem";
+import { GroupMemberItemContainer } from "./(components)/GroupMemberItemContainer";
 
 export default function DetailGroupPage() {
   const router = useRouter();
@@ -29,6 +31,7 @@ export default function DetailGroupPage() {
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
   const setGroup = useGroupStore((state) => state.setGroup);
+  const userId = localStorage.getItem("hashed_user_id_for_manager");
   const { fixedYetData, fixedPromise, isPending } = useViewSchedules();
 
   const {
@@ -49,7 +52,7 @@ export default function DetailGroupPage() {
   }
 
   return (
-    <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
+    <div className="flex flex-col w-full flex-1 bg-[#F9F9F9] overflow-y-scroll">
       <Header
         leftChild={
           <Link href={"/groups"}>
@@ -164,20 +167,15 @@ export default function DetailGroupPage() {
             <Plus />
           </button>
         </div>
-        <div className="flex p-4 bg-white gap-3 rounded-[20px]">
-          {(groupDetail?.userIds ?? []).map((member) => (
-            <GroupMemberItem
-              key={member}
-              name={member}
-              marker={
-                groupDetail?.managerId === member ? ["그룹장"] : undefined
-              }
+        <div className="flex p-4 bg-white gap-3 rounded-[20px] overflow-x-auto">
+          {(groupDetail?.userIds ?? []).map((memberId) => (
+            <GroupMemberItemContainer
+              key={memberId}
+              memberId={memberId}
+              isManager={groupDetail?.managerId === memberId}
+              isCurrentUser={userId === memberId} // userId는 localStorage에서 가져온 값
             />
           ))}
-          {/* <GroupMemberItem marker={["사용자"]} name={"김나박이"} />
-                    <GroupMemberItem marker={["그룹장"]} name={"가나다람바사아자차카파타하"} />
-                    <GroupMemberItem marker={["사용자", "그룹장"]} name="둘다" />
-                    <GroupMemberItem name={"먼데이"} /> */}
         </div>
       </div>
       <GroupInviteDialog

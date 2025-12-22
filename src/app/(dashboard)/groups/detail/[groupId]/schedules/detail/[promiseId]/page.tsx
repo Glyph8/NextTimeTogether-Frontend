@@ -168,7 +168,13 @@ export default function ScheduleDetailPage() {
       console.log("🔵 일시 확정 여부 조회", result);
       return result;
     },
-    refetchInterval: 6000,
+    refetchInterval: (query) => {
+    const data = query.state.data;
+    if (data && data.dateTime) {
+      return false; 
+    }
+    return 6000;
+  },
     refetchIntervalInBackground: false,
     staleTime: 0,
     placeholderData: (previousData) => previousData,
@@ -184,6 +190,8 @@ export default function ScheduleDetailPage() {
       router.back();
     }
   };
+
+  const isTimeConfirmed = !!confirmedTime && !!confirmedTime.dateTime;
 
   return (
     <div className="flex flex-col flex-1 w-full bg-[#f9f9f9]">
@@ -280,7 +288,7 @@ export default function ScheduleDetailPage() {
       {isPending || !encPromiseMemberList ? (
         <DefaultLoading />
       ) : tab ? (
-        confirmedTime ? (
+        isTimeConfirmed ? (
           <div className="p-4">
             <ConfirmedTimeCard
               date={parseConfrimedPromiseDateTime(confirmedTime.dateTime).date}

@@ -8,8 +8,7 @@ import { useRouter } from "next/navigation";
 import { EnterGroupDialog } from "./(components)/EnterGroupDialog";
 import { useDecryptedGroupList } from "./use-group-list";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
-
-import { DEFAULT_IMAGE } from "@/constants";
+import { GroupItemContainer } from "./(components)/GroupItemContainer";
 
 export default function GroupsPage() {
   const router = useRouter();
@@ -27,7 +26,7 @@ export default function GroupsPage() {
   }
 
   return (
-    <div className="flex flex-col w-full flex-1 bg-[#F9F9F9]">
+    <div className="flex flex-col w-full flex-1 bg-[#F9F9F9] overflow-hidden">
       <Header title={"그룹 관리"} />
 
       <div className="w-full h-19 flex justify-end items-center px-4">
@@ -51,22 +50,17 @@ export default function GroupsPage() {
       {isPending ? (
         <DefaultLoading />
       ) : (
-        <div className="w-full flex flex-col gap-2 px-4">
+        <div className="w-full flex flex-col flex-1 gap-2 px-4 overflow-y-hidden">
           {data && data.length !== 0 ? (
-            data.map((group) => {
-              return (
-                <GroupItem
+            <div className="flex flex-col overflow-y-scroll pb-4 gap-2">
+              {data?.map((group) => (
+                <GroupItemContainer
                   key={group.groupId}
-                  groupId={group.groupId}
-                  image={group.groupImg ?? DEFAULT_IMAGE}
-                  title={group.groupName}
-                  description={group.explanation ?? "123"}
-                  // members={group.encUserId.join(',')}
-                  members={group.userIds.join(", ")}
-                  setIsOpen={setIsOpenExitDialog}
+                  group={group}
+                  setIsOpenExitDialog={setIsOpenExitDialog}
                 />
-              );
-            })
+              ))}
+            </div>
           ) : (
             <p className="text-center pt-5">참가하고 있는 그룹이 없어요!</p>
           )}

@@ -1,4 +1,26 @@
+import { getNickName } from "@/api/appointment";
+import { useQuery } from "@tanstack/react-query";
 import { DateTimeValue, PurposeType } from "../hooks/use-create-promise";
+
+// 1. 닉네임 가져오는 커스텀 훅
+const usePromiseMemberNames = (userIds: string[]) => {
+  return useQuery({
+    queryKey: ["promiseMemberNames", userIds],
+    queryFn: async () => {
+      if (!userIds || userIds.length === 0) return "";
+
+      const res = await getNickName({ userIds });
+
+      // 응답에서 닉네임만 추출하여 콤마로 연결된 문자열 생성
+      // API 응답 구조에 따라 userInfoDTOList가 없을 수도 있으므로 옵셔널 체이닝 사용
+      const names = res?.userInfoDTOList?.map((user: any) => user.userName).join(", ");
+      return names;
+    },
+    // ID가 있을 때만 쿼리 실행
+    enabled: !!userIds && userIds.length > 0,
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
+  });
+};
 
 // 필요한 데이터만 딱 받도록 Props 정의
 interface PromiseSummaryProps {
@@ -8,7 +30,6 @@ interface PromiseSummaryProps {
     start: DateTimeValue;
     end: DateTimeValue;
   };
-  members: string[]; // 전체 멤버 리스트
   selectedMemberIds: string[]; // 선택된 멤버 ID 리스트
 }
 
@@ -16,10 +37,9 @@ export const PromiseSummary = ({
   topic,
   purpose,
   schedule,
-  members,
   selectedMemberIds,
 }: PromiseSummaryProps) => {
-  
+
   // 요일 구하기 헬퍼
   const getDayOfWeek = (year: string, month: string, day: string) => {
     const date = new Date(Number(year), Number(month) - 1, Number(day));
@@ -28,11 +48,7 @@ export const PromiseSummary = ({
   };
 
   // 1. 멤버 ID -> 이름 변환
-  const memberNames = members
-    .filter((m) => selectedMemberIds.includes(m))
-    .map((m) => m)
-    .join(", ");
-
+  const { data: realMemberNames, isLoading } = usePromiseMemberNames(selectedMemberIds);
   // 2. 목적 스타일링
   const purposeLabel = purpose;
   const purposeStyle =
@@ -101,7 +117,10 @@ export const PromiseSummary = ({
             참여 인원
           </dt>
           <dd className="flex-1 text-gray-900 font-medium text-left break-keep">
-            {memberNames || "선택된 멤버 없음"}
+            {/* 3. 로딩 상태와 실제 데이터 표시 */}
+            {isLoading
+              ? "멤버 정보를 불러오는 중..."
+              : (realMemberNames || "선택된 멤버 없음")}
           </dd>
         </div>
       </dl>

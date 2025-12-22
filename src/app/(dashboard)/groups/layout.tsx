@@ -12,8 +12,8 @@ export default function GroupsPageLayout({
     const pathName = usePathname();
     const showBottomNav = pathName === "/groups";
     return (
-        <div className="flex flex-col min-h-screen bg-white">
-            <main className="flex-1 flex flex-col overflow-y-auto">
+        <div className="flex flex-col h-[100dvh] bg-white overflow-hidden">
+            <main className="flex-1 flex flex-col overflow-hidden">
                 {children}
             </main>
             {showBottomNav && <BottomNav/>}

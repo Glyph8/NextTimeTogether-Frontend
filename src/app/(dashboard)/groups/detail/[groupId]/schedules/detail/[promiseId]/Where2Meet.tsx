@@ -83,7 +83,7 @@ export const Where2Meet = ({
           )}
         </div>
 
-        <button
+ <button
           className="w-[40%] rounded-[8px] px-5 py-2.5 bg-main text-white text-base font-medium leading-tight text-center"
           onClick={handleAddPlace}
         >

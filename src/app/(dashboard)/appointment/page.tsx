@@ -129,7 +129,7 @@ export default function SchedulePage() {
       </div>
 
       <div className="flex-1 flex flex-row bg-white">
-        <div className="flex flex-col items-center border-r-1 border-[#F1F1F1] px-5 py-4 gap-4 w-[120px] min-w-[120px]">
+        <div className="flex flex-col items-center border-r-1 border-[#F1F1F1] px-5 py-4 gap-4 w-[120px] min-w-[120px] overflow-y-scroll">
           <button
             className={`bg-white rounded-lg outline-1 outline-offset-[-1px] ${selectedGroupId === null
                 ? "outline-main text-main"
@@ -167,7 +167,7 @@ export default function SchedulePage() {
         </div>
 
         {/* 오른쪽 메인: 약속 리스트 */}
-        <div className="flex flex-col flex-1 p-4">
+        <div className="flex flex-col flex-1 p-4 overflow-y-scroll">
           {scheduleList.length > 0 ? (
             scheduleList.map((schedule: any) => (
               <ScheduleItem
