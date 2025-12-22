@@ -70,11 +70,14 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
         })
       );
 
-      const encTimeStamp = await encryptDataClient(
-        scheduleId,
-        masterKey,
-        "promise_proxy_user"
-      );
+
+      // TODO : masterKey로 암호화하면 다른 멤버가 못보는 거 아님? 🤦‍♂️🤦‍♂️ TESTED
+      // const encTimeStamp = await encryptDataClient(
+      //   scheduleId,
+      //   masterKey,
+      //   "promise_proxy_user"
+      // );
+      const encTimeStamp = scheduleId;
 
       const requestData: ScheduleConfirmReqDTO = {
         promiseId: promiseId,
