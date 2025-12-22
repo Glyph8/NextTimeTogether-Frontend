@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button/Button";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
 import { invitePromiseService } from "../../create/utils/join-promise";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
+import { joinPromise } from "@/api/promise-invite-join";
+import { getMasterKey } from "@/utils/client/key-storage";
 
 export default function JoinPromisePage() {
   const params = useParams<{ groupId: string; promiseId: string }>();
@@ -92,13 +94,56 @@ export default function JoinPromisePage() {
         try {
           setMessage("약속 목록에 추가하는 중입니다...");
 
-          const result = await invitePromiseService(
+          const masterKey = await getMasterKey();
+          if (!masterKey) {
+            throw new Error("마스터 키를 불러올 수 없습니다.");
+          }
+
+          const result0 = await invitePromiseService(
             // userId,
             decryptedUserId,
             params.promiseId,
             groupKey,
             extractedKeyString
           );
+
+          // export interface JoinPromise1Request {
+          //   promiseId?: string;
+          //   encPromiseId?: string;
+          //   encPromiseMemberId?: string;
+          //   encUserId?: string;
+          //   encPromiseKey?: string;
+          // }
+
+          const encPromiseId = await encryptDataClient(
+            params.promiseId,
+            masterKey,
+            "promise_proxy_user"
+          );
+          const encPromiseMemberId = await encryptDataClient(
+            decryptedUserId,
+            masterKey,
+            "promise_proxy_user"
+          );
+
+          const encUserId = await encryptDataClient(
+            decryptedUserId,
+            groupKey,
+            "group_sharekey"
+          );
+          const encPromiseKey = await encryptDataClient(
+            extractedKeyString,
+            masterKey,
+            "promise_proxy_user"
+          );
+
+          const result = await joinPromise({
+            promiseId: params.promiseId,
+            encPromiseId: encPromiseId,
+            encPromiseMemberId: encPromiseMemberId,
+            encUserId: encUserId,
+            encPromiseKey: encPromiseKey,
+          });
 
           if (result) {
             setStatus("success");

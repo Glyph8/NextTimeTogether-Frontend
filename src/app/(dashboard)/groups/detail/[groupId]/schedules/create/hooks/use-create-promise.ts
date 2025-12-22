@@ -51,7 +51,9 @@ export const useCreatePromise = (groupId: string | undefined) => {
   const [purpose, setPurpose] = useState<PurposeType>("스터디");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
-  const [generatedPromiseKey, setGeneratedPromiseKey] = useState<string | null>(urlStoredKey);
+  const [generatedPromiseKey, setGeneratedPromiseKey] = useState<string | null>(
+    urlStoredKey
+  );
   const { groupKey } = useGroupStore();
 
   useEffect(() => {
@@ -59,7 +61,6 @@ export const useCreatePromise = (groupId: string | undefined) => {
       setGeneratedPromiseKey(urlStoredKey);
     }
   }, [urlStoredKey]);
-
 
   const isSelected = (userId: string) => selectedMembers.includes(userId);
 
@@ -75,7 +76,10 @@ export const useCreatePromise = (groupId: string | undefined) => {
     setPurpose(event.target.value as PurposeType);
   };
 
-  const handleScheduleChange = (type: "start" | "end", newValue: DateTimeValue) => {
+  const handleScheduleChange = (
+    type: "start" | "end",
+    newValue: DateTimeValue
+  ) => {
     setSchedule((prev) => ({ ...prev, [type]: newValue }));
   };
 
@@ -118,7 +122,6 @@ export const useCreatePromise = (groupId: string | undefined) => {
           newPromiseKey // <--- 생성한 키 전달
         );
 
-
         setGeneratedPromiseKey(newPromiseKey);
 
         const params = new URLSearchParams(searchParams);
@@ -133,7 +136,14 @@ export const useCreatePromise = (groupId: string | undefined) => {
   };
 
   return {
-    values: { topic, purpose, selectedMembers, schedule, createdPromiseId, generatedPromiseKey },
+    values: {
+      topic,
+      purpose,
+      selectedMembers,
+      schedule,
+      createdPromiseId,
+      generatedPromiseKey,
+    },
     actions: {
       setTopic,
       handleOptionChange,
