@@ -5,7 +5,7 @@ import { getNickName } from "@/api/appointment";
 import { GroupMemberItem } from "./GroupMemberItem";
 
 // 단일 유저 닉네임 조회 훅 (재사용 가능)
-const useMemberName = (userId: string) => {
+export const useMemberName = (userId: string) => {
     return useQuery({
         queryKey: ["memberName", userId],
         queryFn: async () => {

@@ -69,7 +69,8 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
   return useQuery({
     queryKey: ['schedules', { groupId, keyword }],
     queryFn: async () => {
-      const userId = useAuthStore.getState().userId;
+      const userId = localStorage.getItem("hashed_user_id_for_manager");
+      // const userId = useAuthStore.getState().userId;
       if (!userId) {
         console.warn("유저 ID가 없어 복호화를 진행할 수 없습니다.");
         return { result: [] };

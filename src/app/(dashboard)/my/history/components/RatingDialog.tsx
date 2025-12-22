@@ -30,7 +30,8 @@ export const RatingDialog = ({
   onRateSuccess,
 }: RatingDialogProps) => {
   const [showDetails, setShowDetails] = useState(false);
-  const userId = useAuthStore.getState().userId;
+  // const userId = useAuthStore.getState().userId;
+  const userId = localStorage.getItem("hashed_user_id_for_manager");
   const { data: scheduleDetail, isPending } = useQuery({
     queryKey: ["scheduleDetail", scheduleId],
     queryFn: async () => {

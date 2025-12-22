@@ -7,7 +7,8 @@ import { ScheduleConfirmReqDTO } from "@/apis/generated/Api"; // DTO 타입 확�
 import { parseServerDateToScheduleId } from "./utils/date-format";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
-import { useState } from "react";
+import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
+import { useGroupDetail } from "../../hooks/use-group-detail";
 
 // 장소 확정 API의 결과값 타입 정의
 interface ServerConfirmResult {
@@ -37,6 +38,12 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
     staleTime: Infinity,
   });
 
+  const {
+    data: groupDetail,
+    groupKey,
+    isPending: isGroupFetching,
+  } = useGroupDetail(groupId);
+
   const mutation = useMutation({
     mutationFn: async ({ placeId, serverResult }: ConfirmScheduleParams) => {
       // 1. 유효성 검사 (Fail Fast)
@@ -49,6 +56,18 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
       // 2. 데이터 변환 (Adapter 적용)
       const { scheduleId, timeStampInfo } = parseServerDateToScheduleId(
         serverResult.dateTime
+      );
+
+      const decryptedUserIds = await Promise.all(
+        memberData?.userIds.map(async (id) => {
+          return await decryptDataWithCryptoKey(
+            id,
+            // promiseKey, // 상위 스코프의 promiseKey 사용
+            groupKey ?? "", // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐
+            // "promise_proxy_user",
+            "group_sharekey"
+          );
+        })
       );
 
       const encTimeStamp = await encryptDataClient(
@@ -64,7 +83,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
         placeId: placeId,
         title: serverResult.title,
         purpose: serverResult.purpose,
-        userList: memberData.userIds,
+        userList: decryptedUserIds,
         encTimeStamp: encTimeStamp, // 개인키로 암호화
       };
       console.log("🚀 [API 요청] 일정 확정:", { groupId, body: requestData });

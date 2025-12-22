@@ -17,7 +17,8 @@ export default function JoinPromisePage() {
 
   // URL에서 groupId 추출
   const groupId = params.groupId;
-  const { userId } = useAuthStore();
+  // const { userId } = useAuthStore();
+  const userId = localStorage.getItem("hashed_user_id_for_manager");
 
   // E2EE 키 복구 훅 (groupId가 있어야 동작)
   const {
@@ -135,8 +136,7 @@ export default function JoinPromisePage() {
 
             // [수정 1] 성공 시 목록이 아닌 '해당 약속의 상세 페이지'로 이동
             router.push(
-              `/groups/detail/${groupId}/schedules/detail/${
-                params.promiseId
+              `/groups/detail/${groupId}/schedules/detail/${params.promiseId
               }#pkey=${encodeURIComponent(extractedKeyString)}`
             );
           } else {
@@ -149,8 +149,7 @@ export default function JoinPromisePage() {
           // 이미 참여한 경우라도 상세 페이지로 이동시켜주는 것이 UX상 좋음
           setTimeout(() => {
             router.push(
-              `/groups/detail/${groupId}/schedules/detail/${
-                params.promiseId
+              `/groups/detail/${groupId}/schedules/detail/${params.promiseId
               }#pkey=${encodeURIComponent(extractedKeyString)}`
             );
           }, 1500);

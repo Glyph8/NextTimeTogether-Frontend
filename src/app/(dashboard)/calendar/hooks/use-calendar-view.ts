@@ -20,7 +20,8 @@ export interface CalendarDetail {
 }
 
 export const useCalendarView = (date: Date) => {
-  const userId = useAuthStore((state) => state.userId);
+  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  // const userId = useAuthStore((state) => state.userId);
 
   // 1. 조회할 날짜 범위 생성
   const timeStampInfoList = generateMonthDates(date);

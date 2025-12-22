@@ -102,7 +102,8 @@ export const useCreatePromise = (groupId: string | undefined) => {
   };
 
   const submitPromise = async () => {
-    const userId = useAuthStore.getState().userId;
+    // const userId = useAuthStore.getState().userId;
+    const userId = localStorage.getItem("hashed_user_id_for_manager");
     const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
 
     if (!userId || !groupId || !decryptedUserId || !groupKey) {
