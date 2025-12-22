@@ -20,12 +20,9 @@ import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { useAuthStore } from "@/store/auth.store";
-import { useGroupStore } from "@/store/group-detail.store";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
 import {
   CheckWhenConfirmed,
-  CheckWhenConfirmedResDTO,
-  CheckWhereConfirmed,
 } from "@/api/appointment";
 import { ConfirmedTimeCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedTimeCard";
 import { parseScheduleString } from "@/app/(dashboard)/appointment/[scheduleId]/detail/utils/formatter";
@@ -169,12 +166,12 @@ export default function ScheduleDetailPage() {
       return result;
     },
     refetchInterval: (query) => {
-    const data = query.state.data;
-    if (data && data.dateTime) {
-      return false; 
-    }
-    return 6000;
-  },
+      const data = query.state.data;
+      if (data && data.dateTime) {
+        return false;
+      }
+      return 6000;
+    },
     refetchIntervalInBackground: false,
     staleTime: 0,
     placeholderData: (previousData) => previousData,
@@ -209,9 +206,8 @@ export default function ScheduleDetailPage() {
           setWhenConfirmOpen(true);
         }}
         onConfirmPlace={() => {
-          const query = `promiseId=${promiseId}${
-            groupId ? `&groupId=${groupId}` : ""
-          }`;
+          const query = `promiseId=${promiseId}${groupId ? `&groupId=${groupId}` : ""
+            }`;
 
           if (!confirmedTime) {
             toast.error("일시를 먼저 확정해주세요!");
@@ -260,11 +256,10 @@ export default function ScheduleDetailPage() {
           role="tab"
           aria-selected={tab}
           className={`w-full flex justify-center items-center border-b-2 
-                    ${
-                      tab
-                        ? "text-main border-main"
-                        : "text-[#999999] border-[#D4D4D4]"
-                    }  transition-all duration-200`}
+                    ${tab
+              ? "text-main border-main"
+              : "text-[#999999] border-[#D4D4D4]"
+            }  transition-all duration-200`}
           onClick={() => setTab(true)}
         >
           언제
@@ -274,11 +269,10 @@ export default function ScheduleDetailPage() {
           role="tab"
           aria-selected={tab}
           className={`w-full flex justify-center items-center border-b-2 
-                    ${
-                      tab
-                        ? "text-[#999999] border-[#D4D4D4]"
-                        : "text-main border-main"
-                    }  transition-all duration-200`}
+                    ${tab
+              ? "text-[#999999] border-[#D4D4D4]"
+              : "text-main border-main"
+            }  transition-all duration-200`}
           onClick={() => setTab(false)}
         >
           어디서

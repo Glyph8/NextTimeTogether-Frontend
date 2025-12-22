@@ -1,7 +1,6 @@
 "use client";
 
 import { PromiseView2Response, PromiseView4Response } from "@/apis/generated/Api";
-import { usePromiseStore } from "@/store/promise-detail.store";
 import { useRouter } from "next/navigation";
 import { formatEventTime } from "../utils/confirm-time-format";
 
@@ -18,11 +17,7 @@ interface GroupPromiseItemProps {
 
 export const GroupPromiseItem = ({ id, category, title, time, place, promiseInfo, groupId }: GroupPromiseItemProps) => {
     const router = useRouter();
-    const setPromise = usePromiseStore((state) => state.setPromise);
     const handleNavToDetail = async () => {
-
-        const promiseKey = "TODO : promiseKey API 필요"
-        setPromise(promiseInfo, promiseKey);
         const encodedTitle = encodeURIComponent(title);
         router.push(`/groups/detail/${groupId}/schedules/detail/${id}?title=${encodedTitle}`);
     }

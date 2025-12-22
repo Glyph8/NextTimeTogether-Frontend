@@ -4,9 +4,9 @@ import { useAuthStore } from "@/store/auth.store";
 import { createPromise } from "@/api/promise-view-create";
 import { convertToISO } from "../utils/date-converter";
 import { invitePromiseService } from "../utils/join-promise";
-import { useGroupStore } from "@/store/group-detail.store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import testGenerateKey from "@/utils/crypto/generate-key/key-generator";
+import { useGroupDetail } from "../../../hooks/use-group-detail";
 
 export type PurposeType = "스터디" | "식사";
 
@@ -30,6 +30,24 @@ export const useCreatePromise = (groupId: string | undefined) => {
   const searchParams = useSearchParams();
   const createdPromiseId = searchParams.get("newPromiseId");
   const urlStoredKey = searchParams.get("createdKey"); // [추가] URL에서 키 복구
+  // 그룹 정보 및 키 로드
+  const {
+    data: fetchedGroup,
+    groupKey,
+    isPending,
+    error,
+  } = useGroupDetail(groupId ?? '');
+
+  useEffect(() => {
+    // groupId가 없거나, 로딩이 끝났는데(isPending === false) groupKey가 없으면 리다이렉트
+    if (!groupId) {
+      router.push("/groups");
+    } else if (!isPending && !groupKey) {
+      // 에러 상황 처리 (이미 useGroupDetail에서 에러 처리할 수도 있지만 안전장치)
+      toast.error("그룹 정보를 확인할 수 없습니다."); // 필요 시 주석 해제
+      router.push("/groups");
+    }
+  }, [groupId, groupKey, isPending, router]);
 
   // 현재 시간 기준 초기값 설정
   const now = new Date();
@@ -54,7 +72,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
   const [generatedPromiseKey, setGeneratedPromiseKey] = useState<string | null>(
     urlStoredKey
   );
-  const { groupKey } = useGroupStore();
+  // const { groupKey } = useGroupStore();
 
   useEffect(() => {
     if (urlStoredKey) {
@@ -87,7 +105,10 @@ export const useCreatePromise = (groupId: string | undefined) => {
     const userId = useAuthStore.getState().userId;
     const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
 
-    if (!userId || !groupId || !decryptedUserId) return;
+    if (!userId || !groupId || !decryptedUserId || !groupKey) {
+      if (!groupKey) toast.error("보안 키를 불러오는 중입니다. 잠시만 기다려주세요.");
+      return;
+    }
 
     const startIso = convertToISO(schedule.start);
     const endIso = convertToISO(schedule.end);

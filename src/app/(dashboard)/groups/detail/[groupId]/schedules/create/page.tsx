@@ -4,9 +4,8 @@ import Header from "@/components/ui/header/Header";
 import X from "@/assets/svgs/icons/x-black.svg";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button/Button";
-import { useGroupStore } from "@/store/group-detail.store";
 import { useGroupDetail } from "../../hooks/use-group-detail";
 import PromiseCreateInfo from "./components/PromiseCreateInfo";
 import { useCreatePromise } from "./hooks/use-create-promise";
@@ -22,17 +21,13 @@ export default function CreateSchedulePage() {
   const [progress, setProgress] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
 
-  const { selectedGroup, setGroup } = useGroupStore();
-  const targetIdForFetch =
-    selectedGroup?.groupId === groupIdFromUrl ? null : groupIdFromUrl;
-
   // 그룹 정보 및 키 로드
   const {
     data: fetchedGroup,
     groupKey,
     isPending,
     error,
-  } = useGroupDetail(targetIdForFetch);
+  } = useGroupDetail(groupIdFromUrl);
 
   const promiseForm = useCreatePromise(groupIdFromUrl);
   const { values, actions } = promiseForm;
@@ -41,12 +36,6 @@ export default function CreateSchedulePage() {
   // const userId = useAuthStore.getState().userId;
   // const decryptedUserId = localStorage.getItem("encrypted_user_id");
   // const hashed = localStorage.getItem("hashed_user_id_for_manager");
-
-  useEffect(() => {
-    if (fetchedGroup && groupKey) {
-      setGroup(fetchedGroup, groupKey);
-    }
-  }, [fetchedGroup, groupKey, setGroup]);
 
   // [Flow Control] 약속 생성 성공 시 공유 화면 렌더링
   if (values.createdPromiseId && groupIdFromUrl) {
@@ -90,9 +79,8 @@ export default function CreateSchedulePage() {
   }
 
   const isStep1 = progress === 1;
-  const activeGroup = selectedGroup || fetchedGroup;
 
-  if (activeGroup) {
+  if (fetchedGroup) {
     return (
       <div className="bg-white h-dvh flex flex-col">
         <YesNoDialog
@@ -103,7 +91,6 @@ export default function CreateSchedulePage() {
               topic={values.topic}
               purpose={values.purpose}
               schedule={values.schedule}
-              members={activeGroup.userIds}
               selectedMemberIds={values.selectedMembers}
             />
           }
@@ -140,7 +127,7 @@ export default function CreateSchedulePage() {
 
         <div className="flex flex-col flex-1 px-4 overflow-y-auto">
           {isStep1 ? (
-            <PromiseCreateInfo form={promiseForm} groupData={activeGroup} />
+            <PromiseCreateInfo form={promiseForm} groupData={fetchedGroup} />
           ) : (
             <SelectSchedule
               schedule={values.schedule}

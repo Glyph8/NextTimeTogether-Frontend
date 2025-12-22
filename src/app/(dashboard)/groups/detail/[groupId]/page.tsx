@@ -7,14 +7,11 @@ import ArrowDown from "@/assets/svgs/icons/arrow-down-gray.svg";
 import ArrowUp from "@/assets/svgs/icons/arrow-up-gray.svg";
 import Plus from "@/assets/svgs/icons/plus-gray.svg";
 import { GroupScheduleItem } from "./(components)/GroupScheduleItem";
-import { GroupMemberItem } from "./(components)/GroupMemberItem";
 import { useState } from "react";
 import { GroupInviteDialog } from "./(components)/GroupInviteDialog";
 import { useParams, useRouter } from "next/navigation";
 import { useViewSchedules } from "./hooks/use-view-schedules";
 import { useGroupDetail } from "./hooks/use-group-detail";
-import { useGroupStore } from "@/store/group-detail.store";
-import { useAuthStore } from "@/store/auth.store";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { CldImage } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
@@ -30,7 +27,6 @@ export default function DetailGroupPage() {
   // TODO: 추후 url query의 groupId도 암호화-복호화 필요
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
-  const setGroup = useGroupStore((state) => state.setGroup);
   const userId = localStorage.getItem("hashed_user_id_for_manager");
   const { fixedYetData, fixedPromise, isPending } = useViewSchedules();
 
@@ -42,7 +38,6 @@ export default function DetailGroupPage() {
 
   const handleNavtoCreateSchedule = () => {
     if (groupDetail && groupKey) {
-      setGroup(groupDetail, groupKey);
       router.push(`/groups/detail/${groupId}/schedules/create`);
     }
   };
