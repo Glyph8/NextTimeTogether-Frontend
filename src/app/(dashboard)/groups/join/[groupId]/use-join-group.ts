@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 import { useAuthStore } from "@/store/auth.store";
 import { getMasterKey } from "@/utils/client/key-storage";
@@ -10,6 +9,7 @@ import {
   // apiGetGroupJoinRequest,
   apiPostGroupMemberSave,
 } from "@/api/group-invite-join";
+import toast from "react-hot-toast";
 
 export type JoinStatus = "CHECKING" | "READY" | "JOINING" | "ERROR";
 
@@ -24,7 +24,7 @@ export const useJoinGroup = () => {
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
 
   const originalUserId =
-    localStorage.getItem("hashed_user_id_for_manage") || "";
+    localStorage.getItem("hashed_user_id_for_manager") || "";
   // const myUserId = useAuthStore((state) => state.userId);
 
   const myUserId = originalUserId;
@@ -73,7 +73,11 @@ export const useJoinGroup = () => {
 
   // 2. [가입하기] 버튼 클릭 핸들러
   const handleJoinClick = async () => {
-    if (!groupKey || !myUserId) return;
+    toast("그룹 가입을 처리 중입니다...");
+    if (!groupKey || !myUserId) {
+      toast.error("필수 정보가 누락되었습니다. 다시 시도해주세요.");
+      return;
+    }
     setStatus("JOINING");
 
     try {
