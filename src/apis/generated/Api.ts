@@ -1361,10 +1361,16 @@ export class Api<
      * @request GET:/promise/view1
      * @secure
      */
-    view1: (params: RequestParams = {}) =>
+    view1: (
+      query?: {
+        groupId?: string;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<PromiseView1Response, ErrorResponse>({
         path: `/promise/view1`,
         method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,

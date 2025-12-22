@@ -193,7 +193,7 @@ export const unvotePlace = (placeId: number) => {
 export const confirmPlace = (
   promiseId: string,
   placeId: number,
-  aiPlaceId: number
+  aiPlaceId?: number
 ) => {
   const clientApi = clientBaseApi;
 

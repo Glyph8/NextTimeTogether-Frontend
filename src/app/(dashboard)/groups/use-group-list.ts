@@ -21,7 +21,7 @@ export interface GroupInfoData {
   groupId: string;
   groupName: string;
   groupImg: string;
-  explanation: string
+  explanation: string;
   managerId: string;
   encUserId: string[];
 }
@@ -50,15 +50,6 @@ export const useDecryptedGroupList = () => {
   // 빈 배열 조기 종료 플래그
   const [isEmptyResult, setIsEmptyResult] = useState<boolean>(false);
 
-  // 디버깅을 위한 로그
-  useEffect(() => {
-    console.log("=== useDecryptedGroupList 상태 ===");
-    console.log("decryptedGroupObjects:", decryptedGroupObjects);
-    console.log("decryptedGroupKeys:", decryptedGroupKeys);
-    console.log("isEmptyResult:", isEmptyResult);
-    console.log("error:", error);
-  }, [decryptedGroupObjects, decryptedGroupKeys, isEmptyResult, error]);
-
   // --- 1단계: 암호화된 GroupId/MemberId 조회 ---
   const {
     data: encData,
@@ -69,7 +60,6 @@ export const useDecryptedGroupList = () => {
     queryFn: async () => {
       console.log("🔵 [1단계] 암호화된 그룹 ID 조회 시작");
       const result = await getEncGroupsIdAction();
-      console.log("🔵 [1단계] 서버 응답:", result);
 
       if (result.error) {
         console.error("🔴 [1단계] 에러:", result.error);
@@ -81,7 +71,6 @@ export const useDecryptedGroupList = () => {
         return [];
       }
 
-      console.log("✅ [1단계] 성공 - 데이터 개수:", result.data.length);
       return result.data as ViewGroupFirstResponseData[];
     },
     staleTime: 1000 * 60 * 5,
@@ -128,12 +117,6 @@ export const useDecryptedGroupList = () => {
             masterKey,
             "group_proxy_user"
           );
-
-          console.log(
-            // `✅ [1단계 복호화] ${index + 1}번째 완료 - groupId:`,
-            decryptedGroupId
-          );
-
           return {
             groupId: decryptedGroupId,
             encGroupMemberId: decryptedGroupMemberId,
@@ -237,7 +220,6 @@ export const useDecryptedGroupList = () => {
             ["decrypt"]
           );
 
-
           return cryptoKey;
         });
 
@@ -280,7 +262,6 @@ export const useDecryptedGroupList = () => {
         groupId: item.groupId,
       }));
 
-
       const result = await getGroupsInfoAction(groupIdObjects);
 
       if (result.error) {
@@ -288,25 +269,20 @@ export const useDecryptedGroupList = () => {
         throw new Error(result.error);
       }
 
-      const finalEncData = result.data
+      const finalEncData = result.data;
       // const finalEncData = result.data as ViewGroupThirdResponseData[];
 
       if (!finalEncData) {
-        throw new Error("3단계 요청 응답이 undefined")
+        throw new Error("3단계 요청 응답이 undefined");
       }
-
 
       console.log("🟡 [3단계 복호화] 시작");
 
       const decryptedPromises = finalEncData.map(async (groupData, index) => {
-
         const groupCryptoKey = decryptedGroupKeys![index];
-
-
 
         const decryptionPromises = groupData.encUserId.map(
           async (encId, memberIndex) => {
-
             return await decryptDataClient(
               encId,
               groupCryptoKey,
@@ -316,8 +292,6 @@ export const useDecryptedGroupList = () => {
         );
 
         const decryptedMemberIds = await Promise.all(decryptionPromises);
-
-
 
         return {
           groupId: groupData.groupId,

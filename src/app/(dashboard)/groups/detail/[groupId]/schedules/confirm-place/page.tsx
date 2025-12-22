@@ -10,7 +10,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
-import { confirmPlace as confirmPlaceApi, PlaceBoardItem } from "@/api/where2meet";
+import {
+  confirmPlace as confirmPlaceApi,
+  PlaceBoardItem,
+} from "@/api/where2meet";
 import { PlaceConfirmItem } from "../detail/[promiseId]/components/PlaceConfirmItem";
 import { usePlaceBoard } from "../detail/[promiseId]/hooks/use-place-board";
 import { useConfirmSchedule } from "./use-confirm-schedule";
@@ -29,9 +32,14 @@ export default function ConfirmPlacePage() {
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
 
   // TODO :현재 성성 직후에는 groupId가 없으므로 생성 시에도 전달할 수 있도록..
-  const { confirmSchedule, isScheduleCreating } = useConfirmSchedule(promiseId || "", groupId || "");
+  const { confirmSchedule, isScheduleCreating } = useConfirmSchedule(
+    promiseId || "",
+    groupId || ""
+  );
 
-  const { placeListInfo, isPending: isPlaceLoading } = usePlaceBoard(promiseId || "");
+  const { placeListInfo, isPending: isPlaceLoading } = usePlaceBoard(
+    promiseId || ""
+  );
 
   const { data: encPromiseMemberList, isPending: isMemberLoading } = useQuery({
     queryKey: ["promiseId", "encPromiseIds", promiseId],
@@ -48,17 +56,24 @@ export default function ConfirmPlacePage() {
     mutationFn: async (placeInfo: PlaceBoardItem) => {
       if (!promiseId) throw new Error("약속 ID가 없습니다.");
       // TODO : 직접 추가한 장소의 aiPlaceID는 0으로 처리하고 있는 듯.
+      if (placeInfo.aiPlace === 0) {
+        return await confirmPlaceApi(promiseId, placeInfo.id);
+        // return await confirmPlaceApi(promiseId, placeInfo.id);
+      }
       return await confirmPlaceApi(promiseId, placeInfo.id, placeInfo.aiPlace);
+      // return await confirmPlaceApi(promiseId, placeInfo.aiPlace, placeInfo.id);
     },
     onSuccess: (response) => {
       // response 구조: { code: 200, result: { dateTime, title, ... } }
+      // TODO : ai PlaceId 전달 부분 확인 필요 기존 로직과 백엔드 측 서버 로직 변경
       console.log("📍 장소 확정 성공, 일정 생성 시작:", response);
 
-      if (response.code === 200 && selectedPlaceId) {
+      if (response.code === 200 && response.result.placeId) {
         // [핵심] 장소 확정의 결과값을 그대로 일정 생성 훅으로 전달
         confirmSchedule({
-          placeId: selectedPlaceId,
-          serverResult: response.result
+          // placeId: selectedPlaceId,
+          placeId: response.result.placeId,
+          serverResult: response.result,
         });
       } else {
         toast.error("장소 확정 응답에 문제가 있습니다.");
@@ -69,7 +84,6 @@ export default function ConfirmPlacePage() {
       toast.error("장소 확정에 실패했습니다.");
     },
   });
-
 
   const handleConfirm = () => {
     if (selectedPlaceId === null || !placeListInfo) return;
@@ -96,7 +110,11 @@ export default function ConfirmPlacePage() {
     <div className="flex flex-col h-screen bg-white">
       <Header
         leftChild={
-          <button type="button" aria-label="뒤로가기" onClick={() => router.back()}>
+          <button
+            type="button"
+            aria-label="뒤로가기"
+            onClick={() => router.back()}
+          >
             <LeftArrow />
           </button>
         }
@@ -140,10 +158,11 @@ export default function ConfirmPlacePage() {
             // 1. flex와 justify-center, items-center를 유지합니다.
             // 2. 혹시 모를 상황을 대비해 text-center를 추가합니다.
             // 3. [중요] 템플릿 리터럴 내 줄바꿈을 없애 클래스명 끊김을 방지했습니다.
-            className={`w-full flex justify-center items-center text-center rounded-[12px] py-4 text-lg font-bold leading-tight transition-colors ${selectedPlaceId !== null && !isProcessing
-              ? "bg-main hover:bg-main/90 text-white"
-              : "bg-gray-300 text-white cursor-not-allowed"
-              }`}
+            className={`w-full flex justify-center items-center text-center rounded-[12px] py-4 text-lg font-bold leading-tight transition-colors ${
+              selectedPlaceId !== null && !isProcessing
+                ? "bg-main hover:bg-main/90 text-white"
+                : "bg-gray-300 text-white cursor-not-allowed"
+            }`}
           >
             {isProcessing ? "확정 처리 중..." : "확정하기"}
           </button>

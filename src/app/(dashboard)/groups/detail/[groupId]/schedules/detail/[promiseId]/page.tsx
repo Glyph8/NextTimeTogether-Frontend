@@ -30,6 +30,7 @@ import {
 import { ConfirmedTimeCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedTimeCard";
 import { parseScheduleString } from "@/app/(dashboard)/appointment/[scheduleId]/detail/utils/formatter";
 import { parseConfrimedPromiseDateTime } from "../utils/promise-utils";
+import toast from "react-hot-toast";
 
 interface PromiseData {
   encMembers: any; // 실제 타입으로 변경 (예: EncryptedPromiseMemberId)
@@ -165,7 +166,10 @@ export default function ScheduleDetailPage() {
       console.log("🔵 일시 확정 여부 조회", result);
       return result;
     },
-    staleTime: 1000 * 60 * 5,
+    refetchInterval: 6000,
+    refetchIntervalInBackground: false,
+    staleTime: 0,
+    placeholderData: (previousData) => previousData,
     enabled: !!promiseId,
   });
 
@@ -195,8 +199,15 @@ export default function ScheduleDetailPage() {
           setWhenConfirmOpen(true);
         }}
         onConfirmPlace={() => {
-          const query = `promiseId=${promiseId}${groupId ? `&groupId=${groupId}` : ""
-            }`;
+          const query = `promiseId=${promiseId}${
+            groupId ? `&groupId=${groupId}` : ""
+          }`;
+
+          if (!confirmedTime) {
+            toast.error("일시를 먼저 확정해주세요!");
+            return;
+          }
+
           router.push(
             `/groups/detail/${groupId}/schedules/confirm-place?${query}`
           );
@@ -239,10 +250,11 @@ export default function ScheduleDetailPage() {
           role="tab"
           aria-selected={tab}
           className={`w-full flex justify-center items-center border-b-2 
-                    ${tab
-              ? "text-main border-main"
-              : "text-[#999999] border-[#D4D4D4]"
-            }  transition-all duration-200`}
+                    ${
+                      tab
+                        ? "text-main border-main"
+                        : "text-[#999999] border-[#D4D4D4]"
+                    }  transition-all duration-200`}
           onClick={() => setTab(true)}
         >
           언제
@@ -252,10 +264,11 @@ export default function ScheduleDetailPage() {
           role="tab"
           aria-selected={tab}
           className={`w-full flex justify-center items-center border-b-2 
-                    ${tab
-              ? "text-[#999999] border-[#D4D4D4]"
-              : "text-main border-main"
-            }  transition-all duration-200`}
+                    ${
+                      tab
+                        ? "text-[#999999] border-[#D4D4D4]"
+                        : "text-main border-main"
+                    }  transition-all duration-200`}
           onClick={() => setTab(false)}
         >
           어디서

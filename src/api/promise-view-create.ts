@@ -1,19 +1,31 @@
-import { CreatePromise4Request, PromiseView1Response, Promiseview2Request, PromiseView2Response, PromiseView3Request, PromiseView3Response, PromiseView4Request, PromiseView4Response, UserIdsResDTO } from "@/apis/generated/Api";
+import {
+  CreatePromise4Request,
+  PromiseView1Response,
+  Promiseview2Request,
+  PromiseView2Response,
+  PromiseView3Request,
+  PromiseView3Response,
+  PromiseView4Request,
+  PromiseView4Response,
+  UserIdsResDTO,
+} from "@/apis/generated/Api";
 import { BackendResponse, clientBaseApi } from ".";
 
 /** promise/create4 */
 
-export interface CreatePromiseResponse{
+export interface CreatePromiseResponse {
   promiseId: string;
 }
 
-export const createPromise = (data:CreatePromise4Request) =>{
+export const createPromise = (data: CreatePromise4Request) => {
   const clientApi = clientBaseApi;
 
-    return clientApi.promise.createPromise4(data)
-       .then((response) => {
+  return clientApi.promise
+    .createPromise4(data)
+    .then((response) => {
       console.log("약속 생성 요청 응답 : ", response.data);
-      const realData = response.data as unknown as BackendResponse<CreatePromiseResponse>;
+      const realData =
+        response.data as unknown as BackendResponse<CreatePromiseResponse>;
       // return response.data;
       return realData.result || null;
     })
@@ -33,18 +45,20 @@ export const createPromise = (data:CreatePromise4Request) =>{
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
-}
-
+};
 
 /** promise/view1 */
-export const getEncPromiseIdList = () =>{
-    const clientApi = clientBaseApi;
+export const getEncPromiseIdList = () => {
+  const clientApi = clientBaseApi;
 
-    return clientApi
-    .promise.view1()
+  return clientApi.promise
+    .view1()
     .then((response) => {
-      console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
-      const realData = response.data as unknown as BackendResponse<PromiseView1Response[]>;
+      console.log("primise/view1 요청  : ", response.data);
+      // console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
+      const realData = response.data as unknown as BackendResponse<
+        PromiseView1Response[]
+      >;
       // return response.data;
       return realData.result || [];
     })
@@ -64,19 +78,21 @@ export const getEncPromiseIdList = () =>{
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
-}
+};
 
 /** promise/view2 */
-export const getPromiseInProgress = (data:Promiseview2Request) =>{
-    const clientApi = clientBaseApi;
+export const getPromiseInProgress = (data: Promiseview2Request) => {
+  const clientApi = clientBaseApi;
 
-    return clientApi
-    .promise.view2(data)
+  return clientApi.promise
+    .view2(data)
     .then((response) => {
-      console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
-       const realData = response.data as unknown as BackendResponse<PromiseView2Response[]>;
+      console.log("promise/view2 요청  : ", response.data);
+      const realData = response.data as unknown as BackendResponse<
+        PromiseView2Response[]
+      >;
       // return response.data;
-       return realData.result || [];
+      return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -94,19 +110,21 @@ export const getPromiseInProgress = (data:Promiseview2Request) =>{
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
-}
+};
 
 /** promise/view3 */
-export const getScheduleIdListPerPromise = (data: PromiseView3Request) =>{
-    const clientApi = clientBaseApi;
+export const getScheduleIdListPerPromise = (data: PromiseView3Request) => {
+  const clientApi = clientBaseApi;
 
-    return clientApi
-    .promise.view3(data)
+  return clientApi.promise
+    .view3(data)
     .then((response) => {
       console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
-      const realData = response.data as unknown as BackendResponse<PromiseView3Response[]>;
+      const realData = response.data as unknown as BackendResponse<
+        PromiseView3Response[]
+      >;
       // return response.data;
-       return realData.result || [];
+      return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -124,19 +142,21 @@ export const getScheduleIdListPerPromise = (data: PromiseView3Request) =>{
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
-}
+};
 
 /** promise/view4 */
-export const getScheduleIdPerFixedPromise = (data: PromiseView4Request) =>{
-    const clientApi = clientBaseApi;
+export const getScheduleIdPerFixedPromise = (data: PromiseView4Request) => {
+  const clientApi = clientBaseApi;
 
-    return clientApi
-    .promise.view4(data)
+  return clientApi.promise
+    .view4(data)
     .then((response) => {
       console.log("전체 그룹의 스케쥴 DTO 리스트 요청  : ", response.data);
-      const realData = response.data as unknown as BackendResponse<PromiseView4Response[]>;
+      const realData = response.data as unknown as BackendResponse<
+        PromiseView4Response[]
+      >;
       // return response.data;
-       return realData.result || [];
+      return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -154,24 +174,24 @@ export const getScheduleIdPerFixedPromise = (data: PromiseView4Request) =>{
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
-}
+};
 
-
-export interface EncryptedPromiseMemberId{
+export interface EncryptedPromiseMemberId {
   userIds: string[];
 }
 
 /** /promise/mem/s1/{promiseId} 암호화된 약속 인원 아이디 조회 */
-export const getEncryptedPromiseMemberId = (promiseId:string) =>{
-    const clientApi = clientBaseApi;
+export const getEncryptedPromiseMemberId = (promiseId: string) => {
+  const clientApi = clientBaseApi;
 
-    return clientApi
-    .promise.getUsersByPromiseTime1(promiseId)
+  return clientApi.promise
+    .getUsersByPromiseTime1(promiseId)
     .then((response) => {
       console.log("암호화된 약속 멤버 아아디 요청  : ", response.data);
-      const realData = response.data as unknown as BackendResponse<EncryptedPromiseMemberId>;
+      const realData =
+        response.data as unknown as BackendResponse<EncryptedPromiseMemberId>;
       // return response.data;
-       return realData.result || [];
+      return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -189,7 +209,7 @@ export const getEncryptedPromiseMemberId = (promiseId:string) =>{
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
-}
+};
 
 export interface PromiseMemberDetail {
   userId: string;
@@ -197,22 +217,26 @@ export interface PromiseMemberDetail {
   userImg: string;
 }
 
-export interface PromiseMemberInfo{
+export interface PromiseMemberInfo {
   promiseManager: string;
   users: PromiseMemberDetail[];
 }
 
 /** /promise/mem/s2/{promiseId} 약속 인원 아이디 평문 배열 보내서, 닉네임 등 세부정보 조회 */
-export const getPromiseMemberDetail =  (promiseId:string, data: UserIdsResDTO) =>{
-    const clientApi = clientBaseApi;
+export const getPromiseMemberDetail = (
+  promiseId: string,
+  data: UserIdsResDTO
+) => {
+  const clientApi = clientBaseApi;
 
-    return clientApi
-    .promise.getUsersByPromiseTime2(promiseId, data)
+  return clientApi.promise
+    .getUsersByPromiseTime2(promiseId, data)
     .then((response) => {
       console.log("약속 멤버 세부 정보 요청  : ", response.data);
-      const realData = response.data as unknown as BackendResponse<PromiseMemberInfo>;
+      const realData =
+        response.data as unknown as BackendResponse<PromiseMemberInfo>;
       // return response.data;
-       return realData.result || [];
+      return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -230,27 +254,28 @@ export const getPromiseMemberDetail =  (promiseId:string, data: UserIdsResDTO) =
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
-}
+};
 
-interface PromiseKeyInfo{
-  encPromiseKey:string;
+interface PromiseKeyInfo {
+  encPromiseKey: string;
 }
 
 // 🤔🤔 /promise/promisekey1는 promise/view1과 동일하므로 2단계 요청만  : enc_promise_id (개인키로 암호화한 promise_id) 리스트 반환
 /** /promise/promisekey2 : promiseId, encUserId(그룹키로 암호화한 사용자 아이디) 로 요청 - promise_id에 해당하는 enc_promise_key (개인키로 암호화한 promise_key) 반환받음 */
-export const getPromiseKey =  (promiseId:string, encUserId:string) =>{
-    const clientApi = clientBaseApi;
+export const getPromiseKey = (promiseId: string, encUserId: string) => {
+  const clientApi = clientBaseApi;
 
-    return clientApi
-    .promise.getPromiseKey2({
+  return clientApi.promise
+    .getPromiseKey2({
       promiseId,
       encUserId,
     })
     .then((response) => {
       console.log("약속키 요청  : ", response.data);
-      const realData = response.data as unknown as BackendResponse<PromiseKeyInfo>;
+      const realData =
+        response.data as unknown as BackendResponse<PromiseKeyInfo>;
       // return response.data;
-       return realData.result || [];
+      return realData.result || [];
     })
     .catch((error) => {
       if (error.response) {
@@ -268,4 +293,4 @@ export const getPromiseKey =  (promiseId:string, encUserId:string) =>{
       console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
       throw error;
     });
-}
+};

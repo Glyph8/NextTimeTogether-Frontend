@@ -571,7 +571,7 @@ export const WhenConfirmDrawer = ({
                   : "이 시간으로 확정하기"
               }
               onClick={handleConfirm}
-              disabled={confirmMutation.isPending}
+              disabled={confirmMutation.isPending || selectedDate === ""}
               className="w-full h-12 text-base font-bold shadow-lg shadow-purple-200"
             />
           )}

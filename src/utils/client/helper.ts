@@ -1,4 +1,4 @@
-"use client"
+"use client";
 // 2. (신규) Uint8Array를 Base64 문자열로 변환하는 브라우저용 헬퍼 함수
 export function uint8ArrayToBase64(buffer: Uint8Array): string {
   // btoa: binary to ASCII
@@ -8,7 +8,7 @@ export function uint8ArrayToBase64(buffer: Uint8Array): string {
 }
 
 export function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  let binary = '';
+  let binary = "";
   const bytes = new Uint8Array(buffer);
   const len = bytes.byteLength;
   for (let i = 0; i < len; i++) {
@@ -22,18 +22,14 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
   // '-' -> '+'
   // '_' -> '/'
 
-  console.log("Base64 변환 전:", base64);
-
-  let normalizedBase64 = base64.replace(/-/g, '+').replace(/_/g, '/');
+  let normalizedBase64 = base64.replace(/-/g, "+").replace(/_/g, "/");
 
   // 2. 패딩('=')이 생략된 경우 복원
   // Base64 문자열의 길이는 4의 배수여야 합니다.
   const padding = normalizedBase64.length % 4;
   if (padding) {
-    normalizedBase64 += '='.repeat(4 - padding);
+    normalizedBase64 += "=".repeat(4 - padding);
   }
-
-  console.log("Base64 변환 결과:", normalizedBase64);
 
   // 3. 표준 Base64 문자열을 디코딩
   const binaryString = atob(normalizedBase64); // base64를 디코딩해 바이너리 문자열로 변환

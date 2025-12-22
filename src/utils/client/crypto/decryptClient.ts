@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   GroupProxyUser_iv,
@@ -15,9 +15,8 @@ async function decryptDataWithCryptoKey(
   masterKeyOrString: CryptoKey | string, // 1. 타입 변경 (string 허용)
   role: string
 ) {
-
-  console.log("복호화 대상 :", encrypted);
-  console.log("복호화 IV : ", role);
+  // console.log("복호화 대상 :", encrypted);
+  // console.log("복호화 IV : ", role);
 
   // IV 결정 로직 (기존 동일)
   const iv = () => {
@@ -38,12 +37,12 @@ async function decryptDataWithCryptoKey(
     if (typeof masterKeyOrString === "string") {
       // 2-1. 문자열인 경우: ArrayBuffer 변환 후 Key Import
       const keyBuffer = base64ToArrayBuffer(masterKeyOrString);
-      
+
       cryptoKey = await crypto.subtle.importKey(
-        "raw", 
-        keyBuffer, 
-        { name: "AES-GCM" }, 
-        false, 
+        "raw",
+        keyBuffer,
+        { name: "AES-GCM" },
+        false,
         ["decrypt"] // [중요] 복호화용이므로 'decrypt' 권한 필요
       );
     } else {
@@ -52,18 +51,18 @@ async function decryptDataWithCryptoKey(
     }
 
     const ciphertext = base64ToArrayBuffer(encrypted);
-    
+
     // 3. 결정된 cryptoKey를 사용하여 복호화 수행
     const decryptedBuffer = await crypto.subtle.decrypt(
       {
         name: "AES-GCM",
         iv: iv(),
       },
-      cryptoKey, 
+      cryptoKey,
       ciphertext
     );
 
-    console.log("client decrypt 성공");
+    // console.log("client decrypt 성공");
     return new TextDecoder().decode(decryptedBuffer);
   } catch (e) {
     console.error("❌ 복호화 실패:", e);

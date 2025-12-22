@@ -7,7 +7,7 @@ import { getMasterKey } from "@/utils/client/key-storage";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 
 import {
-  apiGetGroupJoinRequest,
+  // apiGetGroupJoinRequest,
   apiPostGroupMemberSave,
 } from "@/api/group-invite-join";
 
@@ -40,7 +40,7 @@ export const useJoinGroup = () => {
     }
 
     // FIXED : url로 전달하는 경우 '+'를 공백으로 변환해버린 것 복구하기
-    const extractedKey = extractedKeyRaw.replace(/ /g, '+');
+    const extractedKey = extractedKeyRaw.replace(/ /g, "+");
 
     setGroupKey(extractedKey);
 
