@@ -100,6 +100,8 @@ export default function ScheduleDetailPage() {
         return null;
       }
     },
+    // ✅ [수정] groupKey와 필수 데이터가 준비될 때까지 대기
+    enabled: !!groupKey && !!userId && !!decryptedUserId,
     staleTime: 1000 * 60 * 5,
     retry: 1,
   });
