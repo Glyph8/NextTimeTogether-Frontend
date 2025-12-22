@@ -9,7 +9,11 @@ import { getMasterKey } from "@/utils/client/key-storage";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 
-export const useViewSchedules = () => {
+interface UseViewSchedulesOptions {
+  refetchInterval?: number;
+}
+
+export const useViewSchedules = (options?: UseViewSchedulesOptions) => {
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
 
@@ -47,7 +51,7 @@ export const useViewSchedules = () => {
       }
     },
     // [Smart Polling 적용]
-    refetchInterval: 3000, // 3초마다 새로운 약속이 생겼는지 확인
+    refetchInterval: options?.refetchInterval || 3000, // 3초마다 새로운 약속이 생겼는지 확인
     refetchIntervalInBackground: false,
     staleTime: 0,
     placeholderData: (prev) => prev, // 깜빡임 방지

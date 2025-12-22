@@ -183,8 +183,7 @@ export default function ScheduleDetailPage() {
       // groupId가 있으면 그룹 상세 페이지로 이동
       router.push(`/groups/detail/${groupId}`);
     } else {
-      // groupId가 없으면 일반적인 뒤로가기 (예외 처리)
-      router.back();
+      router.push(`/groups`);
     }
   };
 

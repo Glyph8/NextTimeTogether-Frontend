@@ -28,13 +28,16 @@ export default function DetailGroupPage() {
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
   const userId = localStorage.getItem("hashed_user_id_for_manager");
-  const { fixedYetData, fixedPromise, isPending } = useViewSchedules();
-
+  const { fixedYetData, fixedPromise, isPending } = useViewSchedules({
+    refetchInterval: 3000
+  });
   const {
     data: groupDetail,
     groupKey,
     isPending: isGroupFetching,
-  } = useGroupDetail(groupId);
+  } = useGroupDetail(groupId, {
+    refetchInterval: 3000 // 멤버 변동 사항도 3초마다 체크
+  });
 
   const handleNavtoCreateSchedule = () => {
     if (groupDetail && groupKey) {

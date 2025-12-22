@@ -16,10 +16,15 @@ import {
 } from "../../../action";
 import { DecryptedGroupInfo } from "../../../use-group-list";
 
+interface UseGroupDetailOptions {
+  refetchInterval?: number;
+  enabled?: boolean;
+}
+
 /**
  * 특정 그룹(targetGroupId) 하나의 정보를 3단계 E2EE 과정을 거쳐 조회하는 훅
  */
-export const useGroupDetail = (targetGroupId: string | null) => {
+export const useGroupDetail = (targetGroupId: string | null, options?: UseGroupDetailOptions) => {
   // --- 1단계: 전체 암호화 그룹 ID 목록 조회 후 Target 찾기 & 복호화 ---
   const {
     data: groupMetadata,
@@ -63,8 +68,8 @@ export const useGroupDetail = (targetGroupId: string | null) => {
 
       throw new Error("해당 그룹을 찾을 수 없거나 접근 권한이 없습니다.");
     },
-    enabled: !!targetGroupId, // groupId가 있을 때만 실행
-    refetchInterval: 4000,
+    enabled: !!targetGroupId && (options?.enabled ?? true), // groupId가 있을 때만 실행
+    refetchInterval: options?.refetchInterval || 0,
     refetchIntervalInBackground: false,
     staleTime: 0,
     placeholderData: (prev) => prev,
