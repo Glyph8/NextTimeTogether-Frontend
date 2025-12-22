@@ -76,10 +76,10 @@ export default function ScheduleDetailPage() {
       const encUserId = await encryptDataClient(
         decryptedUserId,
         // userId,
-        masterKey,
-        // groupKey,
-        "promise_proxy_user"
-        // "group_sharekey"
+        // masterKey,
+        groupKey, // TODO : join시에 groupKey로 하라고 명시됨..???
+        // "promise_proxy_user"
+        "group_sharekey"
       );
 
       try {

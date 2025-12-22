@@ -57,7 +57,9 @@ export default function CreateSchedulePage() {
           leftChild={
             <button
               onClick={() =>
-                router.push(`/groups/detail/${groupIdFromUrl}/schedules/detail/${values.createdPromiseId}`)
+                router.push(
+                  `/groups/detail/${groupIdFromUrl}/schedules/detail/${values.createdPromiseId}`
+                )
               }
             >
               <X />

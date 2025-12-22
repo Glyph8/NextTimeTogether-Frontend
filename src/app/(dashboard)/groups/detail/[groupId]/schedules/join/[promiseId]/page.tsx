@@ -99,22 +99,6 @@ export default function JoinPromisePage() {
             throw new Error("마스터 키를 불러올 수 없습니다.");
           }
 
-          const result0 = await invitePromiseService(
-            // userId,
-            decryptedUserId,
-            params.promiseId,
-            groupKey,
-            extractedKeyString
-          );
-
-          // export interface JoinPromise1Request {
-          //   promiseId?: string;
-          //   encPromiseId?: string;
-          //   encPromiseMemberId?: string;
-          //   encUserId?: string;
-          //   encPromiseKey?: string;
-          // }
-
           const encPromiseId = await encryptDataClient(
             params.promiseId,
             masterKey,

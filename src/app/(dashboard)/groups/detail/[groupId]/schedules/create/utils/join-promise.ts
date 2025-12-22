@@ -15,9 +15,6 @@ export const invitePromiseService = async (
     return null;
   }
 
-  // 약속 공유키 생성 - 초대 코드에서 생성하도록 변경
-  // const promiseKey = await testGenerateKey();
-
   // TODO : 메일 보내기 생략. 추후 로직 정립 후 적용
 
   // 개인키로 암호화한 약속 아이디 - role :
