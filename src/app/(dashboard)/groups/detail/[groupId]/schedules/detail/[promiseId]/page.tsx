@@ -54,6 +54,19 @@ export default function ScheduleDetailPage() {
   const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
   const userId = useAuthStore.getState().userId;
 
+  const handlePromiseError = (error: any) => {
+    if (
+      error.response &&
+      error.response.status === 404 &&
+      error.response.data?.message === "약속을 찾을 수 없어요"
+    ) {
+      toast.error("확정되거나 삭제된 약속입니다.");
+      router.push("/appointment");
+      return true; // 에러 처리됨
+    }
+    return false; // 처리되지 않음
+  };
+
   const { data: promiseKey, isLoading: isKeyLoading } = useQuery({
     queryKey: ["promiseKey", promiseId],
     queryFn: async () => {
@@ -91,6 +104,10 @@ export default function ScheduleDetailPage() {
         );
         return decPromiseKey;
       } catch (error) {
+        if (handlePromiseError(error)) {
+          return null;
+        }
+
         // ✅ [핵심] 에러가 발생해도 throw 하지 않고 콘솔에만 찍고 넘어갑니다.
         console.error("⚠️ 약속 키 조회 실패 (무시하고 진행):", error);
         // 에러 상황임을 알리는 null 반환 (React Query는 이를 '성공'으로 간주)
@@ -106,40 +123,47 @@ export default function ScheduleDetailPage() {
   const { data, isPending } = useQuery<PromiseData>({
     queryKey: ["promiseId", "encPromiseIds", promiseKey], // queryKey에 의존성 추가 권장
     queryFn: async () => {
-      console.log("🔵 암호화된 약속 멤버 ID 조회");
-      const result = await getEncryptedPromiseMemberId(promiseId);
+      try {
+        console.log("🔵 암호화된 약속 멤버 ID 조회");
+        const result = await getEncryptedPromiseMemberId(promiseId);
 
-      // result.userIds가 배열인지 확인 (방어 코드)
-      const targetIds = result.userIds || [];
-      if (!promiseKey) {
-        console.warn(
-          "⚠️ 암호화 키가 없어 더미 데이터를 사용하여 렌더링합니다."
-        );
-        throw new Error("암호화 키가 없습니다.");
-      }
-      // [핵심] 배열 내 모든 원소에 대해 비동기 복호화 수행
-      const decryptedUserIds = await Promise.all(
-        targetIds.map(async (id) => {
-          return await decryptDataWithCryptoKey(
-            id,
-            // promiseKey, // 상위 스코프의 promiseKey 사용
-            groupKey ?? "", // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐
-            // "promise_proxy_user",
-            "group_sharekey"
+        // result.userIds가 배열인지 확인 (방어 코드)
+        const targetIds = result.userIds || [];
+        if (!promiseKey) {
+          console.warn(
+            "⚠️ 암호화 키가 없어 더미 데이터를 사용하여 렌더링합니다."
           );
-        })
-      );
+          throw new Error("암호화 키가 없습니다.");
+        }
+        // [핵심] 배열 내 모든 원소에 대해 비동기 복호화 수행
+        const decryptedUserIds = await Promise.all(
+          targetIds.map(async (id) => {
+            return await decryptDataWithCryptoKey(
+              id,
+              // promiseKey, // 상위 스코프의 promiseKey 사용
+              groupKey ?? "", // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐
+              // "promise_proxy_user",
+              "group_sharekey"
+            );
+          })
+        );
 
-      // 복호화된 ID 목록(decryptedUserIds)을 상세 조회 함수에 전달 mem s2
-      const memberDetails = await getPromiseMemberDetail(promiseId, {
-        userIds: decryptedUserIds,
-      });
+        // 복호화된 ID 목록(decryptedUserIds)을 상세 조회 함수에 전달 mem s2
+        const memberDetails = await getPromiseMemberDetail(promiseId, {
+          userIds: decryptedUserIds,
+        });
 
-      return {
-        encMembers: result || [],
-        managerId: memberDetails.promiseManager,
-        memberDetails: memberDetails.users, // 필요하다면 상세 정보도 리턴
-      };
+        return {
+          encMembers: result || [],
+          managerId: memberDetails.promiseManager,
+          memberDetails: memberDetails.users, // 필요하다면 상세 정보도 리턴
+        };
+      } catch (error) {
+        if (handlePromiseError(error)) {
+          throw error; // 쿼리 실패로 처리하되, 리다이렉트는 수행됨
+        }
+        throw error;
+      }
     },
     // [중요] promiseKey가 존재할 때만 이 쿼리를 실행 (Dependent Query)
     enabled: !!promiseKey,
@@ -161,9 +185,16 @@ export default function ScheduleDetailPage() {
   const { data: confirmedTime, isLoading: isConfirmedTimeLoading } = useQuery({
     queryKey: ["confirmedTime", promiseId],
     queryFn: async () => {
-      const result = await CheckWhenConfirmed(promiseId);
-      console.log("🔵 일시 확정 여부 조회", result);
-      return result;
+      try {
+        const result = await CheckWhenConfirmed(promiseId);
+        console.log("🔵 일시 확정 여부 조회", result);
+        return result;
+      } catch (error) {
+        if (handlePromiseError(error)) {
+          return null;
+        }
+        throw error;
+      }
     },
     refetchInterval: (query) => {
       const data = query.state.data;
