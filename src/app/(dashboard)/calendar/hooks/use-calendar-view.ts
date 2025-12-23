@@ -81,28 +81,32 @@ export const useCalendarView = (date: Date) => {
   });
 
   const events = useMemo(() => {
-    const serverEvents = eventsData?.result || [];
+    const serverEvents = (eventsData?.result as CalendarDetail[]) || [];
 
-    return serverEvents.map((serverEvent: CalendarDetail) => {
-      // Map에서 해당 ID의 시간 정보를 가져옴
-      const timeInfo = scheduleMap.get(serverEvent.scheduleId);
+    return serverEvents
+      .map((serverEvent: CalendarDetail) => {
+        const timeInfo = scheduleMap.get(serverEvent.scheduleId);
 
-      return {
-        id: serverEvent.scheduleId,
-        title: serverEvent.title,
+        // 1. 시간 정보가 없으면 null 반환 (매핑 실패 간주)
+        if (!timeInfo || !timeInfo.start) {
+          console.warn(`시간 정보 누락됨: ${serverEvent.scheduleId}`);
+          return null;
+        }
 
-        // Query 1에서 파싱해둔 시간 정보 사용
-        // (만약 Map에 없다면 Fallback으로 현재 날짜 사용)
-        start: timeInfo?.start || date.toISOString(),
-        end: timeInfo?.end,
+        return {
+          id: serverEvent.scheduleId,
+          title: serverEvent.title,
+          start: timeInfo.start, // Fallback 제거
+          end: timeInfo.end,
+          memo: serverEvent.content,
+          place: serverEvent.placeName,
+        };
+      })
+      // 2. null인 항목(시간 정보 없는 일정)은 배열에서 제거
+      .filter((evt): evt is NonNullable<typeof evt> => evt !== null);
 
-        // 상세 정보 매핑
-        memo: serverEvent.content,
-        place: serverEvent.placeName,
-        // color: serverEvent.color
-      };
-    });
-  }, [eventsData, scheduleMap, date]);
+  }, [eventsData, scheduleMap]); // date 의존성 제거 가능
+
 
   return {
     dates: timeStampInfoList,

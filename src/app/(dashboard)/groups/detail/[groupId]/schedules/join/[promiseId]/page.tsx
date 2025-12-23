@@ -152,7 +152,7 @@ export default function JoinPromisePage() {
           />
 
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/groups")}
             className="text-sm text-gray-400 underline decoration-gray-300 underline-offset-4 hover:text-gray-600"
           >
             다음에 참여하기
