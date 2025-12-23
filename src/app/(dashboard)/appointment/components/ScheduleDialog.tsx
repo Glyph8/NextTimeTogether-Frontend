@@ -98,7 +98,7 @@ export const ScheduleDialog = ({
         className="w-full p-5 bg-[#E9E9EB]"
       >
         {isLoading ? (
-          <DefaultLoading />
+          <DefaultLoading isFullScreen={false} />
         ) : (
           finalScheduleDetail && (
             <div className="flex flex-col justify-center items-start gap-3 overflow-auto no-scrollbar">

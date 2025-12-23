@@ -161,7 +161,11 @@ export const useGroupDetail = (targetGroupId: string | null, options?: UseGroupD
   });
 
   // [성장 포인트] 로딩 및 에러 상태를 통합하여 사용하는 쪽에서 편하게 만듦
-  const isPending = isStep1Pending || isStep2Pending || isStep3Pending;
+  // 수정: 앞 단계가 성공한 경우에만 뒷 단계의 로딩 상태를 반영
+  const isPending =
+    isStep1Pending ||
+    (!!groupMetadata && isStep2Pending) ||
+    (!!groupKey && isStep3Pending);
   const error = errorStep1 || errorStep2 || errorStep3;
 
   return {

@@ -77,7 +77,7 @@ export const RatingDialog = ({
         className="w-full p-5 bg-[#E9E9EB]"
       >
         {isPending || !scheduleDetail ? (
-          <DefaultLoading />
+          <DefaultLoading isFullScreen={false} />
         ) : (
           <div className="flex flex-col w-full items-center gap-1">
             {!isRated ? (
