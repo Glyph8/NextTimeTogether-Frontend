@@ -23,11 +23,13 @@ import { useAuthStore } from "@/store/auth.store";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
 import {
   CheckWhenConfirmed,
+  CheckWhereConfirmed,
 } from "@/api/appointment";
 import { ConfirmedTimeCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedTimeCard";
 import { parseScheduleString } from "@/app/(dashboard)/appointment/[scheduleId]/detail/utils/formatter";
 import { parseConfrimedPromiseDateTime } from "../utils/promise-utils";
 import toast from "react-hot-toast";
+import { ConfirmedPlaceCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedPlaceCard";
 
 interface PromiseData {
   encMembers: any; // 실제 타입으로 변경 (예: EncryptedPromiseMemberId)
@@ -205,6 +207,34 @@ export default function ScheduleDetailPage() {
     refetchInterval: (query) => {
       const data = query.state.data;
       if (data && data.dateTime) {
+        // return false; // 확정 장소 재요청 안하는 경우
+        return 9000;
+      }
+      return 6000;
+    },
+    refetchIntervalInBackground: false,
+    staleTime: 0,
+    placeholderData: (previousData) => previousData,
+    enabled: !!promiseId,
+  });
+
+  const { data: confirmedPlace, isLoading: isConfirmedPlaceLoading } = useQuery({
+    queryKey: ["confirmedPlace", promiseId],
+    queryFn: async () => {
+      try {
+        const result = await CheckWhereConfirmed(promiseId);
+        console.log("🔵 장소 확정 여부 조회", result);
+        return result;
+      } catch (error) {
+        if (handlePromiseError(error)) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && data.placeName) {
         return false;
       }
       return 6000;
@@ -214,6 +244,7 @@ export default function ScheduleDetailPage() {
     placeholderData: (previousData) => previousData,
     enabled: !!promiseId,
   });
+
 
   const handleBack = () => {
     if (groupId) {
@@ -225,6 +256,7 @@ export default function ScheduleDetailPage() {
   };
 
   const isTimeConfirmed = !!confirmedTime && !!confirmedTime.dateTime;
+  const isPlaceConfirmed = !!confirmedPlace && !!confirmedPlace.placeName;
 
   // [수정] 로딩 상태 정의: 키 로딩 중이거나, 키가 있는데 데이터 로딩 중 (키 없으면 로딩 끝)
   const isGlobalLoading = isKeyLoading || (!!promiseKey && isPending);
@@ -341,7 +373,18 @@ export default function ScheduleDetailPage() {
           />
         )
       ) : (
-        <Where2Meet encMemberIdList={encPromiseMemberList} />
+        isPlaceConfirmed ? (
+          <div className="p-4">
+            <ConfirmedPlaceCard
+              placeName={confirmedPlace.placeName}
+              placeAddress={confirmedPlace.placeAddress}
+            />
+          </div>
+        ) : (
+          <Where2Meet
+            encMemberIdList={encPromiseMemberList}
+          />
+        )
       )}
     </div>
   );
