@@ -202,11 +202,17 @@ export default function CalendarPage() {
     }
   };
 
-  const handleDatesSet = (arg: {
-    view: { title: React.SetStateAction<string> };
-  }) => {
-    setCalendarTitle(arg.view.title);
+ const handleDatesSet = (arg: {
+  view: { 
+    title: React.SetStateAction<string>;
+    currentStart: Date; // FullCalendar가 제공하는 현재 뷰의 시작 날짜
   };
+}) => {
+  setCalendarTitle(arg.view.title);
+  
+  // 🔥 추가: 현재 보고 있는 달의 날짜로 상태 업데이트
+  setCurrentViewDate(arg.view.currentStart);
+};
 
   // DayScheduleDialog에 전달할 이벤트 필터링
   const eventsForSelectedDate = useMemo(() => {
