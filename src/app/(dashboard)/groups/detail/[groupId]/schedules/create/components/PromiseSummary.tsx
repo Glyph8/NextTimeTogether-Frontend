@@ -1,26 +1,8 @@
 import { getNickName } from "@/api/appointment";
 import { useQuery } from "@tanstack/react-query";
 import { DateTimeValue, PurposeType } from "../hooks/use-create-promise";
-
-// 1. 닉네임 가져오는 커스텀 훅
-const usePromiseMemberNames = (userIds: string[]) => {
-  return useQuery({
-    queryKey: ["promiseMemberNames", userIds],
-    queryFn: async () => {
-      if (!userIds || userIds.length === 0) return "";
-
-      const res = await getNickName({ userIds });
-
-      // 응답에서 닉네임만 추출하여 콤마로 연결된 문자열 생성
-      // API 응답 구조에 따라 userInfoDTOList가 없을 수도 있으므로 옵셔널 체이닝 사용
-      const names = res?.userInfoDTOList?.map((user: any) => user.userName).join(", ");
-      return names;
-    },
-    // ID가 있을 때만 쿼리 실행
-    enabled: !!userIds && userIds.length > 0,
-    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
-  });
-};
+import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
+import { usePromiseMemberNames } from "@/hooks/useGetMembers";
 
 // 필요한 데이터만 딱 받도록 Props 정의
 interface PromiseSummaryProps {

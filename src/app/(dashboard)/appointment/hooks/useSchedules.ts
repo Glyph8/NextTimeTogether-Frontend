@@ -50,13 +50,16 @@ const processTimestampItem = async (timestamp: string, masterKey: CryptoKey): Pr
   // 2. 그 외의 경우 (암호화된 문자열 케이스)
   // 예: "GmdBg9o0lCaRuiJP53ACgWo..."
   else {
-    const decrypted = await decryptDataWithCryptoKey(
-      timestamp,
-      masterKey,
-      "promise_proxy_user"
-    );
+    // TODO : 약속장의 개인키로 암호화되는 문제로 일단 암호화안한 처리 TESTED
+    console.log("TESTED 암호화된 스케줄 ", timestamp)
+    // const decrypted = await decryptDataWithCryptoKey(
+    //   timestamp,
+    //   masterKey,
+    //   "promise_proxy_user"
+    // );
     return {
-      id: decrypted,
+      // id: decrypted,
+      id: timestamp,
       isCalendar: false,
     };
   }
@@ -69,7 +72,8 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
   return useQuery({
     queryKey: ['schedules', { groupId, keyword }],
     queryFn: async () => {
-      const userId = useAuthStore.getState().userId;
+      const userId = localStorage.getItem("hashed_user_id_for_manager");
+      // const userId = useAuthStore.getState().userId;
       if (!userId) {
         console.warn("유저 ID가 없어 복호화를 진행할 수 없습니다.");
         return { result: [] };
@@ -102,7 +106,7 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
         console.log("timeStampData", timeStampList);
         // 3. 병렬 복호화 수행 (Promise.all)
         // timestamp 값을 복호화하여 scheduleId 리스트로 변환
-
+        // TODO : 약속장의 개인키로 암호화되는 문제로 일단 암호화안한 처리 TESTED
         const decryptedScheduleIds = await Promise.all(
           timeStampList.map(async (item: TimestampResDTO) => {
             try {
@@ -114,7 +118,7 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
             }
           })
         );
-
+        // const decryptedScheduleIds = timeStampList
         // 약속 ID만 필터링
         const validScheduleIds = decryptedScheduleIds.filter((item: ProcessedScheduleResult) => !item.isCalendar);
         // const validScheduleIds = decryptedScheduleIds;

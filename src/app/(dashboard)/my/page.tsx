@@ -8,10 +8,15 @@ import ArrowRight from "@/assets/svgs/icons/arrow-right-gray.svg";
 import { useRouter } from "next/navigation";
 import { logoutRequest } from "@/api/auth";
 import toast from "react-hot-toast";
+import { useMemberName } from "../groups/detail/[groupId]/(components)/GroupMemberItemContainer";
 
 export default function MyPage() {
   const router = useRouter();
-  const userId = useAuthStore.getState().userId;
+  // const userId = useAuthStore.getState().userId;
+  const userId = localStorage.getItem("hashed_user_id_for_manager");
+
+  const { data: memberName } = useMemberName(userId || '');
+
   const handleHistory = () => {
     router.push("/my/history");
   };
@@ -41,7 +46,7 @@ export default function MyPage() {
             className="border-gray-1 rounded-[8px]"
             crop="fill"
           />
-          <p className="text-[18px] ">{userId ?? "사용자"} 님</p>
+          <p className="text-[18px] ">{memberName ?? "사용자"} 님</p>
         </div>
         <div className="w-full flex flex-col bg-white">
           <div className="p-4 flex justify-between items-center h-13">
