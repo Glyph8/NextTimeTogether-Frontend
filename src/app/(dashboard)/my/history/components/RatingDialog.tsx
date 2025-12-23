@@ -7,12 +7,15 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import toast from "react-hot-toast";
 import { StarRatingInput } from "./StarRatingInput";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
+import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
+import { usePromiseDecryptedMemberNames } from "@/hooks/useGetMembers";
+import { ScheduleDetailSkeleton } from "@/components/ui/Loading/ScheduleDetailSkeleton";
 
 interface RatingDialogProps {
   isOpen: boolean;
@@ -41,11 +44,41 @@ export const RatingDialog = ({
       decryptedUserIds = scheduleData.encUserIds.map(
         (_id, index) => `익명 ${index + 1}`
       );
-      return { scheduleData, userIds: decryptedUserIds };
+      return scheduleData;
     },
   });
 
+  const { groupKey, isPending: isGroupPending } = useGroupDetail(scheduleDetail?.groupId || '');
+
+  const { data: realMemberNames, isLoading: isLoadingMemberNames } =
+    usePromiseDecryptedMemberNames(
+      scheduleDetail?.encUserIds ?? [], // 없으면 빈 배열
+      groupKey // useGroupDetail에서 가져온 키
+    );
+  // 5. 데이터 병합 (Presentation Logic)
+  const displayData = useMemo(() => {
+    if (!scheduleDetail) return null;
+
+    // 이름 표시 우선순위 로직
+    const displayNames =
+      realMemberNames && realMemberNames.length > 0
+        ? realMemberNames
+        : scheduleDetail.encUserIds.map((_, i) => `익명${i + 1}`);
+
+    return {
+      ...scheduleDetail,
+      displayNames, // string[]
+      parsedDate: parseScheduleString(scheduleDetail.scheduleId),
+    };
+  }, [scheduleDetail, realMemberNames]);
+
   const [rating, setRating] = useState<number>(0);
+
+  const isLoading =
+    isPending ||
+    isGroupPending ||
+    isLoadingMemberNames ||
+    !displayData;
 
   const handleRatingSubmit = async () => {
     const masterKey = await getMasterKey();
@@ -58,7 +91,7 @@ export const RatingDialog = ({
       toast.error("별점을 선택해주세요.");
       return;
     }
-    ratePlace(Number(scheduleDetail?.scheduleData.placeId), data)
+    ratePlace(Number(scheduleDetail?.placeId), data)
       .then(() => {
         toast.success("별점이 성공적으로 제출되었습니다.");
         setIsOpen(false);
@@ -76,16 +109,16 @@ export const RatingDialog = ({
         showCloseButton={false}
         className="w-full p-5 bg-[#E9E9EB]"
       >
-        {isPending || !scheduleDetail ? (
-          <DefaultLoading isFullScreen={false} />
+        {isPending || !scheduleDetail || !displayData ? (
+          <ScheduleDetailSkeleton />
         ) : (
           <div className="flex flex-col w-full items-center gap-1">
             {!isRated ? (
               <>
                 <h1 className="text-center text-lg text-black-1 font-medium leading-tight mb-4">
-                  {scheduleDetail.scheduleData.title} 약속에서 방문한 <br></br>
+                  {scheduleDetail.title} 약속에서 방문한 <br></br>
                   <span className="text-main text-lg">
-                    {scheduleDetail.scheduleData.placeName}
+                    {scheduleDetail.placeName}
                   </span>
                   은(는) 만족스러우셨나요?
                 </h1>
@@ -113,14 +146,14 @@ export const RatingDialog = ({
             )}
           </div>
         )}
-        {(showDetails || isRated) && scheduleDetail && (
+        {(showDetails || isRated) && scheduleDetail && displayData && (
           <div className="flex flex-col justify-center items-start gap-3 overflow-auto no-scrollbar">
             <span className="flex gap-5">
               <span className="text-gray-2 text-base font-normal leading-loose">
                 제목
               </span>
               <span className="text-black-1 text-base font-medium leading-loose">
-                {scheduleDetail.scheduleData.title}
+                {scheduleDetail.title}
               </span>
             </span>
 
@@ -129,7 +162,7 @@ export const RatingDialog = ({
                 목적
               </span>
               <div className="px-1 py-0.5 w-12 bg-indigo-600/10 rounded-lg inline-flex text-center justify-center items-center text-indigo-600 text-sm font-medium leading-none">
-                {scheduleDetail.scheduleData.type ?? "약속"}
+                {scheduleDetail.type ?? "약속"}
               </div>
             </span>
 
@@ -139,12 +172,12 @@ export const RatingDialog = ({
               </span>
               <span className="text-black-1 text-base font-normal leading-loose">
                 {
-                  parseScheduleString(scheduleDetail.scheduleData.scheduleId)
+                  parseScheduleString(scheduleDetail.scheduleId)
                     .date
                 }{" "}
                 <br />
                 {
-                  parseScheduleString(scheduleDetail.scheduleData.scheduleId)
+                  parseScheduleString(scheduleDetail.scheduleId)
                     .time
                 }
               </span>
@@ -155,7 +188,7 @@ export const RatingDialog = ({
                 장소
               </span>
               <span className="text-black-1 text-base font-normal  leading-loose">
-                {scheduleDetail.scheduleData.placeName}
+                {scheduleDetail.placeName}
               </span>
             </span>
 
@@ -164,7 +197,7 @@ export const RatingDialog = ({
                 그룹
               </span>
               <span className="text-black-1 text-base font-normal  leading-loose">
-                {scheduleDetail.scheduleData.groupName}
+                {scheduleDetail.groupName}
               </span>
             </span>
 
@@ -175,7 +208,10 @@ export const RatingDialog = ({
                 인원
               </span>
               <span className="text-black-1 text-base font-normal  leading-loose overflow-scroll no-scrollbar">
-                {scheduleDetail.userIds.map((member) => member).join(", ")}
+                {/* {scheduleDetail.userIds.map((member) => member).join(", ")} */}
+                {Array.isArray(displayData.displayNames)
+                  ? displayData.displayNames.join(", ")
+                  : displayData.displayNames}
               </span>
             </span>
           </div>

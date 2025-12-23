@@ -3,7 +3,7 @@
 import Search from "@/assets/svgs/icons/search.svg";
 import Header from "@/components/ui/header/Header";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ScheduleItem } from "../../appointment/components/ScheduleItem";
 import { useSchedules } from "../../appointment/hooks/useSchedules";
@@ -12,6 +12,9 @@ import { RatingDialog } from "./components/RatingDialog";
 import Link from "next/link";
 import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg";
 import { UnratedScheduleItem } from "./components/UnratedScheduleItem";
+import { usePromiseDecryptedMemberNames } from "@/hooks/useGetMembers";
+import { parseScheduleString } from "../../appointment/[scheduleId]/detail/utils/formatter";
+import { useGroupDetail } from "../../groups/detail/[groupId]/hooks/use-group-detail";
 
 export default function HistoryPage() {
   const queryClient = useQueryClient();
@@ -86,7 +89,7 @@ export default function HistoryPage() {
       <div className="flex-1 flex flex-col bg-white">
         {scheduleList.length > 0 ? (
           scheduleList.map((schedule: any) => (
-            <>
+            <div key={schedule.scheduleId}>
               {
                 schedule.isRated ? (
                   <ScheduleItem
@@ -114,7 +117,7 @@ export default function HistoryPage() {
                   />
                 )
               }
-            </>
+            </div>
           ))
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">

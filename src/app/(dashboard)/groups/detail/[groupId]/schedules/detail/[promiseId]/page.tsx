@@ -186,14 +186,6 @@ export default function ScheduleDetailPage() {
   });
 
   const isMaster = data?.managerId === decryptedUserId;
-  console.log(
-    "약속 매니저 아이디 : ",
-    data?.managerId,
-    "복호화된 유저 아이디 :",
-    decryptedUserId,
-    "매니저 여부 :",
-    isMaster
-  );
   const encPromiseMemberList = data?.encMembers;
 
   const { data: confirmedTime, isLoading: isConfirmedTimeLoading } = useQuery({
