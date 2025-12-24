@@ -70,7 +70,7 @@ const processTimestampItem = async (timestamp: string, masterKey: CryptoKey): Pr
 export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProps) => {
 
   return useQuery({
-    queryKey: ['schedules', { groupId, keyword }],
+    queryKey: ['schedules', { groupId, keyword, monthKey: targetDates?.[0] }],
     queryFn: async () => {
       const userId = localStorage.getItem("hashed_user_id_for_manager");
       // const userId = useAuthStore.getState().userId;
