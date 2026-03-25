@@ -24,7 +24,7 @@ export default function JoinGroupRequestPage() {
         <p className="mt-2 text-gray-600">
           링크가 만료되었거나 잘못되었습니다.
         </p>
-        <button onClick={() => router.push("/")} className="mt-4 underline">
+        <button onClick={() => router.push("/groups")} className="mt-4 underline">
           홈으로 가기
         </button>
       </div>

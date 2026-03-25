@@ -11,7 +11,7 @@ export default function AddPlaceDirectPage() {
   const searchParams = useSearchParams();
   const promiseId = searchParams.get("promiseId");
 
-  const {mutate} = useAddPlaceDirect(promiseId)
+  const { mutate } = useAddPlaceDirect(promiseId)
 
   const [placeName, setPlaceName] = useState("");
   const [placeAddr, setPlaceAddr] = useState("");
@@ -93,14 +93,14 @@ export default function AddPlaceDirectPage() {
           acceptedTitle={<div>장소를 성공적으로 등록했어요.</div>}
           rejectText={"취소"}
           acceptText={"등록"}
-          extraHandleReject={() => {}}
+          extraHandleReject={() => { }}
           extraHandleAccept={handleReturnToBoard}
         />
       </div>
 
       <Button
         text={"장소 등록하기"}
-        disabled={placeName === ""}
+        disabled={placeName === "" || placeAddr === ""}
         onClick={() => setOpenEnroll((prev) => !prev)}
       />
     </div>

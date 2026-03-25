@@ -23,11 +23,13 @@ import { useAuthStore } from "@/store/auth.store";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
 import {
   CheckWhenConfirmed,
+  CheckWhereConfirmed,
 } from "@/api/appointment";
 import { ConfirmedTimeCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedTimeCard";
 import { parseScheduleString } from "@/app/(dashboard)/appointment/[scheduleId]/detail/utils/formatter";
 import { parseConfrimedPromiseDateTime } from "../utils/promise-utils";
 import toast from "react-hot-toast";
+import { ConfirmedPlaceCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedPlaceCard";
 
 interface PromiseData {
   encMembers: any; // 실제 타입으로 변경 (예: EncryptedPromiseMemberId)
@@ -52,7 +54,8 @@ export default function ScheduleDetailPage() {
   } = useGroupDetail(groupId);
 
   const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
-  const userId = useAuthStore.getState().userId;
+  // const userId = useAuthStore.getState().userId;
+  const userId = localStorage.getItem("hashed_user_id_for_manager");
 
   const handlePromiseError = (error: any) => {
     if (
@@ -108,6 +111,19 @@ export default function ScheduleDetailPage() {
           return null;
         }
 
+        // [수정] 서버 조회 실패 시, URL Hash에서 키 복구 시도
+        const hash = window.location.hash;
+        console.log("⚠️ 약속 키 조회 실패. Hash 확인:", hash);
+
+        if (hash && hash.includes("pkey=")) {
+          const hashParams = new URLSearchParams(hash.substring(1));
+          const extractedKeyString = hashParams.get("pkey");
+          if (extractedKeyString) {
+            console.log("✅ Hash에서 약속 키 복구 성공");
+            return extractedKeyString;
+          }
+        }
+
         // ✅ [핵심] 에러가 발생해도 throw 하지 않고 콘솔에만 찍고 넘어갑니다.
         console.error("⚠️ 약속 키 조회 실패 (무시하고 진행):", error);
         // 에러 상황임을 알리는 null 반환 (React Query는 이를 '성공'으로 간주)
@@ -121,7 +137,7 @@ export default function ScheduleDetailPage() {
   });
 
   const { data, isPending } = useQuery<PromiseData>({
-    queryKey: ["promiseId", "encPromiseIds", promiseKey], // queryKey에 의존성 추가 권장
+    queryKey: ["promiseId", "encPromiseIds", promiseKey, groupKey], // queryKey에 의존성 추가 권장
     queryFn: async () => {
       try {
         console.log("🔵 암호화된 약속 멤버 ID 조회");
@@ -129,7 +145,7 @@ export default function ScheduleDetailPage() {
 
         // result.userIds가 배열인지 확인 (방어 코드)
         const targetIds = result.userIds || [];
-        if (!promiseKey) {
+        if (!promiseKey || !groupKey) {
           console.warn(
             "⚠️ 암호화 키가 없어 더미 데이터를 사용하여 렌더링합니다."
           );
@@ -141,7 +157,7 @@ export default function ScheduleDetailPage() {
             return await decryptDataWithCryptoKey(
               id,
               // promiseKey, // 상위 스코프의 promiseKey 사용
-              groupKey ?? "", // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐
+              groupKey, // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐 - 리얼 이거.. 얼탱..?
               // "promise_proxy_user",
               "group_sharekey"
             );
@@ -166,20 +182,12 @@ export default function ScheduleDetailPage() {
       }
     },
     // [중요] promiseKey가 존재할 때만 이 쿼리를 실행 (Dependent Query)
-    enabled: !!promiseKey,
+    enabled: !!promiseKey && !!groupKey,
     staleTime: 1000 * 60 * 5,
     retry: 1,
   });
 
   const isMaster = data?.managerId === decryptedUserId;
-  console.log(
-    "약속 매니저 아이디 : ",
-    data?.managerId,
-    "복호화된 유저 아이디 :",
-    decryptedUserId,
-    "매니저 여부 :",
-    isMaster
-  );
   const encPromiseMemberList = data?.encMembers;
 
   const { data: confirmedTime, isLoading: isConfirmedTimeLoading } = useQuery({
@@ -199,6 +207,34 @@ export default function ScheduleDetailPage() {
     refetchInterval: (query) => {
       const data = query.state.data;
       if (data && data.dateTime) {
+        // return false; // 확정 장소 재요청 안하는 경우
+        return 9000;
+      }
+      return 6000;
+    },
+    refetchIntervalInBackground: false,
+    staleTime: 0,
+    placeholderData: (previousData) => previousData,
+    enabled: !!promiseId,
+  });
+
+  const { data: confirmedPlace, isLoading: isConfirmedPlaceLoading } = useQuery({
+    queryKey: ["confirmedPlace", promiseId],
+    queryFn: async () => {
+      try {
+        const result = await CheckWhereConfirmed(promiseId);
+        console.log("🔵 장소 확정 여부 조회", result);
+        return result;
+      } catch (error) {
+        if (handlePromiseError(error)) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && data.placeName) {
         return false;
       }
       return 6000;
@@ -208,6 +244,7 @@ export default function ScheduleDetailPage() {
     placeholderData: (previousData) => previousData,
     enabled: !!promiseId,
   });
+
 
   const handleBack = () => {
     if (groupId) {
@@ -219,6 +256,12 @@ export default function ScheduleDetailPage() {
   };
 
   const isTimeConfirmed = !!confirmedTime && !!confirmedTime.dateTime;
+  const isPlaceConfirmed = !!confirmedPlace && !!confirmedPlace.placeName;
+
+  // [수정] 로딩 상태 정의: 키 로딩 중이거나, 키가 있는데 데이터 로딩 중 (키 없으면 로딩 끝)
+  const isGlobalLoading = isKeyLoading || (!!promiseKey && isPending);
+  // 키도 없고 로딩도 끝났으면 에러 상태
+  const isKeyError = !isKeyLoading && !promiseKey;
 
   return (
     <div className="flex flex-col flex-1 w-full bg-[#f9f9f9]">
@@ -309,8 +352,12 @@ export default function ScheduleDetailPage() {
         </button>
       </nav>
 
-      {isPending || !encPromiseMemberList ? (
+      {isGlobalLoading ? (
         <DefaultLoading />
+      ) : isKeyError ? (
+        <div className="flex flex-col items-center justify-center h-64">
+          <p className="text-gray-500">약속 정보를 불러올 수 없습니다. (키 오류)</p>
+        </div>
       ) : tab ? (
         isTimeConfirmed ? (
           <div className="p-4">
@@ -326,8 +373,21 @@ export default function ScheduleDetailPage() {
           />
         )
       ) : (
-        <Where2Meet encMemberIdList={encPromiseMemberList} />
+        isPlaceConfirmed ? (
+          <div className="p-4">
+            <ConfirmedPlaceCard
+              placeName={confirmedPlace.placeName}
+              placeAddress={confirmedPlace.placeAddress}
+            />
+          </div>
+        ) : (
+          <Where2Meet
+            encMemberIdList={encPromiseMemberList}
+          />
+        )
       )}
     </div>
   );
 }
+
+

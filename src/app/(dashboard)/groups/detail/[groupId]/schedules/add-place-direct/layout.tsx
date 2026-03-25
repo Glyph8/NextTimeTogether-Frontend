@@ -9,20 +9,20 @@ export default function AddPlaceLayout({
     children: React.ReactNode;
 }>) {
     const router = useRouter();
-    const handleBackClick = () => router.push("/")
-    console.log(ArrowLeft); 
+    const handleBackClick = () => router.back()
+    console.log(ArrowLeft);
     return (
         <div className="flex flex-col flex-1 bg-white">
             <Header
-        leftChild={
-          <ArrowLeft
-            className="w-6 h-6 text-black fill-current"
-            onClick={handleBackClick}
-          />
-        }
-        title={"직접 입력하기"}
-        setShadow={false}
-      />
+                leftChild={
+                    <ArrowLeft
+                        className="w-6 h-6 text-black fill-current"
+                        onClick={handleBackClick}
+                    />
+                }
+                title={"직접 입력하기"}
+                setShadow={false}
+            />
             <main className="flex flex-col flex-1 overflow-y-auto px-4">
                 {children}
             </main>

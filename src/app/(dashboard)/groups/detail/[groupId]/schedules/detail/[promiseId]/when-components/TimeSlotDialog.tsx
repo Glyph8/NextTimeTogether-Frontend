@@ -42,8 +42,8 @@ export default function TimeSlotDialog({
     return timeStr.substring(0, 5);
   };
 
-  if(isLoading){
-    return <DefaultLoading/>
+  if (isLoading) {
+    return <DefaultLoading isFullScreen={false} />
   }
 
   return (

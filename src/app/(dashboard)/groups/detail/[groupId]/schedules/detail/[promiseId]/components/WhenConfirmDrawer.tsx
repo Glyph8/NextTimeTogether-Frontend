@@ -290,7 +290,7 @@ export const WhenConfirmDrawer = ({
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {isLoading ? (
             <div className="h-full flex items-center justify-center">
-              <DefaultLoading />
+              <DefaultLoading isFullScreen={false} />
             </div>
           ) : (
             <>
@@ -312,9 +312,8 @@ export const WhenConfirmDrawer = ({
                             ?.label || "날짜 선택"}
                         </span>
                         <ChevronDown
-                          className={`w-5 h-5 text-gray-400 transition-transform ${
-                            isDateOpen ? "rotate-180" : ""
-                          }`}
+                          className={`w-5 h-5 text-gray-400 transition-transform ${isDateOpen ? "rotate-180" : ""
+                            }`}
                         />
                       </button>
 
@@ -327,11 +326,10 @@ export const WhenConfirmDrawer = ({
                                 setSelectedDate(option.value);
                                 setIsDateOpen(false);
                               }}
-                              className={`w-full px-4 py-3 text-left text-sm hover:bg-purple-50 transition-colors ${
-                                selectedDate === option.value
+                              className={`w-full px-4 py-3 text-left text-sm hover:bg-purple-50 transition-colors ${selectedDate === option.value
                                   ? "text-purple-600 font-bold bg-purple-50"
                                   : "text-gray-600"
-                              }`}
+                                }`}
                             >
                               {option.label}
                             </button>
@@ -376,11 +374,10 @@ export const WhenConfirmDrawer = ({
                                   setStartTime(opt.value);
                                   setIsStartTimeOpen(false);
                                 }}
-                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                                  startTime === opt.value
+                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${startTime === opt.value
                                     ? "text-purple-600 font-bold"
                                     : ""
-                                }`}
+                                  }`}
                               >
                                 {opt.label}
                               </button>
@@ -411,11 +408,10 @@ export const WhenConfirmDrawer = ({
                                   setEndTime(opt.value);
                                   setIsEndTimeOpen(false);
                                 }}
-                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                                  endTime === opt.value
+                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${endTime === opt.value
                                     ? "text-purple-600 font-bold"
                                     : ""
-                                }`}
+                                  }`}
                               >
                                 {opt.label}
                               </button>
@@ -448,9 +444,8 @@ export const WhenConfirmDrawer = ({
                           }
                         </span>
                         <ChevronDown
-                          className={`w-5 h-5 text-gray-400 transition-transform ${
-                            isDurationOpen ? "rotate-180" : ""
-                          }`}
+                          className={`w-5 h-5 text-gray-400 transition-transform ${isDurationOpen ? "rotate-180" : ""
+                            }`}
                         />
                       </button>
                       {isDurationOpen && (
@@ -462,11 +457,10 @@ export const WhenConfirmDrawer = ({
                                 setSelectedDuration(option.value);
                                 setIsDurationOpen(false);
                               }}
-                              className={`w-full px-4 py-3 text-left text-sm hover:bg-purple-50 transition-colors ${
-                                selectedDuration === option.value
+                              className={`w-full px-4 py-3 text-left text-sm hover:bg-purple-50 transition-colors ${selectedDuration === option.value
                                   ? "text-purple-600 font-bold bg-purple-50"
                                   : "text-gray-600"
-                              }`}
+                                }`}
                             >
                               {option.label}
                             </button>
@@ -506,19 +500,17 @@ export const WhenConfirmDrawer = ({
                           key={index}
                           onClick={() => setSelectedRecommendation(index)}
                           className={`relative flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 
-                            ${
-                              isSelected
-                                ? "border-purple-500 bg-purple-50 shadow-md transform scale-[1.01]"
-                                : "border-gray-200 bg-white hover:border-gray-300"
+                            ${isSelected
+                              ? "border-purple-500 bg-purple-50 shadow-md transform scale-[1.01]"
+                              : "border-gray-200 bg-white hover:border-gray-300"
                             }`}
                         >
                           {/* Badge */}
                           <div
-                            className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg ${
-                              index === 0
+                            className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg ${index === 0
                                 ? "bg-yellow-100 text-yellow-700"
                                 : "bg-gray-100 text-gray-500"
-                            }`}
+                              }`}
                           >
                             <span className="text-xs font-bold">
                               {index + 1}순위
@@ -541,11 +533,10 @@ export const WhenConfirmDrawer = ({
                           {/* Radio Indicator */}
                           <div
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
-                            ${
-                              isSelected
+                            ${isSelected
                                 ? "border-purple-600"
                                 : "border-gray-300"
-                            }`}
+                              }`}
                           >
                             {isSelected && (
                               <div className="w-2.5 h-2.5 bg-purple-600 rounded-full" />

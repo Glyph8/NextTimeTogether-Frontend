@@ -8,7 +8,7 @@ interface AuthState {
   userId: string | null;
   isAuthenticated: boolean;     // 인증 여부 (AT 유무로 파생)
   isLoading: boolean;           // (중요) 앱 로드 시 토큰 갱신 중인지 여부
-  
+
   // 상태를 변경하는 액션
   setAccessToken: (token: string) => void;
   setUserId: (userId: string) => void;
@@ -26,15 +26,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   userId: null,
   isAuthenticated: false,
   isLoading: true, // <-- 앱 로드 시, 토큰 확인 전까지 로딩 상태
-  
+
   /**
    * AccessToken을 스토어(메모리)에 저장합니다.
    * 인증 상태를 true로, 로딩 상태를 false로 변경합니다.
    */
-  setAccessToken: (token) => set({ 
-    accessToken: token, 
-    isAuthenticated: true, 
-    isLoading: false 
+  setAccessToken: (token) => set({
+    accessToken: token,
+    isAuthenticated: true,
+    isLoading: false
   }),
 
   setUserId: (userId) => set({
@@ -43,11 +43,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   /**
    * 로그아웃 또는 세션 만료 시 토큰을 제거합니다.
    */
-  clearAccessToken: () => set({ 
-    accessToken: null, 
+  clearAccessToken: () => set({
+    accessToken: null,
     userId: null,
-    isAuthenticated: false, 
-    isLoading: false 
+    isAuthenticated: false,
+    isLoading: false
   }),
 
   /**

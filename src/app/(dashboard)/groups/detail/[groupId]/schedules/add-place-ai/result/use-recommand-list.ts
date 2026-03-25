@@ -8,9 +8,10 @@ export const useRecommandList = (
   promiseId: string,
   latitude: number,
   longitude: number,
-  purpose:string,
+  purpose: string,
 ) => {
-  const userId = useAuthStore((state) => state.userId);
+  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  // const userId = useAuthStore((state) => state.userId);
 
   const {
     data: recommandList,
@@ -25,7 +26,7 @@ export const useRecommandList = (
         console.error("사용자 아이디 혹은 마스터키 오류");
         throw new Error("Auth Failed");
       }
-      const pseudoId  = await encryptDataClient(userId, masterKey, "user_iv")
+      const pseudoId = await encryptDataClient(userId, masterKey, "user_iv")
 
       const requestBody = {
         pseudoId: pseudoId,

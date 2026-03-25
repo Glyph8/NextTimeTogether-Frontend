@@ -15,10 +15,10 @@ export default function LoginLayout({
         <div className="flex flex-col min-h-screen bg-white">
             <Header
                 leftChild={
-                    <ArrowLeft className="w-6 h-6 text-black fill-current" onClick={handleBackClick}/>
+                    <ArrowLeft className="w-6 h-6 text-black fill-current" onClick={handleBackClick} />
                 }
                 title={
-                        "아이디로 로그인"
+                    "아이디로 로그인"
                 } />
             <div className="flex-1 overflow-y-auto px-4">
                 {children}

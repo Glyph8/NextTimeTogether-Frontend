@@ -1,8 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-
 import { getMasterKey } from "@/utils/client/key-storage";
 import {
   getEncGroupsIdAction,
@@ -12,11 +10,11 @@ import {
 import {
   ViewGroupFirstResponseData,
   ViewGroupSecResponseData,
-  ViewGroupThirdResponseData,
 } from "@/api/group-view-create";
 import decryptDataClient from "@/utils/client/crypto/decryptClient";
 import { base64ToArrayBuffer } from "@/utils/client/helper";
 
+// 타입 정의 유지 (GroupInfoData, DecryptedGroupInfo 등)
 export interface GroupInfoData {
   groupId: string;
   groupName: string;
@@ -31,319 +29,135 @@ export interface DecryptedGroupInfo extends Omit<GroupInfoData, "encUserId"> {
 }
 
 /**
- * E2EE 그룹 목록 조회를 위한 3단계 폭포수 쿼리 훅
+ * E2EE 그룹 목록 조회를 위한 Dependent Query Hook
+ * useEffect 제거 및 queryFn 내부 복호화 적용
  */
 export const useDecryptedGroupList = () => {
-  // 1단계 결과
-  const [decryptedGroupObjects, setDecryptedGroupObjects] = useState<
-    { groupId: string; encGroupMemberId: string }[] | null
-  >(null);
-
-  // 2단계 결과
-  const [decryptedGroupKeys, setDecryptedGroupKeys] = useState<
-    CryptoKey[] | null
-  >(null);
-
-  // 에러 상태
-  const [error, setError] = useState<string | null>(null);
-
-  // 빈 배열 조기 종료 플래그
-  const [isEmptyResult, setIsEmptyResult] = useState<boolean>(false);
-
-  // --- 1단계: 암호화된 GroupId/MemberId 조회 ---
-  const {
-    data: encData,
-    isPending: isPending1,
-    error: queryError1,
-  } = useQuery({
-    queryKey: ["groupList", "step1", "encIds"],
+  // --- 1단계: 암호화된 ID 조회 및 복호화 ---
+  const step1Query = useQuery({
+    queryKey: ["groupList", "step1", "decryptedIds"],
     queryFn: async () => {
-      console.log("🔵 [1단계] 암호화된 그룹 ID 조회 시작");
+      // 1. 데이터 가져오기
       const result = await getEncGroupsIdAction();
 
-      if (result.error) {
-        console.error("🔴 [1단계] 에러:", result.error);
-        throw new Error(result.error);
-      }
+      if (result.error) throw new Error(result.error);
+      if (!result.data || result.data.length === 0) return []; // 빈 배열 즉시 반환
 
-      if (!result.data || result.data.length === 0) {
-        console.log("⚠️ [1단계] 데이터가 비어있음 - 조기 종료");
-        return [];
-      }
+      const encData = result.data as ViewGroupFirstResponseData[];
+      const masterKey = await getMasterKey();
+      if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
 
-      return result.data as ViewGroupFirstResponseData[];
+      // 2. 즉시 복호화 수행 (병렬 처리)
+      const decryptedPromises = encData.map(async (item) => {
+        const [groupId, encGroupMemberId] = await Promise.all([
+          decryptDataClient(item.encGroupId, masterKey, "group_proxy_user"),
+          decryptDataClient(item.encencGroupMemberId, masterKey, "group_proxy_user")
+        ]);
+
+        return { groupId, encGroupMemberId };
+      });
+
+      return Promise.all(decryptedPromises);
     },
     staleTime: 1000 * 60 * 5,
-    retry: 1,
   });
 
-  // --- 1단계 복호화 useEffect ---
-  useEffect(() => {
-    if (!encData) {
-      console.log("⏸️ [1단계 복호화] 대기 중 - encData가 없음");
-      return;
-    }
+  const decryptedGroupObjects = step1Query.data;
+  const isStep1Empty = decryptedGroupObjects?.length === 0;
 
-    // 빈 배열이면 조기 종료 플래그 설정하고 빈 배열로 처리
-    if (encData.length === 0) {
-      console.log("✅ [1단계 복호화] 빈 배열 감지 - 조기 종료 처리");
-      setIsEmptyResult(true);
-      setDecryptedGroupObjects([]);
-      return;
-    }
-
-    const decryptStep1Data = async () => {
-      try {
-        // console.log("🟡 [1단계 복호화] 시작 - 데이터 개수:", encData.length);
-
-        const masterKey = await getMasterKey();
-        // console.log("🟡 [1단계 복호화] 마스터키 로드 완료:", !!masterKey);
-
-        if (!masterKey) {
-          throw new Error("마스터키를 찾을 수 없습니다.");
-        }
-
-        const decryptedPromises = encData.map(async (item, index) => {
-          // console.log(`🟡 [1단계 복호화] ${index + 1}번째 항목 처리 중...`);
-
-          const decryptedGroupId = await decryptDataClient(
-            item.encGroupId,
-            masterKey,
-            "group_proxy_user"
-          );
-
-          const decryptedGroupMemberId = await decryptDataClient(
-            item.encencGroupMemberId,
-            masterKey,
-            "group_proxy_user"
-          );
-          return {
-            groupId: decryptedGroupId,
-            encGroupMemberId: decryptedGroupMemberId,
-          };
-        });
-
-        const decrypted = await Promise.all(decryptedPromises);
-        console.log("✅ [1단계 복호화] 전체 완료 - 결과:", decrypted);
-
-        setDecryptedGroupObjects(decrypted);
-        setIsEmptyResult(false); // 정상 데이터가 있으면 플래그 해제
-      } catch (err) {
-        console.error("🔴 [1단계 복호화] 실패:", err);
-        const errorMessage =
-          err instanceof Error ? err.message : "1단계 복호화 오류";
-        console.error("🔴 [1단계 복호화] 에러 메시지:", errorMessage);
-        setError(errorMessage);
-      }
-    };
-
-    decryptStep1Data();
-  }, [encData]);
-
-  // --- 2단계: 암호화된 GroupKey 조회 ---
-  const {
-    data: encKeys,
-    isPending: isPending2,
-    error: queryError2,
-  } = useQuery({
-    queryKey: ["groupList", "step2", "encKeys", decryptedGroupObjects],
+  // --- 2단계: 그룹 키 조회 및 복호화 ---
+  const step2Query = useQuery({
+    queryKey: ["groupList", "step2", "decryptedKeys", decryptedGroupObjects],
     queryFn: async () => {
-      console.log("🔵 [2단계] 암호화된 그룹 키 조회 시작");
-      // console.log("🔵 [2단계] 요청 데이터:", decryptedGroupObjects);
+      // 상위 데이터가 없으면 실행되지 않지만, 타입 안전성을 위해 체크
+      if (!decryptedGroupObjects || decryptedGroupObjects.length === 0) return [];
 
-      const result = await getEncGroupsKeyAction(decryptedGroupObjects!);
-      // console.log("🔵 [2단계] 서버 응답:", result);
+      const result = await getEncGroupsKeyAction(decryptedGroupObjects);
+      if (result.error) throw new Error(result.error);
 
-      if (result.error) {
-        console.error("🔴 [2단계] 에러:", result.error);
-        throw new Error(result.error);
-      }
+      const encKeys = result.data as ViewGroupSecResponseData[];
+      const masterKey = await getMasterKey();
+      if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
 
-      // console.log("✅ [2단계] 성공 - 데이터 개수:", result.data?.length);
-      return result.data as ViewGroupSecResponseData[];
-    },
-    // 빈 배열이면 2단계 실행 안 함
-    enabled:
-      !isEmptyResult &&
-      !!decryptedGroupObjects &&
-      decryptedGroupObjects.length > 0,
-    staleTime: 1000 * 60 * 5,
-    retry: 1,
-  });
-
-  // --- 2단계 복호화 useEffect ---
-  useEffect(() => {
-    // 빈 배열 조기 종료 상태면 스킵
-    if (isEmptyResult) {
-      console.log("⏸️ [2단계 복호화] 빈 배열 상태로 스킵");
-      return;
-    }
-
-    if (!encKeys) {
-      console.log("⏸️ [2단계 복호화] 대기 중 - encKeys가 없음");
-      return;
-    }
-
-    if (encKeys.length === 0) {
-      console.log("⏸️ [2단계 복호화] 데이터가 비어있음");
-      setDecryptedGroupKeys([]);
-      return;
-    }
-
-    const decryptStep2Data = async () => {
-      try {
-        console.log("🟡 [2단계 복호화] 시작 - 데이터 개수:", encKeys.length);
-
-        const masterKey = await getMasterKey();
-        // console.log("🟡 [2단계 복호화] 마스터키 로드 완료:", !!masterKey);
-
-        if (!masterKey) {
-          throw new Error("마스터키를 찾을 수 없습니다.");
-        }
-
-        const decryptedPromises = encKeys.map(async (item, index) => {
-          // console.log(`🟡 [2단계 복호화] ${index + 1}번째 그룹 키 처리 중...`);
-
-          const groupKeyString = await decryptDataClient(
-            item.encGroupKey,
-            masterKey,
-            "group_sharekey"
-          );
-
-          const groupKeyArrayBuffer = base64ToArrayBuffer(groupKeyString);
-
-          const cryptoKey = await crypto.subtle.importKey(
-            "raw",
-            groupKeyArrayBuffer,
-            { name: "AES-GCM" },
-            false,
-            ["decrypt"]
-          );
-
-          return cryptoKey;
-        });
-
-        const newCryptoKeys = await Promise.all(decryptedPromises);
-        console.log(
-          "✅ [2단계 복호화] 전체 완료 - CryptoKey 개수:",
-          newCryptoKeys.length
+      // 키 복호화 및 importKey 수행
+      const keyPromises = encKeys.map(async (item) => {
+        const groupKeyString = await decryptDataClient(
+          item.encGroupKey,
+          masterKey,
+          "group_sharekey"
         );
+        const groupKeyArrayBuffer = base64ToArrayBuffer(groupKeyString);
+        return await crypto.subtle.importKey(
+          "raw",
+          groupKeyArrayBuffer,
+          { name: "AES-GCM" },
+          false,
+          ["decrypt"]
+        );
+      });
 
-        setDecryptedGroupKeys(newCryptoKeys);
-      } catch (err) {
-        console.error("🔴 [2단계 복호화] 실패:", err);
-        const errorMessage =
-          err instanceof Error ? err.message : "2단계 복호화 오류";
-        console.error("🔴 [2단계 복호화] 에러 메시지:", errorMessage);
-        setError(errorMessage);
-      }
-    };
+      return Promise.all(keyPromises);
+    },
+    // 1단계가 성공했고, 데이터가 있을 때만 실행
+    enabled: !!decryptedGroupObjects && !isStep1Empty,
+    staleTime: 1000 * 60 * 5,
+  });
 
-    decryptStep2Data();
-  }, [encKeys, isEmptyResult]);
+  const decryptedGroupKeys = step2Query.data;
 
-  // --- 3단계: 암호화된 그룹 정보(유저 목록) 조회 ---
-  const {
-    data: finalDecryptedData,
-    isPending: isPending3,
-    error: queryError3,
-  } = useQuery<DecryptedGroupInfo[]>({
-    queryKey: [
-      "groupList",
-      "step3",
-      "finalData",
-      decryptedGroupObjects,
-      decryptedGroupKeys,
-    ],
+  // --- 3단계: 그룹 정보 조회 및 최종 복호화 ---
+  const step3Query = useQuery({
+    queryKey: ["groupList", "step3", "finalData", decryptedGroupObjects],
     queryFn: async () => {
-      console.log("🔵 [3단계] 그룹 정보 조회 시작");
+      if (!decryptedGroupObjects || !decryptedGroupKeys) return [];
 
-      const groupIdObjects = decryptedGroupObjects!.map((item) => ({
+      const groupIdObjects = decryptedGroupObjects.map((item) => ({
         groupId: item.groupId,
       }));
 
       const result = await getGroupsInfoAction(groupIdObjects);
-
-      if (result.error) {
-        console.error("🔴 [3단계] 에러:", result.error);
-        throw new Error(result.error);
-      }
+      if (result.error) throw new Error(result.error);
 
       const finalEncData = result.data;
-      // const finalEncData = result.data as ViewGroupThirdResponseData[];
+      if (!finalEncData) throw new Error("3단계 데이터 없음");
 
-      if (!finalEncData) {
-        throw new Error("3단계 요청 응답이 undefined");
-      }
+      // 최종 데이터 복호화
+      const finalPromises = finalEncData.map(async (groupData, index) => {
+        const groupCryptoKey = decryptedGroupKeys[index];
 
-      console.log("🟡 [3단계 복호화] 시작");
-
-      const decryptedPromises = finalEncData.map(async (groupData, index) => {
-        const groupCryptoKey = decryptedGroupKeys![index];
-
-        const decryptionPromises = groupData.encUserId.map(
-          async (encId, memberIndex) => {
-            return await decryptDataClient(
-              encId,
-              groupCryptoKey,
-              "group_sharekey"
-            );
-          }
+        // 유저 ID 목록 복호화
+        const userDecryptionPromises = groupData.encUserId.map((encId) =>
+          decryptDataClient(encId, groupCryptoKey, "group_sharekey")
         );
-
-        const decryptedMemberIds = await Promise.all(decryptionPromises);
+        const decryptedMemberIds = await Promise.all(userDecryptionPromises);
 
         return {
-          groupId: groupData.groupId,
-          groupName: groupData.groupName,
-          groupImg: groupData.groupImg,
-          explanation: groupData.explanation,
-          managerId: groupData.managerId,
-          userIds: decryptedMemberIds,
-        };
+          ...groupData,
+          userIds: decryptedMemberIds, // 복호화된 ID 교체
+        } as DecryptedGroupInfo;
       });
 
-      const result_final = await Promise.all(decryptedPromises);
-      console.log("✅ [3단계 복호화] 전체 완료 - 최종 결과:", result_final);
-
-      return result_final;
+      return Promise.all(finalPromises);
     },
-    // 빈 배열이면 3단계 실행 안 함
-    enabled:
-      !isEmptyResult &&
-      !!decryptedGroupObjects &&
-      !!decryptedGroupKeys &&
-      decryptedGroupObjects.length > 0 &&
-      decryptedGroupKeys.length > 0 &&
-      decryptedGroupObjects.length === decryptedGroupKeys.length,
+    // 1, 2단계 데이터가 모두 존재해야 실행
+    enabled: !!decryptedGroupObjects && !!decryptedGroupKeys && !isStep1Empty,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
   });
 
-  // 모든 쿼리 에러 통합
-  useEffect(() => {
-    if (queryError1) {
-      console.error("🔴 [Query Error 1]:", queryError1);
-      setError(queryError1.message);
-    }
-    if (queryError2) {
-      console.error("🔴 [Query Error 2]:", queryError2);
-      setError(queryError2.message);
-    }
-    if (queryError3) {
-      console.error("🔴 [Query Error 3]:", queryError3);
-      setError(queryError3.message);
-    }
-  }, [queryError1, queryError2, queryError3]);
+  // --- 최종 반환 ---
 
-  // 빈 배열 조기 종료 케이스 처리
+  // 1단계에서 빈 배열이면 로딩 끝난 것으로 간주하고 빈 배열 반환
+  if (step1Query.isSuccess && isStep1Empty) {
+    return {
+      data: [],
+      isPending: false,
+      error: null,
+    };
+  }
+
   return {
-    data: isEmptyResult ? [] : finalDecryptedData,
-    isPending: isPending1 || (isEmptyResult ? false : isPending2 || isPending3),
-    error:
-      error ||
-      queryError1?.message ||
-      queryError2?.message ||
-      queryError3?.message,
+    data: step3Query.data ?? [], // 아직 로딩 중이거나 에러면 빈 배열(혹은 undefined)
+    isPending: step1Query.isPending || step2Query.isPending || step3Query.isPending,
+    error: step1Query.error?.message || step2Query.error?.message || step3Query.error?.message,
   };
 };
