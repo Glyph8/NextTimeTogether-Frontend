@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import "./globals.css";
 import { pretandard } from "./fonts";
 import { Providers } from "./providers";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "타임투게더",
@@ -13,16 +14,14 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-
+  const nonce = (await headers()).get("x-nonce") ?? "";
   return (
     <html lang="ko" className={`${pretandard.variable}`}>
       <head>
         <title>Time Together</title>
       </head>
       <body className="bg-[#8E98A8] text-black-1 ">
-        <Providers>
-          {children}
-        </Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );

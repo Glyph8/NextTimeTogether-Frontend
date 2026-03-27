@@ -7,17 +7,16 @@ import { useState } from "react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
-// 1. Providers가 받을 props 타입을 정의합니다.
 interface ProvidersProps {
   children: React.ReactNode;
+  nonce?: string;
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, nonce }: ProvidersProps) {
   const { isRestoring } = useAuthSession();
   const [queryClient] = useState(
     () =>
       new QueryClient({
-        // ... (queryClient 옵션)
       })
   );
 
@@ -27,7 +26,6 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       <Toaster
         position="bottom-center"
         toastOptions={{

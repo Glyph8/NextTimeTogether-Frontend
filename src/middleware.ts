@@ -4,32 +4,19 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   // 매 요청마다 고유한 nonce 값 생성
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-
   // 개발 중에 HMR 등 허용을 위한 예외처리
   const isDevelopment = process.env.NODE_ENV === "development";
-  // console.log('🔍 Environment:', process.env.NODE_ENV);
-  // console.log('🔍 isDevelopment:', isDevelopment);
 
-  // const scriptSrcPolicy = isDevelopment
-  //   ? `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
-  //   : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
+  const scriptSrcPolicy = isDevelopment
+    ? `'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
+    : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
 
   // ✅ 개발 환경에서는 nonce 없이 unsafe-inline만 사용
-  // const styleSrcPolicy = isDevelopment
-  //   ? `'self' 'unsafe-inline'`
-  //   : `'self' 'nonce-${nonce}'`;
   const styleSrcPolicy = `'self' 'unsafe-inline'`;
 
   // 통신 예외가 될 API URL, 추후 웹소켓 사용할 경우 추가 필요.
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const connectSrcPolicy = `'self' ${apiBaseUrl || ""}`.trim();
-  // Cloudinary 도메인 (이미지용)
-  const cloudinaryDomain = "https://res.cloudinary.com";
-  // Cloudinary 위젯 도메인 (iframe용)
-  const cloudinaryWidgetDomain = "https://upload-widget.cloudinary.com"; // ✅ 추가
-
-  // cloudinary 를 위해 임시로 strict-dynamic 해제 - LATER : 백엔드 측에서 이미지 처리 준비되면 대체예정
-  const scriptSrcPolicy = `'self' 'unsafe-inline' 'unsafe-eval' ${cloudinaryWidgetDomain}`;
 
   // CSP 정책 모음
   const cspHeader = `
@@ -37,13 +24,13 @@ export function middleware(request: NextRequest) {
     connect-src ${connectSrcPolicy};
    script-src ${scriptSrcPolicy};
     style-src ${styleSrcPolicy};
-    img-src 'self' blob: data: ${cloudinaryDomain};
+    img-src 'self' blob: data:;
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    frame-src 'self' ${cloudinaryWidgetDomain};
+    frame-src 'self';
     upgrade-insecure-requests;
   `;
 
