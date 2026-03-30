@@ -15,6 +15,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const nonce = (await headers()).get("x-nonce") ?? "";
+  
   return (
     <html lang="ko" className={`${pretandard.variable}`}>
       <head>
