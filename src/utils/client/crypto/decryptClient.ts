@@ -48,4 +48,12 @@ async function decryptDataWithCryptoKey(
   }
 }
 
+async function decryptDataWithCryptoKey(
+  encrypted: string,
+  masterKeyOrString: CryptoKey | string,
+  role?: string
+) {
+  return decryptDataCompat(encrypted, masterKeyOrString, role);
+}
+
 export default decryptDataWithCryptoKey;

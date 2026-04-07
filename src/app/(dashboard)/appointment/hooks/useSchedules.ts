@@ -2,9 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAllScheduleList, getScheduleListPerGroups, getTimeStampList, searchScheduleList, TimestampResDTO } from '@/api/appointment';
 import { GetPromiseBatchReqDTO } from '@/apis/generated/Api';
 import { getMasterKey } from '@/utils/client/key-storage';
-import decryptDataWithCryptoKey from '@/utils/client/crypto/decryptClient';
-import { encryptDataClient } from '@/utils/client/crypto/encryptClient';
-import { useAuthStore } from '@/store/auth.store';
+import { makePseudoId } from '@/utils/client/crypto/encryptClient';
 
 const generateCurrentMonthDates = (): string[] => {
   const date = new Date();
@@ -73,9 +71,14 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
     queryKey: ['schedules', { groupId, keyword, monthKey: targetDates?.[0] }],
     queryFn: async () => {
       const userId = localStorage.getItem("hashed_user_id_for_manager");
+      const pseudoIdIndexKey = localStorage.getItem("pseudo_id_index_key") || userId;
       // const userId = useAuthStore.getState().userId;
       if (!userId) {
-        console.warn("유저 ID가 없어 복호화를 진행할 수 없습니다.");
+        console.warn("유저 ID가 없습니다.");
+        return { result: [] };
+      }
+      if (!pseudoIdIndexKey) {
+        console.warn("pseudo_id_index_key가 없습니다.");
         return { result: [] };
       }
       const masterKey = await getMasterKey();
@@ -87,8 +90,9 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
       // 1. 검색어가 있을 경우 검색 API 호출
       if (keyword) {
         console.log("keyword 존재함", keyword);
+        const pseudoId = await makePseudoId(userId, pseudoIdIndexKey);
         return await searchScheduleList(keyword, {
-          pseudoId: await encryptDataClient(userId, masterKey, "psudo_id") || ""
+          pseudoId
         });
       }
 
@@ -129,7 +133,7 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
         }
 
         const data = {
-          pseudoId: await encryptDataClient(userId, masterKey, "psudo_id") || "",
+          pseudoId: await makePseudoId(userId, pseudoIdIndexKey),
         };
 
         // 4. 복호화된 ID 리스트로 DTO 구성

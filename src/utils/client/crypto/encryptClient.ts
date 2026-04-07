@@ -11,7 +11,9 @@ import { arrayBufferToBase64, base64ToArrayBuffer } from "../helper";
  */
 export async function encryptDataClient(
   plainText: string,
-  masterKeyOrString: CryptoKey | string
+  masterKeyOrString: CryptoKey | string,
+  // 레거시 호출부(3번째 role 인자 전달)를 깨지 않기 위한 호환 파라미터
+  _legacyRole?: string
 ): Promise<string> {
   try {
     let cryptoKey: CryptoKey;
@@ -33,7 +35,10 @@ export async function encryptDataClient(
 
     const encodedText = new TextEncoder().encode(plainText);
     const encryptedBuffer = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
+      {
+        name: "AES-GCM",
+        iv,
+      },
       cryptoKey,
       encodedText
     );
@@ -46,5 +51,40 @@ export async function encryptDataClient(
   } catch (err) {
     console.error("암호화 실패:", err);
     throw new Error("데이터 암호화에 실패했습니다.");
+  }
+}
+
+export async function makePseudoId(
+  userId: string,
+  indexKey: string
+): Promise<string> {
+  try {
+    const normalizedUserId = userId.trim().toLowerCase();
+    const normalizedIndexKey = indexKey.trim();
+
+    if (!normalizedUserId || !normalizedIndexKey) {
+      throw new Error("pseudoId 생성 입력값이 비어있습니다.");
+    }
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(normalizedIndexKey),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    const signature = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(normalizedUserId)
+    );
+
+    return Array.from(new Uint8Array(signature))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  } catch (error) {
+    console.error("pseudoId 생성 실패:", error);
+    throw new Error("pseudoId 생성에 실패했습니다.");
   }
 }
