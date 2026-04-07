@@ -24,7 +24,7 @@ export function middleware(request: NextRequest) {
     connect-src ${connectSrcPolicy};
    script-src ${scriptSrcPolicy};
     style-src ${styleSrcPolicy};
-    img-src 'self' blob: data:;
+    img-src 'self' blob: data: https://res.cloudinary.com;
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
