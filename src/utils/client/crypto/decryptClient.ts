@@ -11,7 +11,8 @@ import { base64ToArrayBuffer } from "../helper";
  */
 async function decryptDataWithCryptoKey(
   encrypted: string,
-  masterKeyOrString: CryptoKey | string
+  masterKeyOrString: CryptoKey | string,
+  _legacyRole?: string
 ): Promise<string> {
   try {
     let cryptoKey: CryptoKey;
@@ -46,14 +47,6 @@ async function decryptDataWithCryptoKey(
     console.error("❌ 복호화 실패:", e);
     throw new Error("복호화에 실패했습니다.");
   }
-}
-
-async function decryptDataWithCryptoKey(
-  encrypted: string,
-  masterKeyOrString: CryptoKey | string,
-  role?: string
-) {
-  return decryptDataCompat(encrypted, masterKeyOrString, role);
 }
 
 export default decryptDataWithCryptoKey;
