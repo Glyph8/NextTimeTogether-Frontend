@@ -11,7 +11,7 @@ import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import toast from "react-hot-toast";
 import { StarRatingInput } from "./StarRatingInput";
-import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
+import { makePseudoId } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
 import { usePromiseDecryptedMemberNames } from "@/hooks/useGetMembers";
@@ -83,8 +83,9 @@ export const RatingDialog = ({
   const handleRatingSubmit = async () => {
     const masterKey = await getMasterKey();
     if (!userId || !masterKey) return;
+    const pseudoIdIndexKey = localStorage.getItem("pseudo_id_index_key") || userId;
     const data = {
-      pseudoId: await encryptDataClient(userId, masterKey, "psudo_id") || "",
+      pseudoId: await makePseudoId(userId, pseudoIdIndexKey),
       rating: rating,
     };
     if (rating === 0) {
