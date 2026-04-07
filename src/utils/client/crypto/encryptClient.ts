@@ -3,6 +3,7 @@ import { arrayBufferToBase64, base64ToArrayBuffer } from "../helper";
 export async function encryptDataClient(
   plainText: string,
   masterKeyOrString: CryptoKey | string,
+  // 레거시 호출부(3번째 role 인자 전달)를 깨지 않기 위한 호환 파라미터
   _legacyRole?: string
 ): Promise<string> {
   try {
