@@ -73,8 +73,12 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
       const userId = localStorage.getItem("hashed_user_id_for_manager");
       const pseudoIdIndexKey = localStorage.getItem("pseudo_id_index_key") || userId;
       // const userId = useAuthStore.getState().userId;
-      if (!userId || !pseudoIdIndexKey) {
-        console.warn("유저 ID 또는 pseudo_id_index_key가 없어 처리를 진행할 수 없습니다.");
+      if (!userId) {
+        console.warn("유저 ID가 없습니다.");
+        return { result: [] };
+      }
+      if (!pseudoIdIndexKey) {
+        console.warn("pseudo_id_index_key가 없습니다.");
         return { result: [] };
       }
       const masterKey = await getMasterKey();

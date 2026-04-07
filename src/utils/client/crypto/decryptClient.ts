@@ -49,7 +49,7 @@ export async function decryptDataCompat(
     try {
       const combined = base64ToArrayBuffer(encrypted);
       if (combined.byteLength <= 12) {
-        throw new Error("v2 포맷 길이가 유효하지 않습니다.");
+        throw new Error("v2 포맷 길이가 유효하지 않습니다. 최소 13바이트가 필요합니다.");
       }
 
       const iv = combined.slice(0, 12);
