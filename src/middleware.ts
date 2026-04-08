@@ -29,7 +29,10 @@ export function middleware(request: NextRequest) {
   const cloudinaryWidgetDomain = "https://upload-widget.cloudinary.com"; // ✅ 추가
 
   // cloudinary 를 위해 임시로 strict-dynamic 해제 - LATER : 백엔드 측에서 이미지 처리 준비되면 대체예정
-  const scriptSrcPolicy = `'self' 'unsafe-inline' 'unsafe-eval' ${cloudinaryWidgetDomain}`;
+  // 'unsafe-eval'은 개발 환경(HMR)에서만 허용하고, 프로덕션에서는 제거
+  const scriptSrcPolicy = isDevelopment
+    ? `'self' 'unsafe-inline' 'unsafe-eval' ${cloudinaryWidgetDomain}`
+    : `'self' 'unsafe-inline' ${cloudinaryWidgetDomain}`;
 
   // CSP 정책 모음
   const cspHeader = `
@@ -67,7 +70,6 @@ export function middleware(request: NextRequest) {
     "Content-Security-Policy",
     requestHeaders.get("Content-Security-Policy") || ""
   );
-  response.headers.set("x-nonce", requestHeaders.get("x-nonce") || "");
 
   // 1. X-Content-Type-Options: MIME 스니핑 방지
   response.headers.set("X-Content-Type-Options", "nosniff");
