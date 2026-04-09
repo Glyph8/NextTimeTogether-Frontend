@@ -21,6 +21,7 @@ import { getMasterKey } from "@/utils/client/key-storage";
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { useAuthStore } from "@/store/auth.store";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
 import {
   CheckWhenConfirmed,
   CheckWhereConfirmed,
@@ -53,9 +54,8 @@ export default function ScheduleDetailPage() {
     isPending: isGroupFetching,
   } = useGroupDetail(groupId);
 
-  const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
-  // const userId = useAuthStore.getState().userId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const { hashedUserId: userId } = useHashedUserId();
+  const decryptedUserId = userId;
 
   const handlePromiseError = (error: any) => {
     if (

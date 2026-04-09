@@ -15,6 +15,7 @@ import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
 import { usePromiseDecryptedMemberNames } from "@/hooks/useGetMembers";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
 import { ScheduleDetailSkeleton } from "@/components/ui/Loading/ScheduleDetailSkeleton";
 
 interface RatingDialogProps {
@@ -34,7 +35,7 @@ export const RatingDialog = ({
 }: RatingDialogProps) => {
   const [showDetails, setShowDetails] = useState(false);
   // const userId = useAuthStore.getState().userId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const { hashedUserId: userId } = useHashedUserId();
   const { data: scheduleDetail, isPending } = useQuery({
     queryKey: ["scheduleDetail", scheduleId],
     queryFn: async () => {

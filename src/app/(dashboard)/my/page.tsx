@@ -9,11 +9,13 @@ import { useRouter } from "next/navigation";
 import { logoutRequest } from "@/api/auth";
 import toast from "react-hot-toast";
 import { useMemberName } from "../groups/detail/[groupId]/(components)/GroupMemberItemContainer";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
+import { clearHashedUserId } from "@/utils/client/key-storage";
 
 export default function MyPage() {
   const router = useRouter();
   // const userId = useAuthStore.getState().userId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const { hashedUserId: userId } = useHashedUserId();
 
   const { data: memberName } = useMemberName(userId || '');
 
@@ -22,9 +24,11 @@ export default function MyPage() {
   };
 
   const handleLogout = () => {
-    logoutRequest().then(() => {
+    logoutRequest().then(async () => {
       toast("로그아웃 되었습니다.");
       useAuthStore.getState().clearAccessToken();
+      localStorage.removeItem("encrypted_user_id");
+      await clearHashedUserId();
       router.push("/login");
     });
   };

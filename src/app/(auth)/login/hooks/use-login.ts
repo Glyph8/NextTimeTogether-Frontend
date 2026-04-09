@@ -7,7 +7,7 @@ import { hmacSha256Truncated } from "@/utils/crypto/auth/encrypt-id-img";
 import { hashPassword } from "@/utils/client/crypto/encrypt-password";
 import { deriveMasterKeyPBKDF2 } from "@/utils/crypto/generate-key/derive-masterkey";
 import { login, LoginActionState } from "../action";
-import { getMasterKey, storeMasterKey } from "@/utils/client/key-storage";
+import { getMasterKey, storeMasterKey, storeHashedUserId } from "@/utils/client/key-storage";
 // import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { useAuthStore } from "@/store/auth.store";
 import { encryptStringToBase64 } from "@/utils/client/crypto/crypto-storage";
@@ -103,7 +103,7 @@ export const useLogin = () => {
 
           // FIX : USER ID hmacSha256 ONLY VER - 매니저 구분용
           const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
-          localStorage.setItem("hashed_user_id_for_manager", hashedUserId);
+          await storeHashedUserId(hashedUserId);
 
           // [수정 3] Router Cache 문제 방지를 위해 refresh() 호출 권장
           router.refresh();

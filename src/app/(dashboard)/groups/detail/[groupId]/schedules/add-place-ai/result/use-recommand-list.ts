@@ -2,6 +2,7 @@ import { getAIRecommand } from "@/api/where2meet";
 import { useAuthStore } from "@/store/auth.store";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
 import { useQuery } from "@tanstack/react-query";
 
 export const useRecommandList = (
@@ -10,8 +11,8 @@ export const useRecommandList = (
   longitude: number,
   purpose: string,
 ) => {
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
   // const userId = useAuthStore((state) => state.userId);
+  const { hashedUserId: userId } = useHashedUserId();
 
   const {
     data: recommandList,

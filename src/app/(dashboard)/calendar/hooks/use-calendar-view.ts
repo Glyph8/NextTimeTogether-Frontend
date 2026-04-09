@@ -8,6 +8,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { CalendarViewRequest2 } from "@/apis/generated/Api";
 import { useMemo } from "react";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
 
 // TODO : 실제 데이터 받아보기 전까지 모름,,
 export interface CalendarDetail {
@@ -20,8 +21,8 @@ export interface CalendarDetail {
 }
 
 export const useCalendarView = (date: Date) => {
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
   // const userId = useAuthStore((state) => state.userId);
+  const { hashedUserId: userId } = useHashedUserId();
 
   // 1. 조회할 날짜 범위 생성
   const timeStampInfoList = generateMonthDates(date);

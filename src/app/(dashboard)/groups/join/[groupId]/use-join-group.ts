@@ -10,6 +10,7 @@ import {
   apiPostGroupMemberSave,
 } from "@/api/group-invite-join";
 import toast from "react-hot-toast";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
 
 export type JoinStatus = "CHECKING" | "READY" | "JOINING" | "ERROR";
 
@@ -23,8 +24,8 @@ export const useJoinGroup = () => {
 
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
 
-  const originalUserId =
-    localStorage.getItem("hashed_user_id_for_manager") || "";
+  const { hashedUserId } = useHashedUserId();
+  const originalUserId = hashedUserId || "";
   // const myUserId = useAuthStore((state) => state.userId);
 
   const myUserId = originalUserId;

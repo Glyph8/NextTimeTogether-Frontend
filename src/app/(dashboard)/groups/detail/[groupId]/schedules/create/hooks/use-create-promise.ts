@@ -7,6 +7,7 @@ import { invitePromiseService } from "../utils/join-promise";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import testGenerateKey from "@/utils/crypto/generate-key/key-generator";
 import { useGroupDetail } from "../../../hooks/use-group-detail";
+import { getHashedUserId } from "@/utils/client/key-storage";
 
 export type PurposeType = "스터디" | "식사";
 
@@ -103,8 +104,8 @@ export const useCreatePromise = (groupId: string | undefined) => {
 
   const submitPromise = async () => {
     // const userId = useAuthStore.getState().userId;
-    const userId = localStorage.getItem("hashed_user_id_for_manager");
-    const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
+    const userId = await getHashedUserId();
+    const decryptedUserId = userId;
 
     if (!userId || !groupId || !decryptedUserId || !groupKey) {
       if (!groupKey) toast.error("보안 키를 불러오는 중입니다. 잠시만 기다려주세요.");

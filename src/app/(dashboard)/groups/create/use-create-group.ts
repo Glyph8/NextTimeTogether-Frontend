@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { createGroupInfoAction, createGroupMetadataAction } from "./action";
 import { getMasterKey } from "@/utils/client/key-storage";
+import { getHashedUserId } from "@/utils/client/key-storage";
 import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { useAuthStore } from "@/store/auth.store";
@@ -17,7 +18,7 @@ export const useCreateGroup = () => {
   return useMutation<void, Error, CreateGroupParams>({
     mutationFn: async (groupData) => {
       // const userId = useAuthStore.getState().userId;
-      const userId = localStorage.getItem("hashed_user_id_for_manager");
+      const userId = await getHashedUserId();
 
       if (!userId) throw new Error("유저 ID를 찾을 수 없습니다.");
       console.log("🔵 [E2EE 그룹 생성 1단계] 그룹 '정보' 전송 시작");

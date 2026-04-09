@@ -17,6 +17,7 @@ import { CldImage } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
 import { GroupPromiseItem } from "./(components)/GroupPromiseItem";
 import { GroupMemberItemContainer } from "./(components)/GroupMemberItemContainer";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
 
 export default function DetailGroupPage() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function DetailGroupPage() {
   // TODO: 추후 url query의 groupId도 암호화-복호화 필요
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const { hashedUserId: userId } = useHashedUserId();
   const { fixedYetData, fixedPromise, isPending } = useViewSchedules({
     refetchInterval: 3000
   });

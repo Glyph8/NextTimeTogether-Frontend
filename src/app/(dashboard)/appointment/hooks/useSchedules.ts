@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAllScheduleList, getScheduleListPerGroups, getTimeStampList, searchScheduleList, TimestampResDTO } from '@/api/appointment';
 import { GetPromiseBatchReqDTO } from '@/apis/generated/Api';
 import { getMasterKey } from '@/utils/client/key-storage';
+import { getHashedUserId } from '@/utils/client/key-storage';
 import decryptDataWithCryptoKey from '@/utils/client/crypto/decryptClient';
 import { encryptDataClient } from '@/utils/client/crypto/encryptClient';
 import { useAuthStore } from '@/store/auth.store';
@@ -72,8 +73,8 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
   return useQuery({
     queryKey: ['schedules', { groupId, keyword, monthKey: targetDates?.[0] }],
     queryFn: async () => {
-      const userId = localStorage.getItem("hashed_user_id_for_manager");
       // const userId = useAuthStore.getState().userId;
+      const userId = await getHashedUserId();
       if (!userId) {
         console.warn("유저 ID가 없어 복호화를 진행할 수 없습니다.");
         return { result: [] };

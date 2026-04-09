@@ -88,3 +88,67 @@ export async function getMasterKey(): Promise<CryptoKey | null> {
     return null;
   }
 }
+
+const HASHED_USER_ID_KEY = "hashedUserId";
+
+/**
+ * [보안] masterKey로부터 파생된 hashedUserId를 localStorage 대신
+ * IndexedDB에 저장합니다. XSS로부터 직접 읽히는 노출 범위를 줄입니다.
+ * @param hashedUserId - hmacSha256Truncated 로 파생된 hex 문자열
+ */
+export async function storeHashedUserId(hashedUserId: string): Promise<void> {
+  try {
+    const db = await openKeyStoreDB();
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+
+    await new Promise<void>((resolve, reject) => {
+      const request = store.put(hashedUserId, HASHED_USER_ID_KEY);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error("hashedUserId 저장 실패:", error);
+    throw new Error("사용자 식별자를 안전하게 저장하는 데 실패했습니다.");
+  }
+}
+
+/**
+ * [보안] IndexedDB에서 hashedUserId를 가져옵니다.
+ * @returns {Promise<string | null>} - 저장된 hashedUserId 또는 null
+ */
+export async function getHashedUserId(): Promise<string | null> {
+  try {
+    const db = await openKeyStoreDB();
+    const transaction = db.transaction(STORE_NAME, "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+
+    return await new Promise((resolve, reject) => {
+      const request = store.get(HASHED_USER_ID_KEY);
+      request.onsuccess = () => resolve(request.result ?? null);
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error("hashedUserId 불러오기 실패:", error);
+    return null;
+  }
+}
+
+/**
+ * [보안] 로그아웃 또는 세션 만료 시 IndexedDB에서 hashedUserId를 삭제합니다.
+ */
+export async function clearHashedUserId(): Promise<void> {
+  try {
+    const db = await openKeyStoreDB();
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+
+    await new Promise<void>((resolve, reject) => {
+      const request = store.delete(HASHED_USER_ID_KEY);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error("hashedUserId 삭제 실패:", error);
+  }
+}

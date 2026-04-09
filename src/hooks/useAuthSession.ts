@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { refreshAccessToken } from "@/app/(auth)/login/refresh.action";
 import { decryptStringFromBase64 } from "@/utils/client/crypto/crypto-storage";
+import { clearHashedUserId } from "@/utils/client/key-storage";
 
 /**
  * 앱 로드 시 세션을 복원/확인하는 훅
@@ -71,6 +72,7 @@ export const useAuthSession = () => {
 
         clearAccessToken() // 사용자 데이터 날리기 
         localStorage.removeItem("encrypted_user_id"); // 실패한 데이터 정리
+        await clearHashedUserId(); // IndexedDB에 저장된 hashedUserId 정리
         if (pathname !== "/login") {
           router.replace("/login");
         }

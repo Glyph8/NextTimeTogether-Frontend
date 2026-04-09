@@ -4,6 +4,7 @@ import { GroupMemberItem } from "@/app/(dashboard)/groups/detail/[groupId]/(comp
 import { DecryptedGroupInfo } from "@/app/(dashboard)/groups/use-group-list";
 import XWhite from "@/assets/svgs/icons/x-white.svg";
 import { GroupMemberItemContainer } from "../../../(components)/GroupMemberItemContainer";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
 
 interface CreatePromiseFormProps {
   // 훅의 리턴값을 통째로 받거나, 필요한 데이터만 정의
@@ -16,7 +17,7 @@ export default function PromiseCreateInfo({
   groupData,
 }: CreatePromiseFormProps) {
   const { values, actions, helpers } = form;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const { hashedUserId: userId } = useHashedUserId();
   return (
     <>
       <nav className="text-black-1 text-xl font-medium leading-loose">

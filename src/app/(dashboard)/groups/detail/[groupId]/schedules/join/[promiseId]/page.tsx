@@ -7,14 +7,15 @@ import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { joinPromise } from "@/api/promise-invite-join";
 import { getMasterKey } from "@/utils/client/key-storage";
+import { useHashedUserId } from "@/hooks/useHashedUserId";
 
 export default function JoinPromisePage() {
   const params = useParams<{ groupId: string; promiseId: string }>();
   const router = useRouter();
 
   const groupId = params.groupId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
-  const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
+  const { hashedUserId: userId } = useHashedUserId();
+  const decryptedUserId = userId;
 
   // E2EE 키 복구
   const {
