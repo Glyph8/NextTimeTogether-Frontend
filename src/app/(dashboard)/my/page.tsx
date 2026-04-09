@@ -23,14 +23,18 @@ export default function MyPage() {
     router.push("/my/history");
   };
 
-  const handleLogout = () => {
-    logoutRequest().then(async () => {
+  const handleLogout = async () => {
+    try {
+      await logoutRequest();
       toast("로그아웃 되었습니다.");
       useAuthStore.getState().clearAccessToken();
       localStorage.removeItem("encrypted_user_id");
       await clearHashedUserId();
       router.push("/login");
-    });
+    } catch (err) {
+      console.error("로그아웃 처리 중 오류:", err);
+      toast.error("로그아웃 중 오류가 발생했습니다.");
+    }
   };
 
   const handleUpdateProfile = () => {
