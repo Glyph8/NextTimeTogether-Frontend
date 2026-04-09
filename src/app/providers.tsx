@@ -7,12 +7,19 @@ import { useState } from "react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
-// 1. Providers가 받을 props 타입을 정의합니다.
+// Webpack 전역 변수 인식 처리
+declare let __webpack_nonce__: string | undefined;
+
 interface ProvidersProps {
   children: React.ReactNode;
+  nonce?: string;
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, nonce }: ProvidersProps) {
+  // Webpack의 동적 청크에 nonce를 주입하기 위한 전역 설정
+  if (typeof window !== "undefined" && nonce) {
+    __webpack_nonce__ = nonce;
+  }
   const { isRestoring } = useAuthSession();
   const [queryClient] = useState(
     () =>
