@@ -12,7 +12,15 @@ interface ProvidersProps {
   nonce?: string;
 }
 
+// Webpack 전역 변수 인식 처리
+declare let __webpack_nonce__: string | undefined;
+
 export function Providers({ children, nonce }: ProvidersProps) {
+  // Webpack의 동적 청크에 nonce를 주입하기 위한 전역 설정
+  if (typeof window !== "undefined" && nonce) {
+    __webpack_nonce__ = nonce;
+  }
+  
   const { isRestoring } = useAuthSession();
   const [queryClient] = useState(
     () =>

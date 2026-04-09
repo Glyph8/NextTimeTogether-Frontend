@@ -33,6 +33,8 @@ export function middleware(request: NextRequest) {
     ? `'self' 'unsafe-inline' 'unsafe-eval' ${cloudinaryWidgetDomain}`
     : `'self' 'nonce-${nonce}' ${cloudinaryWidgetDomain}`;
 
+  // const scriptSrcPolicy = `'self' 'nonce-${nonce}' ${cloudinaryWidgetDomain}`;
+
   // CSP 정책 모음
   const cspHeader = `
     default-src 'self';
