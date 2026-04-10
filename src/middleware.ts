@@ -41,13 +41,13 @@ export function middleware(request: NextRequest) {
     connect-src ${connectSrcPolicy};
     script-src ${scriptSrcPolicy};
     style-src ${styleSrcPolicy};
-    img-src 'self' blob: data: https://res.cloudinary.com;
+    img-src 'self' blob: data: ${cloudinaryDomain} ${cloudinaryWidgetDomain};
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    frame-src 'self';
+    frame-src 'self' ${cloudinaryWidgetDomain};
     upgrade-insecure-requests;
   `;
 
