@@ -2,13 +2,14 @@
 
 import Header from "@/components/ui/header/Header";
 import { DEFAULT_IMAGE } from "@/constants";
-import { useAuthStore } from "@/store/auth.store";
 import { CldImage } from "next-cloudinary";
 import ArrowRight from "@/assets/svgs/icons/arrow-right-gray.svg";
 import { useRouter } from "next/navigation";
 import { logoutRequest } from "@/api/auth";
 import toast from "react-hot-toast";
 import { useMemberName } from "../groups/detail/[groupId]/(components)/GroupMemberItemContainer";
+import { clearClientAuthState } from "@/lib/clearClientAuthState";
+import { clearAuthCookies } from "@/app/(auth)/login/refresh.action";
 
 export default function MyPage() {
   const router = useRouter();
@@ -22,9 +23,24 @@ export default function MyPage() {
   };
 
   const handleLogout = () => {
-    logoutRequest().then(() => {
-      toast("로그아웃 되었습니다.");
-      useAuthStore.getState().clearAccessToken();
+    Promise.allSettled([logoutRequest(), clearAuthCookies()]).then((results) => {
+      const [backendResult, cookieResult] = results;
+      const hasFailure =
+        backendResult.status === "rejected" || cookieResult.status === "rejected";
+
+      if (backendResult.status === "rejected") {
+        console.warn("[Logout] backend logout failed:", backendResult.reason);
+      }
+      if (cookieResult.status === "rejected") {
+        console.warn("[Logout] cookie cleanup failed:", cookieResult.reason);
+      }
+
+      clearClientAuthState();
+      if (hasFailure) {
+        toast.error("일부 로그아웃 처리가 실패하여 로그인 페이지로 이동합니다.");
+      } else {
+        toast("로그아웃 되었습니다.");
+      }
       router.push("/login");
     });
   };
