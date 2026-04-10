@@ -252,7 +252,9 @@ src/
 ```
 로그인 요청
     → 백엔드에서 Access Token 발급
-    → Zustand auth.store에 메모리 저장 (localStorage 미사용)
+    → Zustand auth.store에 메모리 저장 (클라이언트 단일 소스)
+    → 서버 전용 access_token(httpOnly) 쿠키 동기화 (SSR/BFF 전용)
+    → refresh_token은 httpOnly 쿠키 단일 소스 유지
     → 모든 API 요청에 Authorization 헤더로 자동 첨부
     → 앱 재마운트 시 useAuthSession 훅으로 토큰 복원 시도
 ```
@@ -275,7 +277,7 @@ Swagger/OpenAPI로부터 자동 생성된 타입(`src/apis/generated/Api.ts`)을
 | 항목 | 내용 |
 |------|------|
 | **CSP** | `middleware.ts`에서 nonce 기반 Content Security Policy 헤더 설정 |
-| **토큰 저장** | Access Token을 메모리(Zustand)에만 보관 |
+| **토큰 저장** | AccessToken: 메모리(Zustand) 중심 + 서버 전용 보조 쿠키, RefreshToken: httpOnly 쿠키 단일 소스 |
 | **비밀번호 해싱** | Argon2 사용 (Node.js / 브라우저 양쪽 지원) |
 | **세션** | Upstash Redis 서버사이드 세션 (선택적 사용) |
 | **보안 헤더** | `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
@@ -396,7 +398,7 @@ export async function encryptStringToBase64(
 
 **문제 인식**: AccessToken을 localStorage에 저장하면 XSS 공격에 취약합니다. RefreshToken을 클라이언트에 노출하면 토큰 탈취 위험이 있습니다.
 
-**해결책**: `AccessToken`은 **Zustand 메모리에만** 보관하고, `RefreshToken`은 **httpOnly 쿠키**에 저장합니다. 페이지 새로고침 시 Next.js Server Action(BFF)을 통해 조용히 AccessToken을 재발급합니다.
+**해결책**: `AccessToken`은 **Zustand 메모리 중심**으로 사용하고, 서버 컴포넌트/BFF 호출 호환을 위해 **서버 전용 `access_token` httpOnly 쿠키**를 동기화합니다. `RefreshToken`은 **`refresh_token` httpOnly 쿠키 단일 소스**로 유지합니다. 페이지 새로고침 시 Next.js Server Action(BFF)으로 AccessToken을 재발급하고 실패 시 인증 흔적을 일괄 정리합니다.
 
 **세션 복원 흐름** — `src/hooks/useAuthSession.ts`
 
@@ -464,8 +466,9 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
 
 | 저장 위치 | 데이터 | 이유 |
 |-----------|--------|------|
-| **Zustand (메모리)** | AccessToken | 새로고침 시 소멸 → 영구 노출 방지 |
-| **httpOnly 쿠키** | RefreshToken | JS 코드로 접근 불가 → XSS 방어 |
+| **Zustand (메모리)** | AccessToken | 클라이언트 API 인증의 기준 상태 |
+| **httpOnly 쿠키 (서버 전용)** | AccessToken (`access_token`) | SSR/BFF 서버 경로 호환용 |
+| **httpOnly 쿠키** | RefreshToken (`refresh_token`) | 세션 유지 단일 소스, JS 접근 불가 |
 | **IndexedDB** | 추출불가 CryptoKey | JS로 키 값 추출 불가 → XSS 방어 |
 | **localStorage** | 암호화된 UserId | 복호화 키 없이는 무의미한 데이터 |
 

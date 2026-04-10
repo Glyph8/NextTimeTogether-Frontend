@@ -9,10 +9,8 @@ export async function logout() {
   const refreshToken = cookieStore.get("refresh_token")?.value;
 
   if (accessToken || refreshToken) {
-
-    // 쿠키 삭제
-    cookieStore.delete("access_token");
-    cookieStore.delete("refresh_token");
+    cookieStore.set("access_token", "", { maxAge: 0, path: "/" });
+    cookieStore.set("refresh_token", "", { maxAge: 0, path: "/" });
 
     // TODO : 추후 localStorage의 access_token 제거 필요. 이건 로그아웃 버튼 클라이언트 컴포넌트에서 진행.
   }

@@ -2,13 +2,14 @@
 
 import Header from "@/components/ui/header/Header";
 import { DEFAULT_IMAGE } from "@/constants";
-import { useAuthStore } from "@/store/auth.store";
 import { CldImage } from "next-cloudinary";
 import ArrowRight from "@/assets/svgs/icons/arrow-right-gray.svg";
 import { useRouter } from "next/navigation";
 import { logoutRequest } from "@/api/auth";
 import toast from "react-hot-toast";
 import { useMemberName } from "../groups/detail/[groupId]/(components)/GroupMemberItemContainer";
+import { clearClientAuthState } from "@/lib/clearClientAuthState";
+import { clearAuthCookies } from "@/app/(auth)/login/refresh.action";
 
 export default function MyPage() {
   const router = useRouter();
@@ -22,9 +23,9 @@ export default function MyPage() {
   };
 
   const handleLogout = () => {
-    logoutRequest().then(() => {
+    Promise.allSettled([logoutRequest(), clearAuthCookies()]).finally(() => {
+      clearClientAuthState();
       toast("로그아웃 되었습니다.");
-      useAuthStore.getState().clearAccessToken();
       router.push("/login");
     });
   };

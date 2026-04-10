@@ -4,6 +4,41 @@ import { cookies } from "next/headers";
 import axios from "axios";
 
 const MAIN_BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+const clearAuthTokenCookies = async () => {
+  const cookieStore = await cookies();
+  cookieStore.set("refresh_token", "", {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    maxAge: 0,
+    path: "/",
+    sameSite: "lax",
+  });
+  cookieStore.set("access_token", "", {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    maxAge: 0,
+    path: "/",
+    sameSite: "lax",
+  });
+};
+
+const getRefreshTokenFromSetCookie = (
+  setCookieHeader: string | string[] | undefined
+): string | null => {
+  const refreshCookie = Array.isArray(setCookieHeader)
+    ? setCookieHeader.find((cookie) => cookie.startsWith("refresh_token="))
+    : setCookieHeader;
+
+  if (!refreshCookie) {
+    return null;
+  }
+
+  const tokenPair = refreshCookie.split(";")[0];
+  const [, refreshToken] = tokenPair.split("=");
+  return refreshToken ?? null;
+};
 
 /**
  * 토큰 갱신 액션의 반환 타입
@@ -12,6 +47,10 @@ export interface RefreshActionState {
   success: boolean;
   accessToken?: string;
   error?: string;
+}
+
+export async function clearAuthCookies(): Promise<void> {
+  await clearAuthTokenCookies();
 }
 
 /**
@@ -40,13 +79,34 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
       }
     );
     const { code, message } = response.data; // 4. 백엔드가 성공(code: 0)을 반환하고, 'result' (새 AccessToken)가 있는지 확인
+    const newAccessToken = response.headers["authorization"];
+    const rotatedRefreshToken = getRefreshTokenFromSetCookie(
+      response.headers["set-cookie"]
+    );
 
-    if (code === 200 && response.headers["authorization"]) {
+    if (code === 200 && newAccessToken) {
+      cookieStore.set("access_token", newAccessToken, {
+        httpOnly: true,
+        secure: IS_PRODUCTION,
+        maxAge: 60 * 60,
+        path: "/",
+        sameSite: "lax",
+      });
+      if (rotatedRefreshToken) {
+        cookieStore.set("refresh_token", rotatedRefreshToken, {
+          httpOnly: true,
+          secure: IS_PRODUCTION,
+          maxAge: 60 * 60 * 24 * 7,
+          path: "/",
+          sameSite: "lax",
+        });
+      }
       console.log("✅ [BFF] AccessToken 갱신 성공.", message); // 👇 'result' 값을 accessToken으로 매핑하여 클라이언트에 반환
-      return { success: true, accessToken: response.headers["authorization"] };
+      return { success: true, accessToken: newAccessToken };
     } else {
       // 백엔드가 갱신을 거부한 경우 (e.g., code !== 0)
       console.warn(`❌ [BFF] 백엔드가 갱신을 거부함: ${message}`);
+      await clearAuthTokenCookies();
       return { success: false, error: message || "Backend refresh failed." };
     }
   } catch (err) {
@@ -75,7 +135,7 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
       }
 
       // Refresh가 실패하면 쿠키를 삭제합니다.
-      cookieStore.set("refresh_token", "", { maxAge: 0, path: "/" });
+      await clearAuthTokenCookies();
       return {
         success: false,
         error:
@@ -84,7 +144,7 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
       };
     }
     // Refresh가 실패하면 (e.g., 만료, 유효하지 않음) 쿠키를 삭제합니다.
-    cookieStore.set("refresh_token", "", { maxAge: 0, path: "/" });
+    await clearAuthTokenCookies();
     return { success: false, error: "Session expired. Please log in again." };
   }
 }
