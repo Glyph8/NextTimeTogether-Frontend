@@ -2,25 +2,14 @@
 
 import { cookies } from "next/headers";
 import axios from "axios"; // 메인 백엔드 통신용
+import {
+  getRefreshTokenFromSetCookie,
+  IS_PRODUCTION,
+  ACCESS_TOKEN_MAX_AGE_SECONDS,
+  REFRESH_TOKEN_MAX_AGE_SECONDS,
+} from "@/lib/tokenCookie";
 
 const MAIN_BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
-
-const getRefreshTokenFromSetCookie = (
-  setCookieHeader: string | string[] | undefined
-): string | null => {
-  const refreshCookie = Array.isArray(setCookieHeader)
-    ? setCookieHeader.find((cookie) => cookie.startsWith("refresh_token="))
-    : setCookieHeader;
-
-  if (!refreshCookie) {
-    return null;
-  }
-
-  const tokenPair = refreshCookie.split(";")[0];
-  const [, refreshToken] = tokenPair.split("=");
-  return refreshToken ?? null;
-};
 
 export interface LoginActionState {
   error?: string | null;
@@ -64,7 +53,7 @@ export async function login(formData: FormData): Promise<LoginActionState> {
     cookieStore.set("refresh_token", refreshToken, {
       httpOnly: true,
       secure: IS_PRODUCTION,
-      maxAge: 60 * 60 * 24 * 7, // 7일 (백엔드 설정과 일치시킬 것)
+      maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
       path: "/", // /api/auth/refresh 경로로 제한하는 것이 더 안전할 수 있음
       sameSite: "lax",
     }); // 4. (BFF -> Client) AccessToken은 JSON 응답으로 클라이언트에 반환
@@ -72,7 +61,7 @@ export async function login(formData: FormData): Promise<LoginActionState> {
     cookieStore.set("access_token", accessToken, {
       httpOnly: true,
       secure: IS_PRODUCTION,
-      maxAge: 60 * 60, // 1시간
+      maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
       path: "/", 
       sameSite: "lax",
     }); 

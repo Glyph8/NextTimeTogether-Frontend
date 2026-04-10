@@ -2,43 +2,15 @@
 
 import { cookies } from "next/headers";
 import axios from "axios";
+import {
+  ACCESS_TOKEN_MAX_AGE_SECONDS,
+  getRefreshTokenFromSetCookie,
+  IS_PRODUCTION,
+  REFRESH_TOKEN_MAX_AGE_SECONDS,
+} from "@/lib/tokenCookie";
+import { clearAuthTokenCookies } from "@/lib/server/clearAuthTokenCookies";
 
 const MAIN_BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
-
-const clearAuthTokenCookies = async () => {
-  const cookieStore = await cookies();
-  cookieStore.set("refresh_token", "", {
-    httpOnly: true,
-    secure: IS_PRODUCTION,
-    maxAge: 0,
-    path: "/",
-    sameSite: "lax",
-  });
-  cookieStore.set("access_token", "", {
-    httpOnly: true,
-    secure: IS_PRODUCTION,
-    maxAge: 0,
-    path: "/",
-    sameSite: "lax",
-  });
-};
-
-const getRefreshTokenFromSetCookie = (
-  setCookieHeader: string | string[] | undefined
-): string | null => {
-  const refreshCookie = Array.isArray(setCookieHeader)
-    ? setCookieHeader.find((cookie) => cookie.startsWith("refresh_token="))
-    : setCookieHeader;
-
-  if (!refreshCookie) {
-    return null;
-  }
-
-  const tokenPair = refreshCookie.split(";")[0];
-  const [, refreshToken] = tokenPair.split("=");
-  return refreshToken ?? null;
-};
 
 /**
  * 토큰 갱신 액션의 반환 타입
@@ -88,7 +60,7 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
       cookieStore.set("access_token", newAccessToken, {
         httpOnly: true,
         secure: IS_PRODUCTION,
-        maxAge: 60 * 60,
+        maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
         path: "/",
         sameSite: "lax",
       });
@@ -96,10 +68,14 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
         cookieStore.set("refresh_token", rotatedRefreshToken, {
           httpOnly: true,
           secure: IS_PRODUCTION,
-          maxAge: 60 * 60 * 24 * 7,
+          maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
           path: "/",
           sameSite: "lax",
         });
+      } else {
+        console.info(
+          "ℹ️ [BFF] No refresh_token rotation header found. Keeping existing cookie."
+        );
       }
       console.log("✅ [BFF] AccessToken 갱신 성공.", message); // 👇 'result' 값을 accessToken으로 매핑하여 클라이언트에 반환
       return { success: true, accessToken: newAccessToken };

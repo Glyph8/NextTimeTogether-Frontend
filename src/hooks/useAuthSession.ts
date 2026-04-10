@@ -74,7 +74,10 @@ export const useAuthSession = () => {
         try {
           await clearAuthCookies();
         } catch (cookieError) {
-          console.warn("[AuthSession] 쿠키 정리 실패:", cookieError);
+          console.warn(
+            "[AuthSession] Cookie cleanup failed during session restore. Redirecting to login.",
+            cookieError
+          );
         }
         clearClientAuthState();
         if (pathname !== "/login") {

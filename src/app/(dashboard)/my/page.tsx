@@ -23,9 +23,24 @@ export default function MyPage() {
   };
 
   const handleLogout = () => {
-    Promise.allSettled([logoutRequest(), clearAuthCookies()]).finally(() => {
+    Promise.allSettled([logoutRequest(), clearAuthCookies()]).then((results) => {
+      const [backendResult, cookieResult] = results;
+      const hasFailure =
+        backendResult.status === "rejected" || cookieResult.status === "rejected";
+
+      if (backendResult.status === "rejected") {
+        console.warn("[Logout] backend logout failed:", backendResult.reason);
+      }
+      if (cookieResult.status === "rejected") {
+        console.warn("[Logout] cookie cleanup failed:", cookieResult.reason);
+      }
+
       clearClientAuthState();
-      toast("로그아웃 되었습니다.");
+      if (hasFailure) {
+        toast.error("일부 로그아웃 처리가 실패하여 로그인 페이지로 이동합니다.");
+      } else {
+        toast("로그아웃 되었습니다.");
+      }
       router.push("/login");
     });
   };
