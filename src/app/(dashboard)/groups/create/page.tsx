@@ -14,10 +14,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Plus from "@/assets/svgs/icons/plus-white.svg";
 import FullLogo from "@/assets/pngs/logo-full.png"; // 기본 이미지
-// ✅ 추가: Cloudinary 위젯 임포트
-import { CldUploadWidget } from "next-cloudinary";
+import { CldUploadWidget, CloudinaryUploadWidgetResults } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
-// import CloudinaryUpload from "@/components/shared/Cloudinary/ImageUpload";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 
 export default function CreateGroupPage() {
@@ -75,9 +73,10 @@ export default function CreateGroupPage() {
         {/* ✅ 수정: Cloudinary 위젯으로 감싸기 */}
         <CldUploadWidget
           uploadPreset="MySpot" // ⚠️ 중요: 본인의 Unsigned Preset 이름으로 변경하세요
-          onSuccess={(result: any) => {
-            // 업로드 성공 시 URL을 상태에 저장
-            setGroupImg(result.info.secure_url);
+          onSuccess={(result: CloudinaryUploadWidgetResults) => {
+            if (result.info && typeof result.info === "object") {
+              setGroupImg(result.info.secure_url);
+            }
           }}
           options={{
             maxFiles: 1,
@@ -102,10 +101,7 @@ export default function CreateGroupPage() {
                 </div>
                 <button
                   type="button"
-                  className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center absolute -bottom-2 -right-2 z-10"
-                  // 버튼 위치를 조금 조정했습니다 (top/left 절대좌표 대신 우하단 배치 등 디자인 의도에 맞게 조정 가능)
-                  // 기존 코드 위치 유지: top-11 left-11 (약간 우측 하단)
-                  style={{ top: "44px", left: "44px" }}
+                  className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center absolute -bottom-2 -right-2 top-11 left-11 z-10"
                 >
                   <Plus />
                 </button>
