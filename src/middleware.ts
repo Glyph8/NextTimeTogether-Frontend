@@ -37,7 +37,7 @@ export function middleware(request: NextRequest) {
     connect-src ${connectSrcPolicy};
    script-src ${scriptSrcPolicy};
     style-src ${styleSrcPolicy};
-    img-src 'self' blob: data: ${cloudinaryDomain};
+    img-src 'self' blob: data: ${cloudinaryDomain} ${cloudinaryWidgetDomain};
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
