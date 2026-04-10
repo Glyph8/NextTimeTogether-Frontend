@@ -2,12 +2,6 @@
 
 import { cookies } from "next/headers";
 import axios from "axios"; // 메인 백엔드 통신용
-import {
-  getRefreshTokenFromSetCookie,
-  IS_PRODUCTION,
-  ACCESS_TOKEN_MAX_AGE_SECONDS,
-  REFRESH_TOKEN_MAX_AGE_SECONDS,
-} from "@/lib/tokenCookie";
 
 const MAIN_BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -41,10 +35,7 @@ export async function login(formData: FormData): Promise<LoginActionState> {
     if (!accessToken || !setCookieHeader) {
       return { error: "메인 백엔드에서 토큰을 받지 못했습니다." };
     }
-    const refreshToken = getRefreshTokenFromSetCookie(setCookieHeader);
-    if (!refreshToken) {
-      return { error: "메인 백엔드에서 RefreshToken을 받지 못했습니다." };
-    }
+    const refreshToken = setCookieHeader[0].split(";")[0].split("=")[1];
 
     console.log(`✅ [BFF] 메인 백엔드 인증 성공. 토큰 프록시 시작.`);
 
@@ -52,16 +43,17 @@ export async function login(formData: FormData): Promise<LoginActionState> {
     
     cookieStore.set("refresh_token", refreshToken, {
       httpOnly: true,
-      secure: IS_PRODUCTION,
-      maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7, // 7일 (백엔드 설정과 일치시킬 것)
       path: "/", // /api/auth/refresh 경로로 제한하는 것이 더 안전할 수 있음
       sameSite: "lax",
     }); // 4. (BFF -> Client) AccessToken은 JSON 응답으로 클라이언트에 반환
 
+    // TODO: 리프레쉬 로직 안정될 때 까지 임시사용
     cookieStore.set("access_token", accessToken, {
       httpOnly: true,
-      secure: IS_PRODUCTION,
-      maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7, // 7일
       path: "/", 
       sameSite: "lax",
     }); 

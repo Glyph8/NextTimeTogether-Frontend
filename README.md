@@ -252,9 +252,7 @@ src/
 ```
 로그인 요청
     → 백엔드에서 Access Token 발급
-    → Zustand auth.store에 메모리 저장 (클라이언트 단일 소스)
-    → 서버 전용 access_token(httpOnly) 쿠키 동기화 (SSR/BFF 전용)
-    → refresh_token은 httpOnly 쿠키 단일 소스 유지
+    → Zustand auth.store에 메모리 저장 (localStorage 미사용)
     → 모든 API 요청에 Authorization 헤더로 자동 첨부
     → 앱 재마운트 시 useAuthSession 훅으로 토큰 복원 시도
 ```
@@ -277,7 +275,7 @@ Swagger/OpenAPI로부터 자동 생성된 타입(`src/apis/generated/Api.ts`)을
 | 항목 | 내용 |
 |------|------|
 | **CSP** | `middleware.ts`에서 nonce 기반 Content Security Policy 헤더 설정 |
-| **토큰 저장** | AccessToken: 메모리(Zustand) 중심 + 서버 전용 보조 쿠키, RefreshToken: httpOnly 쿠키 단일 소스 |
+| **토큰 저장** | Access Token을 메모리(Zustand)에만 보관 |
 | **비밀번호 해싱** | Argon2 사용 (Node.js / 브라우저 양쪽 지원) |
 | **세션** | Upstash Redis 서버사이드 세션 (선택적 사용) |
 | **보안 헤더** | `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
@@ -398,48 +396,44 @@ export async function encryptStringToBase64(
 
 **문제 인식**: AccessToken을 localStorage에 저장하면 XSS 공격에 취약합니다. RefreshToken을 클라이언트에 노출하면 토큰 탈취 위험이 있습니다.
 
-**해결책**: `AccessToken`은 **Zustand 메모리 중심**으로 사용하고, 서버 컴포넌트/BFF 호출 호환을 위해 **서버 전용 `access_token` httpOnly 쿠키**를 동기화합니다. `RefreshToken`은 **`refresh_token` httpOnly 쿠키 단일 소스**로 유지합니다. 페이지 새로고침 시 Next.js Server Action(BFF)으로 AccessToken을 재발급하고 실패 시 인증 흔적을 일괄 정리합니다.
+**해결책**: `AccessToken`은 **Zustand 메모리에만** 보관하고, `RefreshToken`은 **httpOnly 쿠키**에 저장합니다. 페이지 새로고침 시 Next.js Server Action(BFF)을 통해 조용히 AccessToken을 재발급합니다.
 
 **세션 복원 흐름** — `src/hooks/useAuthSession.ts`
 
 ```typescript
 export const useAuthSession = () => {
-  const { accessToken, setAccessToken, userId, setUserId } = useAuthStore();
+  const { accessToken, setAccessToken, userId, setUserId, clearAccessToken } = useAuthStore();
 
   useEffect(() => {
-    // 이미 세션이 있거나 공개 라우트면 복원 생략
-    if ((accessToken && userId) || pathname === "/login" || pathname.includes("/register") || pathname === "/") {
-      setIsRestoring(false);
-      return;
-    }
+    // 이미 메모리에 세션이 있으면 복원 불필요
+    if (accessToken && userId) { setIsRestoring(false); return; }
 
     const restoreSession = async () => {
       try {
+        // 1. IndexedDB에서 MasterKey 가져오기
         const masterKey = await getMasterKey();
-        if (!masterKey) throw new Error("MasterKey가 없습니다.");
+        if (!masterKey) throw new Error("MasterKey 없음. 로그인 필요.");
 
+        // 2. AES-GCM으로 암호화된 userId 복호화
         const encryptedUserId = localStorage.getItem("encrypted_user_id");
-        if (!encryptedUserId) throw new Error("encrypted_user_id가 없습니다.");
         const userId = await decryptStringFromBase64(encryptedUserId!, masterKey);
 
+        // 3. httpOnly 쿠키의 RefreshToken으로 새 AccessToken 발급 (Server Action)
         const refreshResult = await refreshAccessToken();
-        if (!refreshResult.success || !refreshResult.accessToken) {
-          throw new Error(refreshResult.error || "AccessToken 갱신 실패");
-        }
+        if (!refreshResult.success) throw new Error(refreshResult.error);
 
+        // 4. 복원된 데이터를 Zustand(메모리)에 저장
         setUserId(userId);
         setAccessToken(refreshResult.accessToken!);
       } catch (err) {
-        await clearAuthCookies();
-        clearClientAuthState();
-        if (pathname !== "/login") router.replace("/login");
-      } finally {
-        setIsRestoring(false);
+        clearAccessToken();
+        localStorage.removeItem("encrypted_user_id");
+        router.replace("/login");
       }
     };
 
     restoreSession();
-  }, [accessToken, setAccessToken, userId, setUserId, router, pathname]);
+  }, [accessToken, userId, ...]);
 };
 ```
 
@@ -449,36 +443,29 @@ export const useAuthSession = () => {
 "use server";
 
 export async function refreshAccessToken(): Promise<RefreshActionState> {
+  // httpOnly 쿠키는 서버에서만 읽을 수 있음 (클라이언트 JS 접근 불가)
   const cookieStore = await cookies();
   const refreshToken = cookieStore.get("refresh_token")?.value;
 
-  if (!refreshToken) return { success: false, error: "No refresh token found." };
+  if (!refreshToken) return { success: false, error: "No refresh token." };
 
   const response = await axios.post(`${MAIN_BACKEND_URL}/auth/refresh`, null, {
     headers: { "Refresh-token": refreshToken },
   });
 
-  const newAccessToken = response.headers["authorization"];
-  const rotatedRefreshToken = getRefreshTokenFromSetCookie(response.headers["set-cookie"]);
-
-  if (response.data.code === 200 && newAccessToken) {
-    cookieStore.set("access_token", newAccessToken, { httpOnly: true, path: "/", sameSite: "lax" });
-    if (rotatedRefreshToken) {
-      cookieStore.set("refresh_token", rotatedRefreshToken, { httpOnly: true, path: "/", sameSite: "lax" });
-    }
-    return { success: true, accessToken: newAccessToken };
+  if (response.data.code === 200 && response.headers["authorization"]) {
+    return { success: true, accessToken: response.headers["authorization"] };
   }
-
-  await clearAuthTokenCookies();
-  return { success: false, error: "Backend refresh failed." };
+  // 실패 시 만료된 쿠키 제거
+  cookieStore.set("refresh_token", "", { maxAge: 0, path: "/" });
+  return { success: false, error: "Session expired." };
 }
 ```
 
 | 저장 위치 | 데이터 | 이유 |
 |-----------|--------|------|
-| **Zustand (메모리)** | AccessToken | 클라이언트 API 인증의 기준 상태 |
-| **httpOnly 쿠키 (서버 전용)** | AccessToken (`access_token`) | SSR/BFF 서버 경로 호환용 |
-| **httpOnly 쿠키** | RefreshToken (`refresh_token`) | 세션 유지 단일 소스, JS 접근 불가 |
+| **Zustand (메모리)** | AccessToken | 새로고침 시 소멸 → 영구 노출 방지 |
+| **httpOnly 쿠키** | RefreshToken | JS 코드로 접근 불가 → XSS 방어 |
 | **IndexedDB** | 추출불가 CryptoKey | JS로 키 값 추출 불가 → XSS 방어 |
 | **localStorage** | 암호화된 UserId | 복호화 키 없이는 무의미한 데이터 |
 

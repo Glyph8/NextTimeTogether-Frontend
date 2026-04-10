@@ -4,12 +4,8 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import { getMasterKey } from "@/utils/client/key-storage";
-import {
-  clearAuthCookies,
-  refreshAccessToken,
-} from "@/app/(auth)/login/refresh.action";
+import { refreshAccessToken } from "@/app/(auth)/login/refresh.action";
 import { decryptStringFromBase64 } from "@/utils/client/crypto/crypto-storage";
-import { clearClientAuthState } from "@/lib/clearClientAuthState";
 
 /**
  * 앱 로드 시 세션을 복원/확인하는 훅
@@ -20,7 +16,7 @@ export const useAuthSession = () => {
   const pathname = usePathname();
   // 세션 복원 중임을 알리는 로딩 상태 (e.g., 스플래시 스크린)
   const [isRestoring, setIsRestoring] = useState(true);
-  const { accessToken, setAccessToken, userId, setUserId } = useAuthStore();
+  const { accessToken, setAccessToken, userId, setUserId, clearAccessToken } = useAuthStore();
   
   useEffect(() => {
     // 1. 이미 메모리에 세션이 있거나, 로그인 페이지라면 복원 시도 안 함
@@ -71,15 +67,11 @@ export const useAuthSession = () => {
       } catch (err) {
         console.warn(`[AuthSession] 세션 복원 실패: ${err}`);
         // 세션 복원에 실패하면 로그인 페이지로 (로그인 페이지 자체는 제외)
-        try {
-          await clearAuthCookies();
-        } catch (cookieError) {
-          console.warn(
-            "[AuthSession] Cookie cleanup failed during session restore. Redirecting to login.",
-            cookieError
-          );
-        }
-        clearClientAuthState();
+
+
+        clearAccessToken() // 사용자 데이터 날리기 
+        localStorage.removeItem("encrypted_user_id"); // 실패한 데이터 정리
+        localStorage.removeItem("pseudo_id_index_key");
         if (pathname !== "/login") {
           router.replace("/login");
         }
@@ -91,7 +83,7 @@ export const useAuthSession = () => {
     };
 
     restoreSession();
-  }, [accessToken, setAccessToken, userId, setUserId, router, pathname]);
+  }, [accessToken, setAccessToken, userId, setUserId, router, pathname, clearAccessToken]);
 
   return { isRestoring };
 };
