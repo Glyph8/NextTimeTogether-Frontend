@@ -105,6 +105,13 @@ export const useLogin = () => {
           const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
           localStorage.setItem("hashed_user_id_for_manager", hashedUserId);
 
+          const pseudoIdIndexKey = await hmacSha256Truncated(
+            masterKey,
+            `${id}:pseudo_id_index`,
+            256
+          );
+          localStorage.setItem("pseudo_id_index_key", pseudoIdIndexKey);
+
           // [수정 3] Router Cache 문제 방지를 위해 refresh() 호출 권장
           router.refresh();
 

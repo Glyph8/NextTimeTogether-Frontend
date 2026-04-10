@@ -1,7 +1,9 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { pretandard } from "./fonts";
 import { Providers } from "./providers";
+
 
 export const metadata: Metadata = {
   title: "타임투게더",
@@ -13,16 +15,18 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // 미들웨어가 요청 헤더에 설정한 nonce를 읽어 옴.
+  // 이 nonce는 프로덕션 환경에서 CSP script-src의 'nonce-{nonce}' 값과 일치해야 함.
+  // 외부 스크립트가 필요할 경우 <Script nonce={nonce} src="..." /> 형태로 전달.
+  const nonce = (await headers()).get("x-nonce") || undefined;
 
   return (
-    <html lang="ko" className={`${pretandard.variable}`}>
+    <html lang="ko" className={`${pretandard.variable}`} data-nonce={nonce}>
       <head>
         <title>Time Together</title>
       </head>
       <body className="bg-[#8E98A8] text-black-1 ">
-        <Providers>
-          {children}
-        </Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );

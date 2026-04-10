@@ -1,6 +1,6 @@
 import { getAIRecommand } from "@/api/where2meet";
 import { useAuthStore } from "@/store/auth.store";
-import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
+import { makePseudoId } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { useQuery } from "@tanstack/react-query";
 
@@ -26,7 +26,8 @@ export const useRecommandList = (
         console.error("사용자 아이디 혹은 마스터키 오류");
         throw new Error("Auth Failed");
       }
-      const pseudoId = await encryptDataClient(userId, masterKey, "user_iv")
+      const pseudoIdIndexKey = localStorage.getItem("pseudo_id_index_key") || userId;
+      const pseudoId = await makePseudoId(userId, pseudoIdIndexKey);
 
       const requestBody = {
         pseudoId: pseudoId,

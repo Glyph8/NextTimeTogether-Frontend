@@ -71,6 +71,7 @@ export const useAuthSession = () => {
 
         clearAccessToken() // 사용자 데이터 날리기 
         localStorage.removeItem("encrypted_user_id"); // 실패한 데이터 정리
+        localStorage.removeItem("pseudo_id_index_key");
         if (pathname !== "/login") {
           router.replace("/login");
         }

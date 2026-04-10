@@ -11,7 +11,8 @@ import { base64ToArrayBuffer } from "../helper";
  */
 async function decryptDataWithCryptoKey(
   encrypted: string,
-  masterKeyOrString: CryptoKey | string
+  masterKeyOrString: CryptoKey | string,
+  _legacyRole?: string
 ): Promise<string> {
   try {
     let cryptoKey: CryptoKey;
