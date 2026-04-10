@@ -404,38 +404,42 @@ export async function encryptStringToBase64(
 
 ```typescript
 export const useAuthSession = () => {
-  const { accessToken, setAccessToken, userId, setUserId, clearAccessToken } = useAuthStore();
+  const { accessToken, setAccessToken, userId, setUserId } = useAuthStore();
 
   useEffect(() => {
-    // 이미 메모리에 세션이 있으면 복원 불필요
-    if (accessToken && userId) { setIsRestoring(false); return; }
+    // 이미 세션이 있거나 공개 라우트면 복원 생략
+    if ((accessToken && userId) || pathname === "/login" || pathname.includes("/register") || pathname === "/") {
+      setIsRestoring(false);
+      return;
+    }
 
     const restoreSession = async () => {
       try {
-        // 1. IndexedDB에서 MasterKey 가져오기
         const masterKey = await getMasterKey();
-        if (!masterKey) throw new Error("MasterKey 없음. 로그인 필요.");
+        if (!masterKey) throw new Error("MasterKey가 없습니다.");
 
-        // 2. AES-GCM으로 암호화된 userId 복호화
         const encryptedUserId = localStorage.getItem("encrypted_user_id");
+        if (!encryptedUserId) throw new Error("encrypted_user_id가 없습니다.");
         const userId = await decryptStringFromBase64(encryptedUserId!, masterKey);
 
-        // 3. httpOnly 쿠키의 RefreshToken으로 새 AccessToken 발급 (Server Action)
         const refreshResult = await refreshAccessToken();
-        if (!refreshResult.success) throw new Error(refreshResult.error);
+        if (!refreshResult.success || !refreshResult.accessToken) {
+          throw new Error(refreshResult.error || "AccessToken 갱신 실패");
+        }
 
-        // 4. 복원된 데이터를 Zustand(메모리)에 저장
         setUserId(userId);
         setAccessToken(refreshResult.accessToken!);
       } catch (err) {
-        clearAccessToken();
-        localStorage.removeItem("encrypted_user_id");
-        router.replace("/login");
+        await clearAuthCookies();
+        clearClientAuthState();
+        if (pathname !== "/login") router.replace("/login");
+      } finally {
+        setIsRestoring(false);
       }
     };
 
     restoreSession();
-  }, [accessToken, userId, ...]);
+  }, [accessToken, setAccessToken, userId, setUserId, router, pathname]);
 };
 ```
 
@@ -445,22 +449,28 @@ export const useAuthSession = () => {
 "use server";
 
 export async function refreshAccessToken(): Promise<RefreshActionState> {
-  // httpOnly 쿠키는 서버에서만 읽을 수 있음 (클라이언트 JS 접근 불가)
   const cookieStore = await cookies();
   const refreshToken = cookieStore.get("refresh_token")?.value;
 
-  if (!refreshToken) return { success: false, error: "No refresh token." };
+  if (!refreshToken) return { success: false, error: "No refresh token found." };
 
   const response = await axios.post(`${MAIN_BACKEND_URL}/auth/refresh`, null, {
     headers: { "Refresh-token": refreshToken },
   });
 
-  if (response.data.code === 200 && response.headers["authorization"]) {
-    return { success: true, accessToken: response.headers["authorization"] };
+  const newAccessToken = response.headers["authorization"];
+  const rotatedRefreshToken = getRefreshTokenFromSetCookie(response.headers["set-cookie"]);
+
+  if (response.data.code === 200 && newAccessToken) {
+    cookieStore.set("access_token", newAccessToken, { httpOnly: true, path: "/", sameSite: "lax" });
+    if (rotatedRefreshToken) {
+      cookieStore.set("refresh_token", rotatedRefreshToken, { httpOnly: true, path: "/", sameSite: "lax" });
+    }
+    return { success: true, accessToken: newAccessToken };
   }
-  // 실패 시 만료된 쿠키 제거
-  cookieStore.set("refresh_token", "", { maxAge: 0, path: "/" });
-  return { success: false, error: "Session expired." };
+
+  await clearAuthTokenCookies();
+  return { success: false, error: "Backend refresh failed." };
 }
 ```
 
