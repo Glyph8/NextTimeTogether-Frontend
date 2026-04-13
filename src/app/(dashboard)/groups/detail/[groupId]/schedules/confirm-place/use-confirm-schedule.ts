@@ -15,6 +15,7 @@ import { useGroupDetail } from "../../hooks/use-group-detail";
 interface ServerConfirmResult {
   dateTime: string; // "2025-12-06T09:00:00-11:00:00"
   title: string;
+  // 백엔드 응답이 목적 값을 purpose 또는 type으로 내려줄 수 있어 둘 다 허용
   purpose?: string;
   type?: string;
   placeId: number;
