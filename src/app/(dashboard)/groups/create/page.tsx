@@ -100,7 +100,7 @@ export default function CreateGroupPage() {
           tabIndex={0}
           aria-label="그룹 프로필 이미지 선택"
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
+            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
               e.preventDefault();
               fileInputRef.current?.click();
             }

@@ -30,6 +30,9 @@ interface TimestampListResponse {
   timeStamps?: TimestampResDTO[];
 }
 
+/**
+ * 처리된 timestamp 결과에서 유효한 schedule id만 추출하고 중복을 제거한다.
+ */
 const getUniqueValidScheduleIds = (
   scheduleItems: Array<ProcessedScheduleResult | null>
 ): string[] =>

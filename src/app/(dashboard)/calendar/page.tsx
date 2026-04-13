@@ -20,13 +20,7 @@ import {
   useCalendarCreate,
   useCalendarResisterBaseInfo,
 } from "./hooks/use-calendar-create";
-import {
-  BaseResponse,
-  CalendarCreateRequest1,
-  CalendarCreateRequest2,
-  PromiseListResDTO,
-  PromiseResDTO,
-} from "@/apis/generated/Api";
+import { CalendarCreateRequest1, CalendarCreateRequest2 } from "@/apis/generated/Api";
 import { convertToLocalDateTime, generateMonthDates, parseScheduleIdToDates } from "./utils/date-util";
 import { ko } from "date-fns/locale";
 import { useSchedules } from "../appointment/hooks/useSchedules";
@@ -34,6 +28,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { updateCalendarSchedule } from "@/api/calendar";
 import { mapColor } from "./utils/calendar-helper";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
+import { extractScheduleList } from "@/utils/schedule/extract-schedule-list";
 
 
 
@@ -80,31 +75,6 @@ interface ExtendedNewEventData extends NewEventData {
   place?: string;
   memo?: string;
 }
-
-const extractScheduleList = (
-  data?: BaseResponse | PromiseListResDTO
-): PromiseResDTO[] => {
-  if (!data) return [];
-
-  if ("result" in data) {
-    const result = data.result;
-    if (Array.isArray(result)) {
-      return result as PromiseResDTO[];
-    }
-
-    if (result && typeof result === "object" && "promiseResDTOList" in result) {
-      return (result as PromiseListResDTO).promiseResDTOList ?? [];
-    }
-
-    return [];
-  }
-
-  if ("promiseResDTOList" in data) {
-    return data.promiseResDTOList ?? [];
-  }
-
-  return [];
-};
 
 export default function CalendarPage() {
   const router = useRouter();

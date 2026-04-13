@@ -15,34 +15,9 @@ import { ScheduleItem } from "./components/ScheduleItem";
 import { TeamItem } from "./components/TeamItem";
 import { DEFAULT_IMAGE } from "@/constants";
 import { getFutureRangeDates } from "./utils/generate-date-range";
-import { BaseResponse, PromiseListResDTO, PromiseResDTO } from "@/apis/generated/Api";
+import { extractScheduleList } from "@/utils/schedule/extract-schedule-list";
 
 type FilterType = "전체" | "약속 제목" | "참여 인원" | "장소";
-
-const extractScheduleList = (
-  data?: BaseResponse | PromiseListResDTO
-): PromiseResDTO[] => {
-  if (!data) return [];
-
-  if ("result" in data) {
-    const result = data.result;
-    if (Array.isArray(result)) {
-      return result as PromiseResDTO[];
-    }
-
-    if (result && typeof result === "object" && "promiseResDTOList" in result) {
-      return (result as PromiseListResDTO).promiseResDTOList ?? [];
-    }
-
-    return [];
-  }
-
-  if ("promiseResDTOList" in data) {
-    return data.promiseResDTOList ?? [];
-  }
-
-  return [];
-};
 
 export default function SchedulePage() {
   const [conditionOpen, setConditionOpen] = useState(false);
