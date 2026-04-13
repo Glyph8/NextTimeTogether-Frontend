@@ -116,23 +116,24 @@ export default function JoinPromisePage() {
         throw new Error("서버 응답 없음");
       }
     } catch (e) {
-      const status = (e as { response?: { status?: number } })?.response?.status;
-      if (status === 403) {
+      const responseStatus = (e as { response?: { status?: number } })?.response
+        ?.status;
+      if (responseStatus === 403) {
         setStatus("error");
         setMessage("약속 참여 권한이 없습니다.");
         return;
       }
-      if (status === 404) {
+      if (responseStatus === 404) {
         setStatus("error");
         setMessage("존재하지 않는 약속입니다.");
         return;
       }
-      if (status === 400) {
+      if (responseStatus === 400) {
         setStatus("error");
         setMessage("요청 형식이 올바르지 않습니다. 다시 시도해주세요.");
         return;
       }
-      if (status === 409) {
+      if (responseStatus === 409) {
         setStatus("success");
         setMessage("이미 참여한 약속입니다. 상세 페이지로 이동합니다.");
         navigateToDetailWithHash(1200);

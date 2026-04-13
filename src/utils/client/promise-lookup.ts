@@ -1,3 +1,5 @@
+import { makePseudoId } from "@/utils/client/crypto/encryptClient";
+
 export const PROMISE_LOOKUP_VERSION = 1;
 
 const LOOKUP_USER_ID_KEY = "hashed_user_id_for_manager";
@@ -5,29 +7,6 @@ const LOOKUP_INDEX_KEY = "pseudo_id_index_key";
 
 const normalizeUserId = (userId: string) => userId.trim().toLowerCase();
 const normalizeIndexKey = (indexKey: string) => indexKey.trim();
-
-const toHexString = (buffer: ArrayBuffer) =>
-  Array.from(new Uint8Array(buffer))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-
-async function hmacSha256Hex(payload: string, indexKey: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(indexKey),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(payload)
-  );
-
-  return toHexString(signature);
-}
 
 export async function makeLookupId(
   userId: string,
@@ -50,7 +29,7 @@ export async function makeLookupId(
       ? normalizedUserId
       : `v${version}:${normalizedUserId}`;
 
-  return hmacSha256Hex(payload, normalizedIndexKey);
+  return makePseudoId(payload, normalizedIndexKey);
 }
 
 export function getLookupSourceFromStorage(): { userId: string; indexKey: string } {
@@ -73,6 +52,14 @@ export function getLookupSourceFromStorage(): { userId: string; indexKey: string
 
 export async function resolveLookupContext(version: number = PROMISE_LOOKUP_VERSION) {
   const { userId, indexKey } = getLookupSourceFromStorage();
+  return resolveLookupContextForUser(userId, indexKey, version);
+}
+
+export async function resolveLookupContextForUser(
+  userId: string,
+  indexKey: string,
+  version: number = PROMISE_LOOKUP_VERSION
+) {
   const lookupId = await makeLookupId(userId, indexKey, version);
 
   return {

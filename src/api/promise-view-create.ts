@@ -283,26 +283,30 @@ export const getPromiseKey = (data: GetPromiseRequest) => {
       return realData.result || [];
     })
     .catch((error) => {
+      const status = error?.response?.status;
+      const isExpectedPromiseKeyError =
+        typeof status === "number" &&
+        PROMISE_KEY_EXPECTED_ERROR_STATUSES.includes(status);
       if (error.response) {
         // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-        console.error("API Error Response Data:", error.response.data);
-        console.error("API Error Response Status:", error.response.status);
-        console.error("API Error Response Headers:", error.response.headers);
+        if (isExpectedPromiseKeyError) {
+          console.warn("promisekey2 요청 실패", {
+            status,
+            promiseId: data.promiseId,
+            lookupVersion: data.lookupVersion,
+            lookupId: maskLookupId(data.lookupId),
+          });
+        } else {
+          console.error("API Error Response Data:", error.response.data);
+          console.error("API Error Response Status:", error.response.status);
+          console.error("API Error Response Headers:", error.response.headers);
+        }
       } else if (error.request) {
         // 요청이 전송되었지만, 응답을 받지 못한 경우
         console.error("API Error Request:", error.request);
       } else {
         // 요청을 설정하는 중에 에러가 발생한 경우
         console.error("API Error Message:", error.message);
-      }
-      const status = error?.response?.status;
-      if (PROMISE_KEY_EXPECTED_ERROR_STATUSES.includes(status)) {
-        console.warn("promisekey2 요청 실패", {
-          status,
-          promiseId: data.promiseId,
-          lookupVersion: data.lookupVersion,
-          lookupId: maskLookupId(data.lookupId),
-        });
       }
       throw error;
     });
