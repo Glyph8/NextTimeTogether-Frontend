@@ -59,7 +59,8 @@ export function getLookupSourceFromStorage(): { userId: string; indexKey: string
   }
 
   const userId = localStorage.getItem(LOOKUP_USER_ID_KEY)?.trim();
-  const indexKey = localStorage.getItem(LOOKUP_INDEX_KEY)?.trim() || userId;
+  const rawIndexKey = localStorage.getItem(LOOKUP_INDEX_KEY)?.trim();
+  const indexKey = rawIndexKey && rawIndexKey.length > 0 ? rawIndexKey : userId;
 
   if (!userId || !indexKey) {
     throw new Error("missing user identifier or lookup index key.");
