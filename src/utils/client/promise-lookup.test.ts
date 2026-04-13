@@ -18,9 +18,11 @@ test("same input should produce same lookupId", async () => {
 test("different input or version should produce different lookupId", async () => {
   const base = await makeLookupId("user@test.com", "index-key", 1);
   const changedUser = await makeLookupId("other@test.com", "index-key", 1);
+  const changedIndexKey = await makeLookupId("user@test.com", "other-index-key", 1);
   const changedVersion = await makeLookupId("user@test.com", "index-key", 2);
 
   assert.notEqual(base, changedUser);
+  assert.notEqual(base, changedIndexKey);
   assert.notEqual(base, changedVersion);
 });
 

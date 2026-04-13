@@ -67,6 +67,12 @@ export default function JoinPromisePage() {
   // 2. 사용자가 버튼을 눌렀을 때 실행되는 실제 참여 로직
   const handleJoinClick = async () => {
     if (status !== "ready") return;
+    const navigateToDetailWithHash = (delayMs: number) => {
+      setTimeout(() => {
+        const hash = window.location.hash;
+        router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`);
+      }, delayMs);
+    };
 
     try {
       setStatus("joining");
@@ -129,21 +135,15 @@ export default function JoinPromisePage() {
       if (status === 409) {
         setStatus("success");
         setMessage("이미 참여한 약속입니다. 상세 페이지로 이동합니다.");
-        setTimeout(() => {
-          const hash = window.location.hash;
-          router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`);
-        }, 1200);
+        navigateToDetailWithHash(1200);
         return;
       }
       console.error(e);
       setStatus("error");
       setMessage("처리 중 오류가 발생했습니다.\n상세 페이지로 이동합니다.");
 
-      setTimeout(() => {
-        const hash = window.location.hash;
-        // 실패/이미참여 시에도 키를 가지고 이동해야 내용을 볼 수 있음
-        router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`);
-      }, 1500);
+      // 실패 시에도 키를 가지고 이동해야 내용을 볼 수 있음
+      navigateToDetailWithHash(1500);
     }
   };
 

@@ -101,14 +101,14 @@ export default function ScheduleDetailPage() {
       const { lookupId, lookupVersion } = await resolveLookupContext();
 
       try {
-        const promiseKeyRequest: GetPromiseRequest = {
+        const getPromiseKeyRequest: GetPromiseRequest = {
           promiseId,
           lookupId,
           lookupVersion,
         };
 
         if (shouldSendLegacyEncUserId()) {
-          promiseKeyRequest.encUserId = await encryptDataClient(
+          getPromiseKeyRequest.encUserId = await encryptDataClient(
             decryptedUserId,
             groupKey,
             "group_sharekey"
@@ -116,7 +116,7 @@ export default function ScheduleDetailPage() {
         }
 
         // 1. 여기서 실제 요청은 보냅니다. (서버 로그엔 404가 찍힘)
-        const result = await getEncPromiseKey(promiseKeyRequest);
+        const result = await getEncPromiseKey(getPromiseKeyRequest);
 
         // 2. 성공하면 복호화 진행
         const decPromiseKey = await decryptDataWithCryptoKey(
