@@ -37,7 +37,11 @@ const extractScheduleList = (
     return [];
   }
 
-  return data.promiseResDTOList ?? [];
+  if ("promiseResDTOList" in data) {
+    return data.promiseResDTOList ?? [];
+  }
+
+  return [];
 };
 
 export default function SchedulePage() {
