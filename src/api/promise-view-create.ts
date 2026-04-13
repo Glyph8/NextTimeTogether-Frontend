@@ -13,6 +13,8 @@ import {
 import { BackendResponse, clientBaseApi } from ".";
 import { maskLookupId } from "@/utils/client/promise-lookup";
 
+const PROMISE_KEY_EXPECTED_ERROR_STATUSES = [400, 403, 404];
+
 /** promise/create4 */
 
 export interface CreatePromiseResponse {
@@ -294,7 +296,7 @@ export const getPromiseKey = (data: GetPromiseRequest) => {
         console.error("API Error Message:", error.message);
       }
       const status = error?.response?.status;
-      if (status === 400 || status === 403 || status === 404) {
+      if (PROMISE_KEY_EXPECTED_ERROR_STATUSES.includes(status)) {
         console.warn("promisekey2 요청 실패", {
           status,
           promiseId: data.promiseId,

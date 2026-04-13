@@ -137,7 +137,7 @@ export default function JoinPromisePage() {
       }
       console.error(e);
       setStatus("error");
-      setMessage("이미 참여했거나 처리에 실패했습니다.\n상세 페이지로 이동합니다.");
+      setMessage("처리 중 오류가 발생했습니다.\n상세 페이지로 이동합니다.");
 
       setTimeout(() => {
         const hash = window.location.hash;

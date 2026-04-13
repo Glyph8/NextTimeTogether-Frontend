@@ -38,11 +38,11 @@ export async function makeLookupId(
   const normalizedIndexKey = normalizeIndexKey(indexKey);
 
   if (!normalizedUserId || !normalizedIndexKey) {
-    throw new Error("lookupId input values must not be empty.");
+    throw new Error("userId and indexKey must not be empty after normalization.");
   }
 
   if (!Number.isInteger(version) || version < 1) {
-    throw new Error("lookupVersion must be an integer greater than 0.");
+    throw new Error("lookupVersion must be an integer greater than or equal to 1.");
   }
 
   const payload =
@@ -65,7 +65,7 @@ export function getLookupSourceFromStorage(): { userId: string; indexKey: string
   const indexKey = rawIndexKey && rawIndexKey.length > 0 ? rawIndexKey : userId;
 
   if (!userId || !indexKey) {
-    throw new Error("missing user identifier or lookup index key.");
+    throw new Error("Missing user identifier or lookup index key.");
   }
 
   return { userId, indexKey };

@@ -2,6 +2,8 @@ import { GetPromiseRequest } from "@/apis/generated/Api";
 import { BackendResponse, clientBaseApi } from ".";
 import { maskLookupId } from "@/utils/client/promise-lookup";
 
+const PROMISE_KEY_EXPECTED_ERROR_STATUSES = [400, 403, 404];
+
 export interface EncPromiseIdList{
     encPromiseIdList:string[];
 }
@@ -63,7 +65,7 @@ export const getEncPromiseKey =  (data: GetPromiseRequest) =>{
         console.error("API Error Response Data:", error.response.data);
         console.error("API Error Response Status:", error.response.status);
         console.error("API Error Response Headers:", error.response.headers);
-        if (status === 400 || status === 403 || status === 404) {
+        if (PROMISE_KEY_EXPECTED_ERROR_STATUSES.includes(status)) {
           console.warn("promisekey2 요청 실패", {
             status,
             promiseId: data.promiseId,
