@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getAllScheduleList, getScheduleListPerGroups, getTimeStampList, searchScheduleList, TimestampResDTO } from '@/api/appointment';
 import { GetPromiseBatchReqDTO } from '@/apis/generated/Api';
-import { getMasterKey } from '@/utils/client/key-storage';
 import { makePseudoId } from '@/utils/client/crypto/encryptClient';
 
 const generateCurrentMonthDates = (): string[] => {
@@ -25,13 +24,12 @@ interface UseSchedulesProps {
 // 반환할 객체의 타입 정의 (필요 시 수정하세요)
 interface ProcessedScheduleResult {
   id: string;
-  isCalendar: boolean;
 }
 
 /**
  * 타임스탬프 문자열을 분석하여 캘린더/일반 스케줄을 구분하고 ID를 추출하는 헬퍼 함수
  */
-const processTimestampItem = async (timestamp: string, masterKey: CryptoKey): Promise<ProcessedScheduleResult> => {
+const processTimestampItem = async (timestamp: string): Promise<ProcessedScheduleResult> => {
   // UUID 형식인지 확인하는 정규표현식 (대소문자 무관)
   // 예: 87a3fed9-a427-404f-b0fd-6facd1664da7
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
@@ -41,7 +39,6 @@ const processTimestampItem = async (timestamp: string, masterKey: CryptoKey): Pr
   if (uuidRegex.test(timestamp)) {
     return {
       id: timestamp.substring(0, 36), // 앞의 36자리(UUID)만 잘라냄
-      isCalendar: true,
     };
   }
 
@@ -56,9 +53,7 @@ const processTimestampItem = async (timestamp: string, masterKey: CryptoKey): Pr
     //   "promise_proxy_user"
     // );
     return {
-      // id: decrypted,
       id: timestamp,
-      isCalendar: false,
     };
   }
 };
@@ -81,12 +76,6 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
         console.warn("pseudo_id_index_key가 없습니다.");
         return { result: [] };
       }
-      const masterKey = await getMasterKey();
-      if (!masterKey) {
-        console.warn("개인키가 없어 복호화를 진행할 수 없습니다.");
-        return { result: [] }; // 혹은 에러 처리
-      }
-
       // 1. 검색어가 있을 경우 검색 API 호출
       if (keyword) {
         console.log("keyword 존재함", keyword);
@@ -115,17 +104,20 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
           timeStampList.map(async (item: TimestampResDTO) => {
             try {
               // 별도로 분리한 헬퍼 함수 호출
-              return await processTimestampItem(item.timestamp, masterKey);
+              return await processTimestampItem(item.timestamp);
             } catch (e) {
               console.error(`Timestamp 처리 실패 (${item.date}):`, e);
               return null;
             }
           })
         );
-        // const decryptedScheduleIds = timeStampList
-        // 약속 ID만 필터링
-        const validScheduleIds = decryptedScheduleIds.filter((item: ProcessedScheduleResult) => !item.isCalendar);
-        // const validScheduleIds = decryptedScheduleIds;
+        const validScheduleIds = Array.from(
+          new Set(
+            decryptedScheduleIds
+              .filter((item): item is ProcessedScheduleResult => !!item?.id)
+              .map((item) => item.id)
+          )
+        );
         console.log("validScheduleIds", validScheduleIds);
 
         if (validScheduleIds.length === 0) {
@@ -138,7 +130,7 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
 
         // 4. 복호화된 ID 리스트로 DTO 구성
         const batchReqData: GetPromiseBatchReqDTO = {
-          scheduleIdList: validScheduleIds.map((item: ProcessedScheduleResult) => item.id),
+          scheduleIdList: validScheduleIds,
           pseudoId: data.pseudoId
         };
 

@@ -14,9 +14,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Plus from "@/assets/svgs/icons/plus-white.svg";
 import FullLogo from "@/assets/pngs/logo-full.png"; // 기본 이미지
-import { CldUploadWidget, CloudinaryUploadWidgetResults } from "next-cloudinary";
 import { DEFAULT_IMAGE } from "@/constants";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
+import { uploadImage } from "@/hooks/useImageUpload";
+import { useRef } from "react";
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -26,8 +27,30 @@ export default function CreateGroupPage() {
 
   // ✅ 추가: 업로드된 이미지 URL을 저장할 State
   const [groupImg, setGroupImg] = useState(DEFAULT_IMAGE);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { mutate: createGroup, isPending } = useCreateGroup();
+
+  const handleSelectImage = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingImage(true);
+      const url = await uploadImage(file);
+      setGroupImg(url);
+      toast.success("이미지가 업로드되었습니다.");
+    } catch (error) {
+      console.error(error);
+      toast.error("이미지 업로드에 실패했습니다.");
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = "";
+    }
+  };
 
   const handleCreateGroup = () => {
     createGroup(
@@ -70,45 +93,34 @@ export default function CreateGroupPage() {
       />
 
       <div className="w-full flex justify-center items-center px-4 md:px-40 pt-5 pb-3.5 relative">
-        {/* ✅ 수정: Cloudinary 위젯으로 감싸기 */}
-        <CldUploadWidget
-          uploadPreset="MySpot" // ⚠️ 중요: 본인의 Unsigned Preset 이름으로 변경하세요
-          onSuccess={(result: CloudinaryUploadWidgetResults) => {
-            if (result.info && typeof result.info === "object") {
-              setGroupImg(result.info.secure_url);
-            }
-          }}
-          options={{
-            maxFiles: 1,
-            resourceType: "image",
-            clientAllowedFormats: ["png", "jpeg", "jpg", "webp"],
-          }}
+        <div
+          className="relative w-16 h-16 cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
         >
-          {({ open }) => {
-            return (
-              <div
-                className="relative w-16 h-16 cursor-pointer"
-                onClick={() => open()} // 영역 전체 클릭 시 업로드 창 열기
-              >
-                <div className="w-16 h-16 rounded-[8px] border border-[#E4E4E4] bg-gray-3 overflow-hidden relative">
-                  <Image
-                    src={groupImg || FullLogo}
-                    alt="그룹 프로필"
-                    fill
-                    className="object-cover"
-                    sizes="64px" // ✅ 추가: "이 이미지는 항상 64px(w-16) 크기로 보여요"라고 알려줌
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center absolute -bottom-2 -right-2 top-11 left-11 z-10"
-                >
-                  <Plus />
-                </button>
-              </div>
-            );
-          }}
-        </CldUploadWidget>
+          <div className="w-16 h-16 rounded-[8px] border border-[#E4E4E4] bg-gray-3 overflow-hidden relative">
+            <Image
+              src={groupImg || FullLogo}
+              alt="그룹 프로필"
+              fill
+              className="object-cover"
+              sizes="64px"
+            />
+          </div>
+          <button
+            type="button"
+            className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center absolute -bottom-2 -right-2 top-11 left-11 z-10"
+            disabled={isUploadingImage}
+          >
+            <Plus />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            className="hidden"
+            onChange={handleSelectImage}
+          />
+        </div>
       </div>
 
       <div className="flex-1 w-full h-full p-4 flex flex-col justify-between items-start">
@@ -163,7 +175,9 @@ export default function CreateGroupPage() {
             text={"그룹 만들기"}
             // 로딩 중이거나, 이름/설명이 없으면 비활성화
             // (이미지는 필수가 아니라면 조건에서 뺌, 필수라면 !groupImg 추가)
-            disabled={isPending || !groupName || !groupDescription}
+            disabled={
+              isPending || isUploadingImage || !groupName || !groupDescription
+            }
             onClick={handleCreateGroup}
           />
         </div>
