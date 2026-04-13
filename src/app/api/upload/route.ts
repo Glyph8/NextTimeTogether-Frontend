@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { createServerApi } from "@/api/server-index";
 import { refreshAccessToken } from "@/app/(auth)/login/refresh.action";
+import { cookies } from "next/headers";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -13,35 +13,35 @@ cloudinary.config({
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB 제한
 
 /**
- * 업로드 요청 인증을 확인하고, access token 만료 시 refresh 후 1회 재시도한다.
+ * 업로드 요청 인증을 확인하고, access token이 없으면 refresh로 1회 재시도한다.
  * - true: 인증 확인 성공
  * - false: 인증 실패
- * 첫 검증이 실패하면 refreshAccessToken으로 토큰을 갱신한 뒤 동일 검증을 한 번 더 시도한다.
+ * access_token 쿠키가 있으면 통과하고, 없으면 refresh_token으로 재발급을 시도한다.
  * @returns {Promise<boolean>} 인증 성공 여부
  */
-const verifyUploadAuthWithRefreshRetry = async () => {
-  try {
-    const api = await createServerApi();
-    await api.auth.reissueToken1();
-    return true;
-  } catch {
-    const refreshResult = await refreshAccessToken();
-    if (!refreshResult.success || !refreshResult.accessToken) {
-      return false;
-    }
+const ensureAuthenticated = async () => {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value;
 
-    try {
-      const api = await createServerApi();
-      await api.auth.reissueToken1();
-      return true;
-    } catch {
-      return false;
-    }
+  if (accessToken) {
+    return true;
   }
+
+  const refreshToken = cookieStore.get("refresh_token")?.value;
+  if (!refreshToken) {
+    return false;
+  }
+
+  const refreshResult = await refreshAccessToken();
+  if (!refreshResult.success || !refreshResult.accessToken) {
+    return false;
+  }
+
+  return true;
 };
 
 export async function POST(request: NextRequest) {
-  const isAuthorized = await verifyUploadAuthWithRefreshRetry();
+  const isAuthorized = await ensureAuthenticated();
   if (!isAuthorized) {
     return NextResponse.json(
       { error: "Unauthorized or invalid token" },
