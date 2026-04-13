@@ -26,6 +26,10 @@ interface ProcessedScheduleResult {
   id: string;
 }
 
+interface TimestampListResponse {
+  timeStamps?: TimestampResDTO[];
+}
+
 const getUniqueValidScheduleIds = (
   scheduleItems: Array<ProcessedScheduleResult | null>
 ): string[] =>
@@ -102,7 +106,9 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
       try {
         const reqDates = targetDates || generateCurrentMonthDates();
 
-        const apiResponse = await getTimeStampList({ dates: reqDates }) as any;
+        const apiResponse = await getTimeStampList({
+          dates: reqDates,
+        }) as TimestampListResponse;
 
         const timeStampList = apiResponse?.timeStamps || [];
 
@@ -147,7 +153,7 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
           return await getScheduleListPerGroups(groupId, batchReqData);
         }
 
-        return await getAllScheduleList(batchReqData) as any;
+        return await getAllScheduleList(batchReqData);
 
       } catch (error) {
         console.error("스케줄 로딩 체인 실패:", error);
