@@ -14,7 +14,8 @@ import { useGroupDetail } from "../../hooks/use-group-detail";
 interface ServerConfirmResult {
   dateTime: string; // "2025-12-06T09:00:00-11:00:00"
   title: string;
-  purpose: string;
+  purpose?: string;
+  type?: string;
   placeId: number;
 }
 
@@ -78,6 +79,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
       //   "promise_proxy_user"
       // );
       const encTimeStamp = scheduleId;
+      const resolvedPurpose = serverResult.purpose ?? serverResult.type;
 
       const requestData: ScheduleConfirmReqDTO = {
         promiseId: promiseId,
@@ -85,7 +87,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
         timeStampInfo: timeStampInfo, // "2025-12-06"
         placeId: placeId,
         title: serverResult.title,
-        purpose: serverResult.purpose,
+        purpose: resolvedPurpose,
         userList: decryptedUserIds,
         encTimeStamp: encTimeStamp, // 개인키로 암호화
       };

@@ -101,7 +101,8 @@ export const searchScheduleList = async (
 export interface GetScheduleDetailRes {
   scheduleId: string;
   title: string;
-  type: string;
+  type?: string;
+  purpose?: string;
   placeId: number;
   placeAddress: string;
   placeName: string;
@@ -121,7 +122,15 @@ export const getScheduleDetail = async (scheduleId: string) => {
       );
       const realData =
         response.data as unknown as BackendResponse<GetScheduleDetailRes>;
-      return realData.result || null;
+      if (!realData.result) return null;
+
+      const normalizedPurpose = realData.result.purpose ?? realData.result.type;
+
+      return {
+        ...realData.result,
+        type: normalizedPurpose,
+        purpose: normalizedPurpose,
+      };
     })
     .catch((error) => {
       if (error.response) {
