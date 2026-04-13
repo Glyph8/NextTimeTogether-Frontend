@@ -3,6 +3,7 @@
 import Header from "@/components/ui/header/Header";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import Menu from "@/assets/svgs/icons/menu-black.svg";
+import { GetPromiseRequest } from "@/apis/generated/Api";
 import { useEffect, useState } from "react";
 import { When2Meet } from "./When2Meet";
 import { Where2Meet } from "./Where2Meet";
@@ -100,6 +101,12 @@ export default function ScheduleDetailPage() {
       const { lookupId, lookupVersion } = await resolveLookupContext();
 
       try {
+        const promiseKeyRequest: GetPromiseRequest = {
+          promiseId,
+          lookupId,
+          lookupVersion,
+        };
+
         let encUserId: string | undefined;
         if (shouldSendLegacyEncUserId()) {
           encUserId = await encryptDataClient(
@@ -107,15 +114,11 @@ export default function ScheduleDetailPage() {
             groupKey,
             "group_sharekey"
           );
+          promiseKeyRequest.encUserId = encUserId;
         }
 
         // 1. 여기서 실제 요청은 보냅니다. (서버 로그엔 404가 찍힘)
-        const result = await getEncPromiseKey({
-          promiseId,
-          lookupId,
-          lookupVersion,
-          ...(encUserId ? { encUserId } : {}),
-        });
+        const result = await getEncPromiseKey(promiseKeyRequest);
 
         // 2. 성공하면 복호화 진행
         const decPromiseKey = await decryptDataWithCryptoKey(
@@ -415,4 +418,3 @@ export default function ScheduleDetailPage() {
     </div>
   );
 }
-

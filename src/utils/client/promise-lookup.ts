@@ -38,11 +38,11 @@ export async function makeLookupId(
   const normalizedIndexKey = normalizeIndexKey(indexKey);
 
   if (!normalizedUserId || !normalizedIndexKey) {
-    throw new Error("lookupId 생성 입력값이 비어있습니다.");
+    throw new Error("lookupId input values must not be empty.");
   }
 
   if (!Number.isInteger(version) || version < 1) {
-    throw new Error("lookupVersion은 1 이상의 정수여야 합니다.");
+    throw new Error("lookupVersion must be an integer greater than 0.");
   }
 
   const payload =
@@ -55,14 +55,14 @@ export async function makeLookupId(
 
 export function getLookupSourceFromStorage(): { userId: string; indexKey: string } {
   if (typeof window === "undefined") {
-    throw new Error("브라우저 환경에서만 lookup source를 조회할 수 있습니다.");
+    throw new Error("lookup source can only be read in browser environments.");
   }
 
   const userId = localStorage.getItem(LOOKUP_USER_ID_KEY)?.trim();
   const indexKey = localStorage.getItem(LOOKUP_INDEX_KEY)?.trim() || userId;
 
   if (!userId || !indexKey) {
-    throw new Error("lookupId 생성에 필요한 사용자 식별값 또는 인덱스 키가 없습니다.");
+    throw new Error("missing user identifier or lookup index key.");
   }
 
   return { userId, indexKey };
