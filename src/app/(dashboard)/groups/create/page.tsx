@@ -117,7 +117,7 @@ export default function CreateGroupPage() {
           </div>
           <button
             type="button"
-            className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center absolute -bottom-2 -right-2 top-11 left-11 z-10"
+            className="w-6 h-6 rounded-full bg-gray-2 flex justify-center items-center absolute -bottom-2 -right-2 z-10"
             aria-label="그룹 프로필 이미지 업로드"
             disabled={isUploadingImage}
           >

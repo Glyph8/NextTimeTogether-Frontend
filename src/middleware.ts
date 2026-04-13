@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
   // Cloudinary 도메인 (이미지용)
   const cloudinaryDomain = "https://res.cloudinary.com";
 
-  // connect-src: API 서버
+  // connect-src: API 서버 (클라이언트 업로드도 /api/upload 경유)
   const connectSrcPolicy = ["'self'", apiBaseUrl]
     .filter(Boolean)
     .join(" ");
