@@ -174,9 +174,9 @@ export default function SchedulePage() {
                 title={schedule.title ?? ""}
                 date={"날짜 미정"}
                 setIsOpen={() => {
-                  setIsOpenDialog(true);
                   if (!schedule.scheduleId) return;
                   setSelectedScheduleId(schedule.scheduleId);
+                  setIsOpenDialog(true);
                 }}
               />
             ))

@@ -12,18 +12,65 @@ cloudinary.config({
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB 제한
 
+const isValidAccessToken = (token?: string): boolean => {
+  if (!token) {
+    console.warn("[/api/upload] Missing access token");
+    return false;
+  }
+
+  try {
+    const normalizedToken = token.replace(/^Bearer\s+/i, "");
+    const parts = normalizedToken.split(".");
+    if (parts.length !== 3) {
+      console.warn("[/api/upload] Invalid token structure");
+      return false;
+    }
+
+    const payloadPart = parts[1];
+    if (!payloadPart) {
+      console.warn("[/api/upload] Missing token payload");
+      return false;
+    }
+
+    let payloadJson = "";
+    try {
+      payloadJson = Buffer.from(payloadPart, "base64url").toString("utf-8");
+    } catch {
+      console.warn("[/api/upload] Invalid token payload encoding");
+      return false;
+    }
+
+    let payload: { exp?: number };
+    try {
+      payload = JSON.parse(payloadJson) as { exp?: number };
+    } catch {
+      console.warn("[/api/upload] Invalid token payload JSON");
+      return false;
+    }
+    if (!payload.exp) {
+      console.warn("[/api/upload] Missing token expiration");
+      return false;
+    }
+
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    console.warn("[/api/upload] Failed to parse token payload");
+    return false;
+  }
+};
+
 /**
- * 업로드 요청 인증을 확인하고, access token이 없으면 refresh로 1회 재시도한다.
+ * 업로드 요청 인증을 확인하고, access token 유효성 검증 실패 시 refresh로 1회 재시도한다.
  * - true: 인증 확인 성공
  * - false: 인증 실패
- * access_token 쿠키가 있으면 통과하고, 없으면 refresh_token으로 재발급을 시도한다.
+ * access_token(exp 기준)이 유효하면 통과하고, 아니면 refresh_token으로 재발급을 시도한다.
  * @returns {Promise<boolean>} 인증 성공 여부
  */
 const ensureAuthenticated = async () => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value;
 
-  if (accessToken) {
+  if (isValidAccessToken(accessToken)) {
     return true;
   }
 
@@ -37,7 +84,7 @@ const ensureAuthenticated = async () => {
     return false;
   }
 
-  return true;
+  return isValidAccessToken(refreshResult.accessToken);
 };
 
 export async function POST(request: NextRequest) {

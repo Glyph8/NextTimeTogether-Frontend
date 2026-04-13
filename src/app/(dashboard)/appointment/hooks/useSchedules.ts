@@ -24,6 +24,7 @@ interface UseSchedulesProps {
 // 반환할 객체의 타입 정의 (필요 시 수정하세요)
 interface ProcessedScheduleResult {
   id: string;
+  excludeFromBatch: boolean;
 }
 
 interface TimestampListResponse {
@@ -41,7 +42,10 @@ const getUniqueValidScheduleIds = (
       scheduleItems
         .filter(
           (item): item is ProcessedScheduleResult =>
-            !!item && typeof item.id === "string" && item.id.length > 0
+            !!item &&
+            !item.excludeFromBatch &&
+            typeof item.id === "string" &&
+            item.id.length > 0
         )
         .map((item) => item.id)
     )
@@ -60,6 +64,7 @@ const processTimestampItem = async (timestamp: string): Promise<ProcessedSchedul
   if (uuidRegex.test(timestamp)) {
     return {
       id: timestamp.substring(0, 36), // 앞의 36자리(UUID)만 잘라냄
+      excludeFromBatch: true,
     };
   }
 
@@ -75,6 +80,7 @@ const processTimestampItem = async (timestamp: string): Promise<ProcessedSchedul
     // );
     return {
       id: timestamp,
+      excludeFromBatch: false,
     };
   }
 };

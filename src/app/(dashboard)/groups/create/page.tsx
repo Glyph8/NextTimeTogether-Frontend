@@ -95,11 +95,15 @@ export default function CreateGroupPage() {
       <div className="w-full flex justify-center items-center px-4 md:px-40 pt-5 pb-3.5 relative">
         <div
           className="relative w-16 h-16 cursor-pointer"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => {
+            if (isUploadingImage) return;
+            fileInputRef.current?.click();
+          }}
           role="button"
           tabIndex={0}
           aria-label="그룹 프로필 이미지 선택"
           onKeyDown={(e) => {
+            if (isUploadingImage) return;
             if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
               e.preventDefault();
               fileInputRef.current?.click();
@@ -128,6 +132,7 @@ export default function CreateGroupPage() {
             type="file"
             accept="image/png,image/jpeg,image/jpg,image/webp"
             className="hidden"
+            disabled={isUploadingImage}
             onChange={handleSelectImage}
           />
         </div>

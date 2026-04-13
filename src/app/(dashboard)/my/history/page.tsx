@@ -88,7 +88,6 @@ export default function HistoryPage() {
               {
                 schedule.isRated ? (
                   <ScheduleItem
-                    key={schedule.scheduleId ?? `rated-${index}`} // 고유 ID 사용 확인
                     type={schedule.purpose || "약속"}
                     title={schedule.title ?? ""}
                     date={"날짜 미정"}
@@ -101,7 +100,6 @@ export default function HistoryPage() {
                   />
                 ) : (
                   <UnratedScheduleItem
-                    key={schedule.scheduleId ?? `unrated-${index}`} // 고유 ID 사용 확인
                     type={schedule.purpose || "약속"}
                     title={schedule.title ?? ""}
                     date={"날짜 미정"}
