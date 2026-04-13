@@ -1,6 +1,10 @@
 import { joinPromise } from "@/api/promise-invite-join";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
+import {
+  getLookupIndexKeyFromStorage,
+  resolveLookupContextForUser,
+} from "@/utils/client/promise-lookup";
 
 export const invitePromiseService = async (
   userId: string,
@@ -42,6 +46,11 @@ export const invitePromiseService = async (
     masterkey,
     "promise_proxy_user"
   );
+  const lookupIndexKey = getLookupIndexKeyFromStorage(userId);
+  const { lookupId, lookupVersion } = await resolveLookupContextForUser(
+    userId,
+    lookupIndexKey
+  );
 
   const joinInfo = {
     promiseId,
@@ -49,6 +58,8 @@ export const invitePromiseService = async (
     encPromiseMemberId,
     encUserId,
     encPromiseKey,
+    lookupId,
+    lookupVersion,
   };
 
   try {

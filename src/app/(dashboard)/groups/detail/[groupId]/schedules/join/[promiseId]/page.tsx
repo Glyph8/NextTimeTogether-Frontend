@@ -7,6 +7,7 @@ import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { joinPromise } from "@/api/promise-invite-join";
 import { getMasterKey } from "@/utils/client/key-storage";
+import { resolveLookupContext } from "@/utils/client/promise-lookup";
 
 export default function JoinPromisePage() {
   const params = useParams<{ groupId: string; promiseId: string }>();
@@ -66,6 +67,12 @@ export default function JoinPromisePage() {
   // 2. 사용자가 버튼을 눌렀을 때 실행되는 실제 참여 로직
   const handleJoinClick = async () => {
     if (status !== "ready") return;
+    const navigateToDetailWithHash = (delayMs: number) => {
+      setTimeout(() => {
+        const hash = window.location.hash;
+        router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`);
+      }, delayMs);
+    };
 
     try {
       setStatus("joining");
@@ -84,6 +91,7 @@ export default function JoinPromisePage() {
       const encPromiseMemberId = await encryptDataClient(decryptedUserId!, masterKey, "promise_proxy_user");
       const encUserId = await encryptDataClient(decryptedUserId!, groupKey!, "group_sharekey");
       const encPromiseKey = await encryptDataClient(extractedKeyString, masterKey, "promise_proxy_user");
+      const { lookupId, lookupVersion } = await resolveLookupContext();
 
       // API 호출
       const result = await joinPromise({
@@ -92,6 +100,8 @@ export default function JoinPromisePage() {
         encPromiseMemberId,
         encUserId,
         encPromiseKey,
+        lookupId,
+        lookupVersion,
       });
 
       if (result) {
@@ -106,16 +116,35 @@ export default function JoinPromisePage() {
         throw new Error("서버 응답 없음");
       }
     } catch (e) {
+      const responseStatus = (e as { response?: { status?: number } })?.response
+        ?.status;
+      if (responseStatus === 403) {
+        setStatus("error");
+        setMessage("약속 참여 권한이 없습니다.");
+        return;
+      }
+      if (responseStatus === 404) {
+        setStatus("error");
+        setMessage("존재하지 않는 약속입니다.");
+        return;
+      }
+      if (responseStatus === 400) {
+        setStatus("error");
+        setMessage("요청 형식이 올바르지 않습니다. 다시 시도해주세요.");
+        return;
+      }
+      if (responseStatus === 409) {
+        setStatus("success");
+        setMessage("이미 참여한 약속입니다. 상세 페이지로 이동합니다.");
+        navigateToDetailWithHash(1200);
+        return;
+      }
       console.error(e);
-      // 이미 참여한 경우도 성공으로 간주하여 이동 처리 (UX 고려)
       setStatus("error");
-      setMessage("이미 참여했거나 처리에 실패했습니다.\n상세 페이지로 이동합니다.");
+      setMessage("처리 중 오류가 발생했습니다.\n상세 페이지로 이동합니다.");
 
-      setTimeout(() => {
-        const hash = window.location.hash;
-        // 실패/이미참여 시에도 키를 가지고 이동해야 내용을 볼 수 있음
-        router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`);
-      }, 1500);
+      // 실패 시에도 키를 가지고 이동해야 내용을 볼 수 있음
+      navigateToDetailWithHash(1500);
     }
   };
 

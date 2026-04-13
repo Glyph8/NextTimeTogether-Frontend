@@ -227,7 +227,13 @@ export interface PromiseSearchReqDTO {
 }
 
 export interface GetPromiseRequest {
-  promiseId?: string;
+  /** 약속 ID */
+  promiseId: string;
+  /** 사용자 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion: number;
+  /** 호환기간 fallback 조회용 encUserId */
   encUserId?: string;
 }
 
@@ -259,11 +265,15 @@ export interface UserInfoResDTO {
 }
 
 export interface JoinPromise1Request {
-  promiseId?: string;
+  promiseId: string;
   encPromiseId?: string;
   encPromiseMemberId?: string;
   encUserId?: string;
   encPromiseKey?: string;
+  /** 사용자 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion: number;
 }
 
 export interface JoinPromise1Response {
