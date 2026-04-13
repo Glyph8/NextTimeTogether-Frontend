@@ -21,8 +21,11 @@ import {
   useCalendarResisterBaseInfo,
 } from "./hooks/use-calendar-create";
 import {
+  BaseResponse,
   CalendarCreateRequest1,
   CalendarCreateRequest2,
+  PromiseListResDTO,
+  PromiseResDTO,
 } from "@/apis/generated/Api";
 import { convertToLocalDateTime, generateMonthDates, parseScheduleIdToDates } from "./utils/date-util";
 import { ko } from "date-fns/locale";
@@ -78,6 +81,31 @@ interface ExtendedNewEventData extends NewEventData {
   memo?: string;
 }
 
+const extractScheduleList = (
+  data?: BaseResponse | PromiseListResDTO
+): PromiseResDTO[] => {
+  if (!data) return [];
+
+  if ("result" in data) {
+    const result = data.result;
+    if (Array.isArray(result)) {
+      return result as PromiseResDTO[];
+    }
+
+    if (result && typeof result === "object" && "promiseResDTOList" in result) {
+      return (result as PromiseListResDTO).promiseResDTOList ?? [];
+    }
+
+    return [];
+  }
+
+  if ("promiseResDTOList" in data) {
+    return data.promiseResDTOList ?? [];
+  }
+
+  return [];
+};
+
 export default function CalendarPage() {
   const router = useRouter();
   const [calendarTitle, setCalendarTitle] = useState("");
@@ -100,10 +128,7 @@ export default function CalendarPage() {
 
 
   // 3. 약속 리스트 추출 (scheduleList)
-  const scheduleList =
-    schedulesData?.result?.promiseResDTOList ||
-    (Array.isArray(schedulesData?.result) ? schedulesData.result : []) ||
-    [];
+  const scheduleList = extractScheduleList(schedulesData);
 
   const events = useMemo(() => {
     let mergedEvents: CalendarEvent[] = [];
