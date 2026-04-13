@@ -114,7 +114,10 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
         const validScheduleIds = Array.from(
           new Set(
             decryptedScheduleIds
-              .filter((item): item is ProcessedScheduleResult => !!item?.id)
+              .filter(
+                (item): item is ProcessedScheduleResult =>
+                  !!item && typeof item.id === "string" && item.id.length > 0
+              )
               .map((item) => item.id)
           )
         );
