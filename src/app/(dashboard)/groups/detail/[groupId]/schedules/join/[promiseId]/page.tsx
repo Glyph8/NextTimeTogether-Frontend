@@ -7,6 +7,7 @@ import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { joinPromise } from "@/api/promise-invite-join";
 import { getMasterKey } from "@/utils/client/key-storage";
+import { resolveLookupContext } from "@/utils/client/promise-lookup";
 
 export default function JoinPromisePage() {
   const params = useParams<{ groupId: string; promiseId: string }>();
@@ -84,6 +85,7 @@ export default function JoinPromisePage() {
       const encPromiseMemberId = await encryptDataClient(decryptedUserId!, masterKey, "promise_proxy_user");
       const encUserId = await encryptDataClient(decryptedUserId!, groupKey!, "group_sharekey");
       const encPromiseKey = await encryptDataClient(extractedKeyString, masterKey, "promise_proxy_user");
+      const { lookupId, lookupVersion } = await resolveLookupContext();
 
       // API 호출
       const result = await joinPromise({
@@ -92,6 +94,8 @@ export default function JoinPromisePage() {
         encPromiseMemberId,
         encUserId,
         encPromiseKey,
+        lookupId,
+        lookupVersion,
       });
 
       if (result) {
@@ -106,6 +110,31 @@ export default function JoinPromisePage() {
         throw new Error("서버 응답 없음");
       }
     } catch (e) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      if (status === 403) {
+        setStatus("error");
+        setMessage("약속 참여 권한이 없습니다.");
+        return;
+      }
+      if (status === 404) {
+        setStatus("error");
+        setMessage("존재하지 않는 약속입니다.");
+        return;
+      }
+      if (status === 400) {
+        setStatus("error");
+        setMessage("요청 형식이 올바르지 않습니다. 다시 시도해주세요.");
+        return;
+      }
+      if (status === 409) {
+        setStatus("success");
+        setMessage("이미 참여한 약속입니다. 상세 페이지로 이동합니다.");
+        setTimeout(() => {
+          const hash = window.location.hash;
+          router.push(`/groups/detail/${groupId}/schedules/detail/${params.promiseId}${hash}`);
+        }, 1200);
+        return;
+      }
       console.error(e);
       // 이미 참여한 경우도 성공으로 간주하여 이동 처리 (UX 고려)
       setStatus("error");

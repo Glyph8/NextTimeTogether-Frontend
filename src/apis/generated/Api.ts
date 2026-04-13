@@ -227,7 +227,9 @@ export interface PromiseSearchReqDTO {
 }
 
 export interface GetPromiseRequest {
-  promiseId?: string;
+  promiseId: string;
+  lookupId: string;
+  lookupVersion: number;
   encUserId?: string;
 }
 
@@ -259,11 +261,13 @@ export interface UserInfoResDTO {
 }
 
 export interface JoinPromise1Request {
-  promiseId?: string;
+  promiseId: string;
   encPromiseId?: string;
   encPromiseMemberId?: string;
   encUserId?: string;
   encPromiseKey?: string;
+  lookupId: string;
+  lookupVersion: number;
 }
 
 export interface JoinPromise1Response {

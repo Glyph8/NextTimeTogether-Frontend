@@ -1,5 +1,6 @@
 import {
   CreatePromise4Request,
+  GetPromiseRequest,
   PromiseView1Response,
   Promiseview2Request,
   PromiseView2Response,
@@ -10,6 +11,7 @@ import {
   UserIdsResDTO,
 } from "@/apis/generated/Api";
 import { BackendResponse, clientBaseApi } from ".";
+import { maskLookupId } from "@/utils/client/promise-lookup";
 
 /** promise/create4 */
 
@@ -261,17 +263,18 @@ interface PromiseKeyInfo {
 }
 
 // 🤔🤔 /promise/promisekey1는 promise/view1과 동일하므로 2단계 요청만  : enc_promise_id (개인키로 암호화한 promise_id) 리스트 반환
-/** /promise/promisekey2 : promiseId, encUserId(그룹키로 암호화한 사용자 아이디) 로 요청 - promise_id에 해당하는 enc_promise_key (개인키로 암호화한 promise_key) 반환받음 */
-export const getPromiseKey = (promiseId: string, encUserId: string) => {
+/** /promise/promisekey2 : promiseId + lookupId + lookupVersion(+호환기간 encUserId) 로 요청 */
+export const getPromiseKey = (data: GetPromiseRequest) => {
   const clientApi = clientBaseApi;
 
   return clientApi.promise
-    .getPromiseKey2({
-      promiseId,
-      encUserId,
-    })
+    .getPromiseKey2(data)
     .then((response) => {
-      console.log("약속키 요청  : ", response.data);
+      console.log("약속키 요청", {
+        promiseId: data.promiseId,
+        lookupVersion: data.lookupVersion,
+        lookupId: maskLookupId(data.lookupId),
+      });
       const realData =
         response.data as unknown as BackendResponse<PromiseKeyInfo>;
       // return response.data;
@@ -290,7 +293,15 @@ export const getPromiseKey = (promiseId: string, encUserId: string) => {
         // 요청을 설정하는 중에 에러가 발생한 경우
         console.error("API Error Message:", error.message);
       }
-      console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
+      const status = error?.response?.status;
+      if (status === 400 || status === 403 || status === 404) {
+        console.warn("promisekey2 요청 실패", {
+          status,
+          promiseId: data.promiseId,
+          lookupVersion: data.lookupVersion,
+          lookupId: maskLookupId(data.lookupId),
+        });
+      }
       throw error;
     });
 };

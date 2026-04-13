@@ -30,6 +30,11 @@ import { parseScheduleString } from "@/app/(dashboard)/appointment/[scheduleId]/
 import { parseConfrimedPromiseDateTime } from "../utils/promise-utils";
 import toast from "react-hot-toast";
 import { ConfirmedPlaceCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedPlaceCard";
+import {
+  maskLookupId,
+  resolveLookupContext,
+  shouldSendLegacyEncUserId,
+} from "@/utils/client/promise-lookup";
 
 interface PromiseData {
   encMembers: any; // 실제 타입으로 변경 (예: EncryptedPromiseMemberId)
@@ -58,14 +63,20 @@ export default function ScheduleDetailPage() {
   const userId = localStorage.getItem("hashed_user_id_for_manager");
 
   const handlePromiseError = (error: any) => {
-    if (
-      error.response &&
-      error.response.status === 404 &&
-      error.response.data?.message === "약속을 찾을 수 없어요"
-    ) {
+    const status = error?.response?.status;
+    if (status === 404) {
       toast.error("확정되거나 삭제된 약속입니다.");
       router.push("/appointment");
       return true; // 에러 처리됨
+    }
+    if (status === 403) {
+      toast.error("약속 조회 권한이 없습니다.");
+      router.push(`/groups/detail/${groupId}`);
+      return true;
+    }
+    if (status === 400) {
+      toast.error("요청 형식이 올바르지 않습니다.");
+      return true;
     }
     return false; // 처리되지 않음
   };
@@ -86,18 +97,25 @@ export default function ScheduleDetailPage() {
         throw new Error("유저 아이디가 없습니다.");
       }
 
-      const encUserId = await encryptDataClient(
-        decryptedUserId,
-        // userId,
-        // masterKey,
-        groupKey, // TODO : join시에 groupKey로 하라고 명시됨..???
-        // "promise_proxy_user"
-        "group_sharekey"
-      );
+      const { lookupId, lookupVersion } = await resolveLookupContext();
 
       try {
+        let encUserId: string | undefined;
+        if (shouldSendLegacyEncUserId()) {
+          encUserId = await encryptDataClient(
+            decryptedUserId,
+            groupKey,
+            "group_sharekey"
+          );
+        }
+
         // 1. 여기서 실제 요청은 보냅니다. (서버 로그엔 404가 찍힘)
-        const result = await getEncPromiseKey({ promiseId, encUserId });
+        const result = await getEncPromiseKey({
+          promiseId,
+          lookupId,
+          lookupVersion,
+          ...(encUserId ? { encUserId } : {}),
+        });
 
         // 2. 성공하면 복호화 진행
         const decPromiseKey = await decryptDataWithCryptoKey(
@@ -113,7 +131,11 @@ export default function ScheduleDetailPage() {
 
         // [수정] 서버 조회 실패 시, URL Hash에서 키 복구 시도
         const hash = window.location.hash;
-        console.log("⚠️ 약속 키 조회 실패. Hash 확인:", hash);
+        console.log("⚠️ 약속 키 조회 실패", {
+          lookupId: maskLookupId(lookupId),
+          lookupVersion,
+          hashExists: Boolean(hash),
+        });
 
         if (hash && hash.includes("pkey=")) {
           const hashParams = new URLSearchParams(hash.substring(1));
@@ -125,7 +147,11 @@ export default function ScheduleDetailPage() {
         }
 
         // ✅ [핵심] 에러가 발생해도 throw 하지 않고 콘솔에만 찍고 넘어갑니다.
-        console.error("⚠️ 약속 키 조회 실패 (무시하고 진행):", error);
+        console.error("⚠️ 약속 키 조회 실패 (무시하고 진행):", {
+          status: (error as { response?: { status?: number } })?.response?.status,
+          lookupId: maskLookupId(lookupId),
+          lookupVersion,
+        });
         // 에러 상황임을 알리는 null 반환 (React Query는 이를 '성공'으로 간주)
         return null;
       }
@@ -389,5 +415,4 @@ export default function ScheduleDetailPage() {
     </div>
   );
 }
-
 
