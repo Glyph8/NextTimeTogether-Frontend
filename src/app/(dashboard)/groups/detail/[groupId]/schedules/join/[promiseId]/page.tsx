@@ -136,7 +136,6 @@ export default function JoinPromisePage() {
         return;
       }
       console.error(e);
-      // 이미 참여한 경우도 성공으로 간주하여 이동 처리 (UX 고려)
       setStatus("error");
       setMessage("이미 참여했거나 처리에 실패했습니다.\n상세 페이지로 이동합니다.");
 

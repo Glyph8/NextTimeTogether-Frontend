@@ -107,14 +107,12 @@ export default function ScheduleDetailPage() {
           lookupVersion,
         };
 
-        let encUserId: string | undefined;
         if (shouldSendLegacyEncUserId()) {
-          encUserId = await encryptDataClient(
+          promiseKeyRequest.encUserId = await encryptDataClient(
             decryptedUserId,
             groupKey,
             "group_sharekey"
           );
-          promiseKeyRequest.encUserId = encUserId;
         }
 
         // 1. 여기서 실제 요청은 보냅니다. (서버 로그엔 404가 찍힘)
