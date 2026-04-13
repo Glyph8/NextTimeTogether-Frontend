@@ -12,7 +12,7 @@ cloudinary.config({
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB 제한
 
-const ensureUploadAuthorized = async () => {
+const verifyUploadAuthWithRefreshRetry = async () => {
   try {
     const api = await createServerApi();
     await api.auth.reissueToken1();
@@ -34,7 +34,7 @@ const ensureUploadAuthorized = async () => {
 };
 
 export async function POST(request: NextRequest) {
-  const isAuthorized = await ensureUploadAuthorized();
+  const isAuthorized = await verifyUploadAuthWithRefreshRetry();
   if (!isAuthorized) {
     return NextResponse.json(
       { error: "Unauthorized or invalid token" },

@@ -96,6 +96,15 @@ export default function CreateGroupPage() {
         <div
           className="relative w-16 h-16 cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          aria-label="그룹 프로필 이미지 선택"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
         >
           <div className="w-16 h-16 rounded-[8px] border border-[#E4E4E4] bg-gray-3 overflow-hidden relative">
             <Image
