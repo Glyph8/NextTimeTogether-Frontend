@@ -157,8 +157,10 @@ export default function CalendarPage() {
 
     // 2) 약속/모임 일정 (scheduleList) 매핑
     if (scheduleList && scheduleList.length > 0) {
-      const mappedScheduleList = scheduleList
-        .map((sch: any) => {
+      const mappedScheduleList: CalendarEvent[] = scheduleList
+        .map((sch): CalendarEvent | null => {
+          if (!sch.scheduleId) return null;
+
           // ID 파싱 (예: "20251220T0900-...")
           const { start, end } = parseScheduleIdToDates(sch.scheduleId); //
 
@@ -169,9 +171,9 @@ export default function CalendarPage() {
 
           return {
             id: sch.scheduleId,
-            title: sch.title,
+            title: sch.title ?? "",
             start: start,
-            end: end,
+            end: end ?? undefined,
             startTime: format(startDate, "a hh:mm", { locale: ko }),
             endTime: endDate ? format(endDate, "a hh:mm", { locale: ko }) : undefined,
             // 약속은 파란색 계열로 표시
@@ -185,7 +187,7 @@ export default function CalendarPage() {
             eventType: 'APPOINTMENT',
           };
         })
-        .filter((evt: any): evt is CalendarEvent => evt !== null);
+        .filter((evt): evt is CalendarEvent => evt !== null);
 
       mergedEvents = [...mergedEvents, ...mappedScheduleList];
     }
