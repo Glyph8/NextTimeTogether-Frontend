@@ -26,6 +26,20 @@ interface ProcessedScheduleResult {
   id: string;
 }
 
+const getUniqueValidScheduleIds = (
+  scheduleItems: Array<ProcessedScheduleResult | null>
+): string[] =>
+  Array.from(
+    new Set(
+      scheduleItems
+        .filter(
+          (item): item is ProcessedScheduleResult =>
+            !!item && typeof item.id === "string" && item.id.length > 0
+        )
+        .map((item) => item.id)
+    )
+  );
+
 /**
  * 타임스탬프 문자열을 분석하여 캘린더/일반 스케줄을 구분하고 ID를 추출하는 헬퍼 함수
  */
@@ -111,16 +125,7 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
             }
           })
         );
-        const validScheduleIds = Array.from(
-          new Set(
-            decryptedScheduleIds
-              .filter(
-                (item): item is ProcessedScheduleResult =>
-                  !!item && typeof item.id === "string" && item.id.length > 0
-              )
-              .map((item) => item.id)
-          )
-        );
+        const validScheduleIds = getUniqueValidScheduleIds(decryptedScheduleIds);
         console.log("validScheduleIds", validScheduleIds);
 
         if (validScheduleIds.length === 0) {

@@ -16,6 +16,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB 제한
  * 업로드 요청 인증을 확인하고, access token 만료 시 refresh 후 1회 재시도한다.
  * - true: 인증 확인 성공
  * - false: 인증 실패
+ * @returns {Promise<boolean>} 인증 성공 여부
  */
 const verifyUploadAuthWithRefreshRetry = async () => {
   try {

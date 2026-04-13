@@ -14,6 +14,11 @@ export interface PromiseResDTO {
   purpose: string;
 }
 
+/**
+ * 백엔드 호환성을 위해 schedule category를 purpose/type 순서로 정규화한다.
+ * @param value category 필드가 포함된 응답 객체
+ * @returns {string | undefined} 정규화된 category 값
+ */
 export const resolveSchedulePurpose = (value?: {
   purpose?: string;
   type?: string;

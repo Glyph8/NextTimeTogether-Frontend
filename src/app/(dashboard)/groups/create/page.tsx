@@ -126,7 +126,6 @@ export default function CreateGroupPage() {
           <input
             ref={fileInputRef}
             type="file"
-            aria-label="그룹 프로필 이미지 업로드"
             accept="image/png,image/jpeg,image/jpg,image/webp"
             className="hidden"
             onChange={handleSelectImage}
