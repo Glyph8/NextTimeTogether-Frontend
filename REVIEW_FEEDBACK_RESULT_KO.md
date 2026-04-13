@@ -29,5 +29,5 @@
 
 ## 5) 검증 결과
 - `npm run build`: 성공
-- `npm run lint`: ESLint 설정/버전 충돌로 기존 실패 상태 재현 (`Converting circular structure to JSON`)
+- `npm run lint`: ESLint 설정/버전 충돌로 기존 실패 상태가 지속됨 (`Converting circular structure to JSON`)
   - 이번 변경과 직접 관련 없는 기존 환경 이슈로 확인했습니다.

@@ -5,6 +5,8 @@ import {
 import { clientBaseApi } from ".";
 import { maskLookupId } from "@/utils/client/promise-lookup";
 
+const JOIN_EXPECTED_ERROR_STATUSES = [400, 403, 404, 409];
+
 /** promise invite1 : 약속 초대 메일 보내기 - LATER : 현재는 생략한 상태 */
 export const sendPromiseInviteMail = async (data: InvitePromise1Request) => {
   return clientBaseApi.promise
@@ -56,7 +58,9 @@ export const joinPromise = (data: JoinPromise1Request) => {
     })
     .catch((error) => {
       const status = error?.response?.status;
-      const isExpectedJoinFailure = [400, 403, 404, 409].includes(status);
+      const isExpectedJoinFailure =
+        typeof status === "number" &&
+        JOIN_EXPECTED_ERROR_STATUSES.includes(status);
       if (error.response) {
         // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
         if (isExpectedJoinFailure) {

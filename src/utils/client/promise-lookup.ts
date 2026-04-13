@@ -38,16 +38,31 @@ export function getLookupSourceFromStorage(): { userId: string; indexKey: string
   }
 
   const userId = localStorage.getItem(LOOKUP_USER_ID_KEY)?.trim();
+  const indexKey = getLookupIndexKeyFromStorage(userId);
+
+  if (!userId) {
+    throw new Error("Missing user identifier or lookup index key.");
+  }
+
+  return { userId, indexKey };
+}
+
+export function getLookupIndexKeyFromStorage(providedUserId?: string): string {
+  if (typeof window === "undefined") {
+    throw new Error("lookup source can only be read in browser environments.");
+  }
+
+  const userId = providedUserId ?? localStorage.getItem(LOOKUP_USER_ID_KEY)?.trim();
   // Backward compatibility: old sessions may not have pseudo_id_index_key yet.
   // In that case, we fall back to userId as indexKey to keep lookup derivation stable.
   const rawIndexKey = localStorage.getItem(LOOKUP_INDEX_KEY)?.trim();
   const indexKey = rawIndexKey && rawIndexKey.length > 0 ? rawIndexKey : userId;
 
-  if (!userId || !indexKey) {
-    throw new Error("Missing user identifier or lookup index key.");
+  if (!indexKey) {
+    throw new Error("Missing lookup index key.");
   }
 
-  return { userId, indexKey };
+  return indexKey;
 }
 
 export async function resolveLookupContext(version: number = PROMISE_LOOKUP_VERSION) {
