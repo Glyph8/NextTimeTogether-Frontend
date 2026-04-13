@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
 import { createSchedule } from "@/api/schedule-get-create";
+import { resolveSchedulePurpose } from "@/api/appointment";
 import { ScheduleConfirmReqDTO } from "@/apis/generated/Api"; // DTO 타입 확인 필요
 import { parseServerDateToScheduleId } from "./utils/date-format";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
@@ -79,7 +80,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
       //   "promise_proxy_user"
       // );
       const encTimeStamp = scheduleId;
-      const resolvedPurpose = serverResult.purpose ?? serverResult.type;
+      const resolvedPurpose = resolveSchedulePurpose(serverResult);
 
       const requestData: ScheduleConfirmReqDTO = {
         promiseId: promiseId,

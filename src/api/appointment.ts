@@ -14,6 +14,11 @@ export interface PromiseResDTO {
   purpose: string;
 }
 
+export const resolveSchedulePurpose = (value?: {
+  purpose?: string;
+  type?: string;
+}) => value?.purpose ?? value?.type;
+
 /** /promise/get : 약속 일정 리스트를 전부 조회 */
 export const getAllScheduleList = async (data: GetPromiseBatchReqDTO) => {
   return clientBaseApi.promise
@@ -124,7 +129,7 @@ export const getScheduleDetail = async (scheduleId: string) => {
         response.data as unknown as BackendResponse<GetScheduleDetailRes>;
       if (!realData.result) return null;
 
-      const normalizedPurpose = realData.result.purpose ?? realData.result.type;
+      const normalizedPurpose = resolveSchedulePurpose(realData.result);
 
       return {
         ...realData.result,

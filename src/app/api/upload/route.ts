@@ -27,13 +27,6 @@ export async function POST(request: NextRequest) {
     accessToken = refreshResult.accessToken;
   }
 
-  if (!accessToken) {
-    return NextResponse.json(
-      { error: "Unauthorized or invalid token" },
-      { status: 401 }
-    );
-  }
-
   let formData: FormData;
   try {
     formData = await request.formData();
