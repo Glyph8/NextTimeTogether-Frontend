@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { cookies } from "next/headers";
+import { createServerApi } from "@/api/server-index";
 import { refreshAccessToken } from "@/app/(auth)/login/refresh.action";
 
 cloudinary.config({
@@ -12,19 +12,34 @@ cloudinary.config({
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB 제한
 
-export async function POST(request: NextRequest) {
-  const cookieStore = await cookies();
-  let accessToken = cookieStore.get("access_token")?.value;
-
-  if (!accessToken) {
+const ensureUploadAuthorized = async () => {
+  try {
+    const api = await createServerApi();
+    await api.auth.reissueToken1();
+    return true;
+  } catch {
     const refreshResult = await refreshAccessToken();
     if (!refreshResult.success || !refreshResult.accessToken) {
-      return NextResponse.json(
-        { error: "Unauthorized or invalid token" },
-        { status: 401 }
-      );
+      return false;
     }
-    accessToken = refreshResult.accessToken;
+
+    try {
+      const api = await createServerApi();
+      await api.auth.reissueToken1();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+};
+
+export async function POST(request: NextRequest) {
+  const isAuthorized = await ensureUploadAuthorized();
+  if (!isAuthorized) {
+    return NextResponse.json(
+      { error: "Unauthorized or invalid token" },
+      { status: 401 }
+    );
   }
 
   let formData: FormData;
