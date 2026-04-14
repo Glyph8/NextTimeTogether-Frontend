@@ -10,18 +10,50 @@ export interface BackendResponse<T> {
   result: T;
 }
 
+type ApiErrorLike = {
+  response?: {
+    status?: number;
+    data?: unknown;
+  };
+  request?: unknown;
+  message?: string;
+};
+
+const isObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
+
+const isApiErrorLike = (error: unknown): error is ApiErrorLike => {
+  if (!isObject(error)) {
+    return false;
+  }
+
+  const { response, request, message } = error;
+
+  const hasValidResponse =
+    response === undefined ||
+    (isObject(response) &&
+      ("status" in response ? typeof response.status === "number" || response.status === undefined : true) &&
+      ("data" in response ? true : true));
+
+  const hasValidMessage = message === undefined || typeof message === "string";
+
+  return hasValidResponse && hasValidMessage && ("request" in error ? true : request === undefined);
+};
+
 /**
  * API catch 블록용 공통 에러 핸들러.
  * 에러를 로깅한 뒤 그대로 re-throw한다.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const handleApiError = (error: any): never => {
-  if (error.response) {
+export const handleApiError = (error: unknown): never => {
+  if (isApiErrorLike(error) && error.response) {
     console.error("API Error:", error.response.status, error.response.data);
-  } else if (error.request) {
+  } else if (isApiErrorLike(error) && error.request) {
     console.error("API No Response:", error.request);
-  } else {
+  } else if (error instanceof Error) {
     console.error("API Error:", error.message);
+  } else {
+    console.error("API Error:", error);
   }
   throw error;
 };
