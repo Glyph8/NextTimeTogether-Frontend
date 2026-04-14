@@ -14,6 +14,16 @@ export interface PromiseResDTO {
   purpose: string;
 }
 
+/**
+ * 백엔드 호환성을 위해 schedule category를 purpose/type 순서로 정규화한다.
+ * @param value category 필드가 포함된 응답 객체
+ * @returns {string | undefined} 정규화된 category 값
+ */
+export const resolveSchedulePurpose = (value?: {
+  purpose?: string;
+  type?: string;
+}) => value?.purpose ?? value?.type;
+
 /** /promise/get : 약속 일정 리스트를 전부 조회 */
 export const getAllScheduleList = async (data: GetPromiseBatchReqDTO) => {
   return clientBaseApi.promise
@@ -101,7 +111,8 @@ export const searchScheduleList = async (
 export interface GetScheduleDetailRes {
   scheduleId: string;
   title: string;
-  type: string;
+  type?: string;
+  purpose?: string;
   placeId: number;
   placeAddress: string;
   placeName: string;
@@ -121,7 +132,15 @@ export const getScheduleDetail = async (scheduleId: string) => {
       );
       const realData =
         response.data as unknown as BackendResponse<GetScheduleDetailRes>;
-      return realData.result || null;
+      if (!realData.result) return null;
+
+      const normalizedPurpose = resolveSchedulePurpose(realData.result);
+
+      return {
+        ...realData.result,
+        type: normalizedPurpose,
+        purpose: normalizedPurpose,
+      };
     })
     .catch((error) => {
       if (error.response) {

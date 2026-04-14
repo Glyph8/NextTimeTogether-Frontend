@@ -3,7 +3,7 @@
 import Search from "@/assets/svgs/icons/search.svg";
 import Header from "@/components/ui/header/Header";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ScheduleItem } from "../../appointment/components/ScheduleItem";
 import { useSchedules } from "../../appointment/hooks/useSchedules";
@@ -12,9 +12,7 @@ import { RatingDialog } from "./components/RatingDialog";
 import Link from "next/link";
 import ArrowLeft from "@/assets/svgs/icons/arrow-left-black.svg";
 import { UnratedScheduleItem } from "./components/UnratedScheduleItem";
-import { usePromiseDecryptedMemberNames } from "@/hooks/useGetMembers";
-import { parseScheduleString } from "../../appointment/[scheduleId]/detail/utils/formatter";
-import { useGroupDetail } from "../../groups/detail/[groupId]/hooks/use-group-detail";
+import { extractScheduleList } from "@/utils/schedule/extract-schedule-list";
 
 export default function HistoryPage() {
   const queryClient = useQueryClient();
@@ -46,10 +44,7 @@ export default function HistoryPage() {
     return <DefaultLoading />;
   }
 
-  const scheduleList =
-    schedulesData?.result?.promiseResDTOList ||
-    (Array.isArray(schedulesData?.result) ? schedulesData.result : []) ||
-    [];
+  const scheduleList = extractScheduleList(schedulesData);
 
   return (
     <div className="flex flex-col w-full flex-1 bg-gray-1">
@@ -88,31 +83,31 @@ export default function HistoryPage() {
 
       <div className="flex-1 flex flex-col bg-white">
         {scheduleList.length > 0 ? (
-          scheduleList.map((schedule: any) => (
-            <div key={schedule.scheduleId}>
+          scheduleList.map((schedule, index) => (
+            <div key={schedule.scheduleId ?? `history-${index}`}>
               {
                 schedule.isRated ? (
                   <ScheduleItem
-                    key={schedule.scheduleId} // 고유 ID 사용 확인
                     type={schedule.purpose || "약속"}
-                    title={schedule.title}
-                    date={schedule.date || "날짜 미정"} // DTO에 date 필드가 있는지 확인 필요
+                    title={schedule.title ?? ""}
+                    date={"날짜 미정"}
                     setIsOpen={() => {
+                      if (!schedule.scheduleId) return;
                       setIsOpenDialog(true);
                       setSelectedScheduleId(schedule.scheduleId);
-                      setSelectedScheduleIsRated(schedule.isRated);
+                      setSelectedScheduleIsRated(!!schedule.isRated);
                     }}
                   />
                 ) : (
                   <UnratedScheduleItem
-                    key={schedule.scheduleId} // 고유 ID 사용 확인
                     type={schedule.purpose || "약속"}
-                    title={schedule.title}
-                    date={schedule.date || "날짜 미정"} // DTO에 date 필드가 있는지 확인 필요
+                    title={schedule.title ?? ""}
+                    date={"날짜 미정"}
                     setIsOpen={() => {
+                      if (!schedule.scheduleId) return;
                       setIsOpenDialog(true);
                       setSelectedScheduleId(schedule.scheduleId);
-                      setSelectedScheduleIsRated(schedule.isRated);
+                      setSelectedScheduleIsRated(!!schedule.isRated);
                     }}
                   />
                 )

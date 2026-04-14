@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getEncryptedPromiseMemberId } from "@/api/promise-view-create";
 import { createSchedule } from "@/api/schedule-get-create";
+import { resolveSchedulePurpose } from "@/api/appointment";
 import { ScheduleConfirmReqDTO } from "@/apis/generated/Api"; // DTO 타입 확인 필요
 import { parseServerDateToScheduleId } from "./utils/date-format";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
@@ -14,7 +15,9 @@ import { useGroupDetail } from "../../hooks/use-group-detail";
 interface ServerConfirmResult {
   dateTime: string; // "2025-12-06T09:00:00-11:00:00"
   title: string;
-  purpose: string;
+  // 백엔드 응답이 목적 값을 purpose 또는 type으로 내려줄 수 있어 둘 다 허용
+  purpose?: string;
+  type?: string;
   placeId: number;
 }
 
@@ -78,6 +81,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
       //   "promise_proxy_user"
       // );
       const encTimeStamp = scheduleId;
+      const resolvedPurpose = resolveSchedulePurpose(serverResult);
 
       const requestData: ScheduleConfirmReqDTO = {
         promiseId: promiseId,
@@ -85,7 +89,7 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
         timeStampInfo: timeStampInfo, // "2025-12-06"
         placeId: placeId,
         title: serverResult.title,
-        purpose: serverResult.purpose,
+        purpose: resolvedPurpose,
         userList: decryptedUserIds,
         encTimeStamp: encTimeStamp, // 개인키로 암호화
       };

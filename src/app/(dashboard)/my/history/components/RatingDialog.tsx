@@ -5,10 +5,8 @@ import ArrowDown from "@/assets/svgs/icons/arrow-down-gray.svg";
 import ArrowUp from "@/assets/svgs/icons/arrow-up-gray.svg";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { useAuthStore } from "@/store/auth.store";
 import toast from "react-hot-toast";
 import { StarRatingInput } from "./StarRatingInput";
 import { makePseudoId } from "@/utils/client/crypto/encryptClient";
@@ -39,11 +37,7 @@ export const RatingDialog = ({
     queryKey: ["scheduleDetail", scheduleId],
     queryFn: async () => {
       const scheduleData = await getScheduleDetail(scheduleId);
-
-      let decryptedUserIds: string[] = [];
-      decryptedUserIds = scheduleData.encUserIds.map(
-        (_id, index) => `익명 ${index + 1}`
-      );
+      if (!scheduleData) return null;
       return scheduleData;
     },
   });

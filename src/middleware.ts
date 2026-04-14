@@ -11,13 +11,9 @@ export function middleware(request: NextRequest) {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   // Cloudinary 도메인 (이미지용)
   const cloudinaryDomain = "https://res.cloudinary.com";
-  // Cloudinary 위젯 도메인 (스크립트/iframe용)
-  const cloudinaryWidgetDomain = "https://upload-widget.cloudinary.com";
-  // Cloudinary API 도메인 (이미지 업로드 요청용)
-  const cloudinaryApiDomain = "https://api.cloudinary.com";
 
-  // connect-src: API 서버 + Cloudinary 업로드 API
-  const connectSrcPolicy = ["'self'", apiBaseUrl, cloudinaryApiDomain]
+  // connect-src: API 서버 (클라이언트 업로드도 /api/upload 경유)
+  const connectSrcPolicy = ["'self'", apiBaseUrl]
     .filter(Boolean)
     .join(" ");
 
@@ -27,13 +23,9 @@ export function middleware(request: NextRequest) {
   // script-src:
   //   - 개발 환경: HMR(Hot Module Replacement), eval 기반 소스맵 허용을 위해 unsafe-inline/unsafe-eval 사용
   //   - 프로덕션 환경: nonce 기반 CSP 적용. unsafe-inline 제거로 XSS 인라인 스크립트 차단.
-  //     nonce가 없는 인라인 스크립트는 차단되며, 허용 목록 도메인의 외부 스크립트는 nonce 없이 허용됨.
-  //     (주의: 'strict-dynamic'을 추가하면 URL 허용 목록이 무시됨 → Cloudinary 위젯에 nonce 전달 필요)
   const scriptSrcPolicy = isDevelopment
-    ? `'self' 'unsafe-inline' 'unsafe-eval' ${cloudinaryWidgetDomain}`
-    : `'self' 'nonce-${nonce}' ${cloudinaryWidgetDomain}`;
-
-  // const scriptSrcPolicy = `'self' 'nonce-${nonce}' ${cloudinaryWidgetDomain}`;
+    ? `'self' 'unsafe-inline' 'unsafe-eval'`
+    : `'self' 'nonce-${nonce}'`;
 
   // CSP 정책 모음
   const cspHeader = `
@@ -41,13 +33,13 @@ export function middleware(request: NextRequest) {
     connect-src ${connectSrcPolicy};
     script-src ${scriptSrcPolicy};
     style-src ${styleSrcPolicy};
-    img-src 'self' blob: data: ${cloudinaryDomain} ${cloudinaryWidgetDomain};
+    img-src 'self' blob: data: ${cloudinaryDomain};
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    frame-src 'self' ${cloudinaryWidgetDomain};
+    frame-src 'self';
     upgrade-insecure-requests;
   `;
 
