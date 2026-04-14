@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // 매 요청마다 고유한 nonce 값 생성
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   // 개발 중에 HMR 등 허용을 위한 예외처리

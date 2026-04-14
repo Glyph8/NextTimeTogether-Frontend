@@ -2,7 +2,7 @@ import {
   InvitePromise1Request,
   JoinPromise1Request,
 } from "@/apis/generated/Api";
-import { clientBaseApi } from ".";
+import { clientBaseApi, handleApiError } from ".";
 import { maskLookupId } from "@/utils/client/promise-lookup";
 
 const JOIN_EXPECTED_ERROR_STATUSES = [400, 403, 404, 409];
@@ -11,77 +11,30 @@ const JOIN_EXPECTED_ERROR_STATUSES = [400, 403, 404, 409];
 export const sendPromiseInviteMail = async (data: InvitePromise1Request) => {
   return clientBaseApi.promise
     .invitePromise1(data)
-    .then((response) => {
-      console.log(
-        "선택한 그룹원에게 약속 초대 이메일 전송함 : ",
-        response.data
-      );
-      return response.data;
-    })
-    .catch((error) => {
-      if (error.response) {
-        // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-        console.error("API Error Response Data:", error.response.data);
-        console.error("API Error Response Status:", error.response.status);
-        console.error("API Error Response Headers:", error.response.headers);
-      } else if (error.request) {
-        // 요청이 전송되었지만, 응답을 받지 못한 경우
-        console.error("API Error Request:", error.request);
-      } else {
-        // 요청을 설정하는 중에 에러가 발생한 경우
-        console.error("API Error Message:", error.message);
-      }
-      console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
-      throw error;
-    });
+    .then((response) => response.data)
+    .catch(handleApiError);
 };
-
-// export interface JoinPromise1Request {
-//   promiseId?: string;
-//   encPromiseId?: string;
-//   encPromiseMemberId?: string;
-//   encUserId?: string;
-//   encPromiseKey?: string;
-// }
 
 /** promise join1 : 약속에 참가하기 (약속 생성자 포함) */
 export const joinPromise = (data: JoinPromise1Request) => {
   return clientBaseApi.promise
     .joinPromise1(data)
-    .then((response) => {
-      console.log("약속 참여하기", {
-        promiseId: data.promiseId,
-        lookupVersion: data.lookupVersion,
-        lookupId: maskLookupId(data.lookupId),
-      });
-      return response.data;
-    })
+    .then((response) => response.data)
     .catch((error) => {
       const status = error?.response?.status;
       const isExpectedJoinFailure =
         typeof status === "number" &&
         JOIN_EXPECTED_ERROR_STATUSES.includes(status);
-      if (error.response) {
-        // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-        if (isExpectedJoinFailure) {
-          console.warn("join1 요청 실패", {
-            status,
-            promiseId: data.promiseId,
-            lookupVersion: data.lookupVersion,
-            lookupId: maskLookupId(data.lookupId),
-          });
-        } else {
-          console.error("API Error Response Data:", error.response.data);
-          console.error("API Error Response Status:", error.response.status);
-          console.error("API Error Response Headers:", error.response.headers);
-        }
-      } else if (error.request) {
-        // 요청이 전송되었지만, 응답을 받지 못한 경우
-        console.error("API Error Request:", error.request);
-      } else {
-        // 요청을 설정하는 중에 에러가 발생한 경우
-        console.error("API Error Message:", error.message);
+
+      if (isExpectedJoinFailure) {
+        console.warn("join1 요청 실패", {
+          status,
+          promiseId: data.promiseId,
+          lookupVersion: data.lookupVersion,
+          lookupId: maskLookupId(data.lookupId),
+        });
+        throw error;
       }
-      throw error;
+      return handleApiError(error);
     });
 };

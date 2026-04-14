@@ -1,5 +1,5 @@
 import { TimeSlotReqDTO, UserTimeSlotReqDTO } from "@/apis/generated/Api";
-import { clientBaseApi } from ".";
+import { clientBaseApi, handleApiError } from ".";
 import { ApiResponse } from "./server-index";
 
 export interface TimeCell {
@@ -23,34 +23,16 @@ export interface TimeBoardResponse {
 export const getPromiseTimeBoard = (
   promiseId: string
 ): Promise<TimeBoardResponse> => {
-  const clientApi = clientBaseApi;
-
-  return clientApi.time
+  return clientBaseApi.time
     .viewTimeBoard(promiseId)
     .then((response) => {
       const data = response.data as ApiResponse<TimeBoardResponse>;
       if (!data.result) {
         throw new Error(data.message || "데이터가 없습니다.");
       }
-      console.log("🔵 약속 시간 게시판 데이터:", data.result);
-      return response.data.result;
+      return data.result;
     })
-    .catch((error) => {
-      if (error.response) {
-        // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-        console.error("API Error Response Data:", error.response.data);
-        console.error("API Error Response Status:", error.response.status);
-        console.error("API Error Response Headers:", error.response.headers);
-      } else if (error.request) {
-        // 요청이 전송되었지만, 응답을 받지 못한 경우
-        console.error("API Error Request:", error.request);
-      } else {
-        // 요청을 설정하는 중에 에러가 발생한 경우
-        console.error("API Error Message:", error.message);
-      }
-      console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
-      throw error;
-    });
+    .catch(handleApiError);
 };
 
 export interface AvailableMembers {
@@ -65,34 +47,16 @@ export const getAvailableMemberTime = (
   promiseId: string,
   data: TimeSlotReqDTO
 ): Promise<AvailableMembers> => {
-  const clientApi = clientBaseApi;
-
-  return clientApi.time
+  return clientBaseApi.time
     .viewUsersByTime(promiseId, data)
     .then((response) => {
-      const data = response.data as ApiResponse<AvailableMembers>;
-      if (!data.result) {
-        throw new Error(data.message || "데이터가 없습니다.");
+      const res = response.data as ApiResponse<AvailableMembers>;
+      if (!res.result) {
+        throw new Error(res.message || "데이터가 없습니다.");
       }
-      console.log("🔵 약속 시간 게시판 데이터:", data.result);
-      return response.data.result;
+      return res.result;
     })
-    .catch((error) => {
-      if (error.response) {
-        // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-        console.error("API Error Response Data:", error.response.data);
-        console.error("API Error Response Status:", error.response.status);
-        console.error("API Error Response Headers:", error.response.headers);
-      } else if (error.request) {
-        // 요청이 전송되었지만, 응답을 받지 못한 경우
-        console.error("API Error Request:", error.request);
-      } else {
-        // 요청을 설정하는 중에 에러가 발생한 경우
-        console.error("API Error Message:", error.message);
-      }
-      console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
-      throw error;
-    });
+    .catch(handleApiError);
 };
 
 /** 사용자의 시간표 전송 = 내 시간표 업데이트 = API /time/my/{promiseId} */
@@ -100,61 +64,22 @@ export const updateMyTimetable = (
   promiseId: string,
   data: UserTimeSlotReqDTO
 ) => {
-  const clientApi = clientBaseApi;
-
-  return clientApi.time
+  return clientBaseApi.time
     .updateUserTime(promiseId, data)
-    .then((response) => {
-      const data = response.data;
-      console.log("🔵 사용자 시간표 갱신 응답 데이터:", data.result);
-      return response.data.result;
-    })
-    .catch((error) => {
-      if (error.response) {
-        // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-        console.error("API Error Response Data:", error.response.data);
-        console.error("API Error Response Status:", error.response.status);
-        console.error("API Error Response Headers:", error.response.headers);
-      } else if (error.request) {
-        // 요청이 전송되었지만, 응답을 받지 못한 경우
-        console.error("API Error Request:", error.request);
-      } else {
-        // 요청을 설정하는 중에 에러가 발생한 경우
-        console.error("API Error Message:", error.message);
-      }
-      console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
-      throw error;
-    });
+    .then((response) => response.data.result)
+    .catch(handleApiError);
 };
 
 /** 약속 시간표 확정 API /time/confirm/{promiseId} */
 export const confirmTimetable = (promiseId: string, data: string) => {
-  const clientApi = clientBaseApi;
-
-  return clientApi.time
+  return clientBaseApi.time
     .confirmDateTime(promiseId, { dateTime: data })
     .then((response) => {
-      const data = response.data;
-      if (!data.result) {
-        throw new Error(data.message || "데이터가 없습니다.");
+      const res = response.data;
+      if (!res.result) {
+        throw new Error(res.message || "데이터가 없습니다.");
       }
-      console.log("🔵 약속 시간 확정 응답 데이터:", data.result);
-      return response.data.result;
+      return res.result;
     })
-    .catch((error) => {
-      if (error.response) {
-        // 요청이 전송되었고, 서버가 2xx 외의 상태 코드로 응답한 경우
-        console.error("API Error Response Data:", error.response.data);
-        console.error("API Error Response Status:", error.response.status);
-        console.error("API Error Response Headers:", error.response.headers);
-      } else if (error.request) {
-        // 요청이 전송되었지만, 응답을 받지 못한 경우
-        console.error("API Error Request:", error.request);
-      } else {
-        // 요청을 설정하는 중에 에러가 발생한 경우
-        console.error("API Error Message:", error.message);
-      }
-      console.error("API Error Config:", error.config); // 어떤 요청이었는지 확인
-      throw error;
-    });
+    .catch(handleApiError);
 };
