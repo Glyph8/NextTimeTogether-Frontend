@@ -53,7 +53,7 @@ export const getAIRecommand = (data: UserAIInfoReqDTO) => {
   return clientBaseApi.place
     .recommendPlace(data)
     .then((response) => {
-      const res = response.data as ApiResponse<AIRecommandResponse>;
+      const res = response.data as ApiResponse<AIRecommandResponse[]>;
       if (!res.result) {
         throw new Error(res.message || "데이터가 없습니다.");
       }
