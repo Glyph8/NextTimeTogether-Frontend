@@ -33,6 +33,7 @@ export const joinPromise = (data: JoinPromise1Request) => {
           lookupVersion: data.lookupVersion,
           lookupId: maskLookupId(data.lookupId),
         });
+        throw error;
       }
       return handleApiError(error);
     });
