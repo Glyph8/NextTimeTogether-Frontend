@@ -5,6 +5,7 @@ export const GROUP_LOOKUP_VERSION = 1;
 
 const LOOKUP_USER_ID_KEY = "hashed_user_id_for_manager";
 const GROUP_LOOKUP_CACHE_KEY = "group_lookup_cache_v1";
+const LOOKUP_ID_PATTERN = /^[0-9a-f]{64}$/;
 
 interface GroupLookupCacheValue {
   userId: string;
@@ -137,7 +138,7 @@ export async function resolveGroupLookupContext(
 
   const indexKey = getLookupIndexKeyFromStorage(userId);
   const lookupId = await makeGroupLookupId(userId, normalizedGroupId, indexKey, version);
-  if (!/^[0-9a-f]{64}$/.test(lookupId)) {
+  if (!LOOKUP_ID_PATTERN.test(lookupId)) {
     throw new Error("lookupId must be 64 lowercase hex characters.");
   }
 

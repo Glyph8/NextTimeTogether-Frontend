@@ -83,19 +83,28 @@ export const getInviteEncGroupsKeyRequest = async (
 export const postGroupEditStep1 = async (
   payload: EditGroup1Request
 ): Promise<BaseResponse> => {
-  return clientBaseApi.api.editGroup1(payload).then((response) => response.data).catch(handleApiError);
+  return clientBaseApi.api
+    .editGroup1(payload)
+    .then((response) => response.data)
+    .catch(handleApiError);
 };
 
 /** 그룹 나가기 1단계 */
 export const postGroupLeaveStep1 = async (
   payload: LeavGroup1Request
 ) => {
-  return clientBaseApi.api.leaveGroup1(payload).then((response) => response.data).catch(handleApiError);
+  return clientBaseApi.api
+    .leaveGroup1(payload)
+    .then((response) => response.data)
+    .catch(handleApiError);
 };
 
 /** 그룹 나가기 2단계 */
 export const postGroupLeaveStep2 = async (
   payload: LeaveGroup2Request
 ) => {
-  return clientBaseApi.api.leaveGroup2(payload).then((response) => response.data).catch(handleApiError);
+  return clientBaseApi.api
+    .leaveGroup2(payload)
+    .then((response) => response.data)
+    .catch(handleApiError);
 };
