@@ -35,6 +35,20 @@ test("different group or version should produce different group lookupId", async
   assert.notEqual(base, changedVersion);
 });
 
+test("v1 group lookup should match known HMAC output with case-preserved groupId", async () => {
+  const lookupId = await makeGroupLookupId(
+    "User@Test.com ",
+    " Group-ABC ",
+    " index-key ",
+    GROUP_LOOKUP_VERSION
+  );
+
+  assert.equal(
+    lookupId,
+    "bba2996fb26f969354de02c5550ba2ad719beaec2b3d63c1bee95b8cb582693a"
+  );
+});
+
 test("group lookup feature flags should follow env switch", () => {
   const originalEnabled = process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED;
   const originalDual = process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST;
