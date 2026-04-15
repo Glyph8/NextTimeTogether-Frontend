@@ -84,17 +84,24 @@ export function shouldSendLegacyEncGroupId(): boolean {
   return process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST !== "false";
 }
 
-export function buildGroupLookupRequest<T extends { groupId?: string; encGroupId?: string }>(
+export interface GroupLookupRequestPayload {
+  groupId: string;
+  lookupId: string;
+  lookupVersion: number;
+  encGroupId?: string;
+}
+
+export function buildGroupLookupRequest(
   groupId: string,
   lookup: { lookupId: string; lookupVersion: number },
   encGroupId?: string
-): T {
+): GroupLookupRequestPayload {
   return {
     groupId,
     lookupId: lookup.lookupId,
     lookupVersion: lookup.lookupVersion,
     ...(encGroupId && shouldSendLegacyEncGroupId() ? { encGroupId } : {}),
-  } as T;
+  };
 }
 
 export function maskLookupId(lookupId?: string): string {
