@@ -13,7 +13,6 @@ import { getMasterKey } from "@/utils/client/key-storage";
 import {
   buildGroupLookupRequest,
   clearGroupLookupCacheForGroup,
-  maskLookupId,
   resolveGroupLookupContext,
   shouldUseGroupLookup,
 } from "@/utils/client/group-lookup";
@@ -70,12 +69,6 @@ export const GroupInviteDialog = ({
               return requestInviteWithLookup(false);
             }
 
-            console.warn("invite1 lookup 요청 실패", {
-              status,
-              groupId,
-              lookupVersion: lookupContext.lookupVersion,
-              lookupId: maskLookupId(lookupContext.lookupId),
-            });
             throw error;
           }
         };

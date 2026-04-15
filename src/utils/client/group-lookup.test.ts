@@ -39,26 +39,28 @@ test("group lookup feature flags should follow env switch", () => {
   const originalEnabled = process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED;
   const originalDual = process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST;
 
-  process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = "false";
-  process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = "false";
-  assert.equal(shouldUseGroupLookup(), false);
-  assert.equal(shouldSendLegacyEncGroupId(), false);
+  try {
+    process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = "false";
+    process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = "false";
+    assert.equal(shouldUseGroupLookup(), false);
+    assert.equal(shouldSendLegacyEncGroupId(), false);
 
-  process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = "true";
-  process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = "true";
-  assert.equal(shouldUseGroupLookup(), true);
-  assert.equal(shouldSendLegacyEncGroupId(), true);
+    process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = "true";
+    process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = "true";
+    assert.equal(shouldUseGroupLookup(), true);
+    assert.equal(shouldSendLegacyEncGroupId(), true);
+  } finally {
+    if (originalEnabled === undefined) {
+      delete process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED;
+    } else {
+      process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = originalEnabled;
+    }
 
-  if (originalEnabled === undefined) {
-    delete process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED;
-  } else {
-    process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = originalEnabled;
-  }
-
-  if (originalDual === undefined) {
-    delete process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST;
-  } else {
-    process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = originalDual;
+    if (originalDual === undefined) {
+      delete process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST;
+    } else {
+      process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = originalDual;
+    }
   }
 });
 

@@ -48,7 +48,10 @@ export const getInviteEncENcNewMemberId = async (
     })
     .catch((error) => {
       const status = error?.response?.status;
+      const isLookupRequest =
+        Boolean(groupData.lookupId) && typeof groupData.lookupVersion === "number";
       const isExpected =
+        isLookupRequest &&
         typeof status === "number" &&
         GROUP_LOOKUP_EXPECTED_ERROR_STATUSES.includes(status);
 

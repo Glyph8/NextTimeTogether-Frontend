@@ -1,4 +1,3 @@
-import { makePseudoId } from "@/utils/client/crypto/encryptClient";
 import { getLookupIndexKeyFromStorage } from "@/utils/client/promise-lookup";
 
 export const GROUP_LOOKUP_VERSION = 1;
@@ -38,7 +37,31 @@ function writeGroupLookupCache(value: GroupLookupCacheValue): void {
   if (typeof window === "undefined") {
     return;
   }
-  localStorage.setItem(GROUP_LOOKUP_CACHE_KEY, JSON.stringify(value));
+  try {
+    localStorage.setItem(GROUP_LOOKUP_CACHE_KEY, JSON.stringify(value));
+  } catch (error) {
+    console.warn("[GroupLookup] Failed to persist lookup cache.", error);
+  }
+}
+
+async function makeHmacSha256Hex(payload: string, indexKey: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(indexKey),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(payload)
+  );
+
+  return Array.from(new Uint8Array(signature))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function ensureCacheForUser(userId: string): GroupLookupCacheValue {
@@ -74,7 +97,7 @@ export async function makeGroupLookupId(
       ? `${normalizedUserId}:${normalizedGroupId}`
       : `v${version}:${normalizedUserId}:${normalizedGroupId}`;
 
-  return makePseudoId(payload, normalizedIndexKey);
+  return makeHmacSha256Hex(payload, normalizedIndexKey);
 }
 
 export function shouldUseGroupLookup(): boolean {
@@ -167,5 +190,9 @@ export function clearGroupLookupCacheForGroup(groupId: string): void {
 
 export function clearAllGroupLookupCache(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(GROUP_LOOKUP_CACHE_KEY);
+  try {
+    localStorage.removeItem(GROUP_LOOKUP_CACHE_KEY);
+  } catch (error) {
+    console.warn("[GroupLookup] Failed to clear lookup cache.", error);
+  }
 }
