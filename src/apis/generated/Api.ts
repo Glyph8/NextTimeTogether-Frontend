@@ -343,6 +343,12 @@ export interface CreatePromise2Response {
 }
 
 export interface CreatePromise1Request {
+  groupId?: string;
+  /** 그룹 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId?: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion?: number;
+  /** 호환기간 fallback 조회용 encGroupId */
   encGroupId?: string;
 }
 
@@ -482,6 +488,12 @@ export interface JoinGroupResponse {
 
 export interface LeaveGroup2Request {
   isManager?: boolean;
+  groupId?: string;
+  /** 그룹 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId?: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion?: number;
+  /** 호환기간 fallback 조회용 encGroupId */
   encGroupId?: string;
 }
 
@@ -493,6 +505,11 @@ export interface LeaveGroup1Response {
 
 export interface LeavGroup1Request {
   groupId?: string;
+  /** 그룹 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId?: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion?: number;
+  /** 호환기간 fallback 조회용 encGroupId */
   encGroupId?: string;
 }
 
@@ -507,6 +524,11 @@ export interface InviteGroup2Response {
 
 export interface InviteGroup1Request {
   groupId?: string;
+  /** 그룹 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId?: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion?: number;
+  /** 호환기간 fallback 조회용 encGroupId */
   encGroupId?: string;
 }
 
@@ -550,7 +572,11 @@ export interface EditGroup1Request {
    * @minLength 1
    * @example "BASE64-encGroupId=="
    */
-  encGroupId: string;
+  encGroupId?: string;
+  /** 그룹 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId?: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion?: number;
   /**
    * 수정할 그룹 이름
    * @example "새 그룹명"
