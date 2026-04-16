@@ -55,8 +55,8 @@ function readGroupLookupCache(): GroupLookupCacheValue | null {
       userId: parsed.userId,
       entries: sanitizedEntries,
     };
-    const removedInvalidEntries = Object.keys(sanitizedEntries).length !== entries.length;
-    if (removedInvalidEntries) {
+    const hasInvalidEntries = Object.keys(sanitizedEntries).length !== entries.length;
+    if (hasInvalidEntries) {
       writeGroupLookupCache(sanitizedCache);
       return sanitizedCache;
     }
