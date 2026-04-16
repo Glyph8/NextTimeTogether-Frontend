@@ -14,6 +14,7 @@ import {
   buildGroupLookupRequest,
   clearGroupLookupCacheForGroup,
   resolveGroupLookupContext,
+  shouldSendLegacyEncGroupId,
   shouldUseGroupLookup,
 } from "@/utils/client/group-lookup";
 import { useEffect, useState } from "react";
@@ -67,6 +68,24 @@ export const GroupInviteDialog = ({
             if (status === 404 && retryOn404) {
               clearGroupLookupCacheForGroup(groupId);
               return requestInviteWithLookup(false);
+            }
+
+            const shouldFallbackToLegacyRequest =
+              shouldSendLegacyEncGroupId() &&
+              (status === 400 ||
+                status === 404 ||
+                status === 409 ||
+                (typeof status === "number" && status >= 500));
+
+            if (shouldFallbackToLegacyRequest) {
+              if (
+                status === 409 ||
+                status === 404 ||
+                (typeof status === "number" && status >= 500)
+              ) {
+                clearGroupLookupCacheForGroup(groupId);
+              }
+              return getInviteEncENcNewMemberId({ groupId, encGroupId });
             }
 
             throw error;
