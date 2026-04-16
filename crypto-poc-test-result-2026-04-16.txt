@@ -1,0 +1,77 @@
+[E2EE Worker PoC Benchmark 실행 결과 정리]
+작성일: 2026-04-16
+대상 화면: /groups/crypto-poc
+
+1) 첨부 결과 요약(확인 가능한 스크린샷 기준)
+- Scenario: Small
+  - Payload: 200 x 64B
+  - Main(ms): 1.60
+  - Worker(ms): 2.90
+  - Diff(ms): -1.30
+  - Worker/Main: 181.2%
+  - Main LongTask: 0
+  - Worker LongTask: 0
+
+- Scenario: Medium
+  - Payload: 1200 x 64B
+  - Main(ms): 9.30
+  - Worker(ms): 16.60
+  - Diff(ms): -7.30
+  - Worker/Main: 178.5%
+  - Main LongTask: 0
+  - Worker LongTask: 0
+
+- Scenario: Large
+  - Payload: 4000 x 128B
+  - Main(ms): 32.30
+  - Worker(ms): 52.60
+  - Diff(ms): -20.30
+  - Worker/Main: 162.8%
+  - Main LongTask: 0
+  - Worker LongTask: 0
+
+2) 결과 해석(위 수치 기준)
+- 본 실행에서는 Small/Medium/Large 모두 Worker가 Main 대비 느림.
+- Worker/Main 비율이 162.8%~181.2% 범위로, 현재 조건에서는 Worker 오프로딩 이점이 확인되지 않음.
+- Long Task가 양쪽 모두 0으로 기록되어, UI 블로킹 완화 관점에서도 유의미한 차이가 보이지 않음.
+
+3) 이 테스트가 실제로 무엇을 측정했는가?
+결론: "단순 데이터 전달 테스트"가 아니라, 실제 Web Crypto API 연산(암호화+복호화)을 포함한 비교 테스트임.
+
+3-1. 포함된 실제 암호화/복호화 연산
+(1) 입력 데이터 준비 단계(메인 스레드)
+- benchmark 코드에서 AES-GCM 키를 생성/임포트한 뒤,
+- 각 payload를 encryptDataClient(...)로 암호화해 암호문 리스트를 만듦.
+- encryptDataClient 내부는 crypto.subtle.encrypt(AES-GCM)를 실제 호출함.
+- 즉, 사전 준비 단계에서 "실제 암호화"가 수행됨.
+
+(2) Main 비교 구간
+- 같은 암호문 리스트를 메인 스레드에서 crypto.subtle.decrypt(AES-GCM)로 전량 복호화.
+- 측정값 Main(ms)는 이 실제 복호화 실행 시간.
+
+(3) Worker 비교 구간
+- 같은 암호문 리스트 + 키(Base64)를 Worker로 postMessage로 전달.
+- Worker 내부에서 키 import 후 crypto.subtle.decrypt(AES-GCM)로 전량 복호화.
+- 측정값 Worker(ms)는 Worker 내부 실제 복호화 실행 시간.
+
+3-2. 포함되는 오버헤드
+- Worker 경로에는 postMessage 전달/직렬화/스레드 전환/워커 lifecycle 오버헤드가 포함될 수 있음.
+- 현재 구현의 Worker(ms)는 Worker 내부 decrypt 실행 시간을 주로 반영하지만,
+  전체 사용자 체감에는 메시지 전달 및 생성/종료 비용도 영향 가능.
+
+3-3. 측정에 포함되지 않는 항목
+- 네트워크 I/O 없음
+- 서버 API 호출 없음
+- 렌더링/DOM 업데이트 비용은 직접 측정 대상이 아님
+- 암호문 생성(prepareEncryptedList)은 Main vs Worker 비교 구간 밖에서 선행 수행됨
+  (비교 구간의 핵심은 "복호화 경로" 차이)
+
+4) 재현 시 참고
+- 브라우저/디바이스 스펙(코어 수, 메모리, 전원 상태) 따라 결과 변동 가능.
+- 워밍업 1회 후 3~5회 반복 측정 평균으로 판단 권장.
+- 저사양 모바일 환경에서 별도 재측정 필요.
+
+5) 첨부 이미지 관련 메모
+- 현재 세션에서는 첨부 이미지 중 1장만 직접 확인 가능했음.
+- 본 문서는 확인 가능한 1개 스크린샷의 수치를 기준으로 작성함.
+- 나머지 3개 이미지 수치를 주시면 동일 형식으로 즉시 합산/비교 정리 가능.
