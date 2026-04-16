@@ -6,6 +6,7 @@ import {
 } from "@/api/promise-view-create";
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
+import { decryptPromiseIdsWithWorker } from "@/utils/client/crypto/promise-id-decrypt-worker";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 
@@ -29,21 +30,36 @@ export const useViewSchedules = (options?: UseViewSchedulesOptions) => {
       const result = await getEncPromiseIdList();
       if (!result || result.length === 0) return [];
 
-      // 2. [리팩토링] 복호화 로직을 queryFn 내부로 통합
-      const masterKey = await getMasterKey();
-      if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
+      const encryptedPromiseIds = result.map((item) => {
+        if (!item.encPromiseId) throw new Error("Invalid ID");
+        return item.encPromiseId;
+      });
+
+      const decryptOnMainThread = async () => {
+        const masterKey = await getMasterKey();
+        if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
+
+        return await Promise.all(
+          encryptedPromiseIds.map(async (encPromiseId) =>
+            decryptDataWithCryptoKey(encPromiseId, masterKey, "promise_proxy_user")
+          )
+        );
+      };
+
+      // PoC: 플래그가 켜진 경우에만 Worker 경로를 시도하고 실패 시 메인 스레드 경로로 폴백
+      const shouldUseWorker =
+        process.env.NEXT_PUBLIC_PROMISE_DECRYPT_WORKER_POC === "true";
+
+      if (shouldUseWorker) {
+        try {
+          return await decryptPromiseIdsWithWorker(encryptedPromiseIds);
+        } catch (error) {
+          console.warn("Promise ID Worker 복호화 실패, 메인 스레드로 폴백합니다.", error);
+        }
+      }
 
       try {
-        const decryptedPromises = await Promise.all(
-          result.map(async (item) => {
-            if (!item.encPromiseId) throw new Error("Invalid ID");
-            return await decryptDataWithCryptoKey(
-              item.encPromiseId,
-              masterKey,
-              "promise_proxy_user"
-            );
-          })
-        );
+        const decryptedPromises = await decryptOnMainThread();
         return decryptedPromises;
       } catch (err) {
         console.error("복호화 실패:", err);

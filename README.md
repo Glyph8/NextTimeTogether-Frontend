@@ -164,9 +164,27 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 # Upstash Redis (세션 관리, 선택 사항)
 UPSTASH_REDIS_REST_URL=https://your-upstash-url
 UPSTASH_REDIS_REST_TOKEN=your_upstash_token
+
+# Promise 목록 복호화 Worker PoC (기본값: false)
+NEXT_PUBLIC_PROMISE_DECRYPT_WORKER_POC=false
 ```
 
 > ⚠️ `.env.local` 파일은 `.gitignore`에 포함되어 있으므로 절대 커밋하지 마세요.
+
+### Worker PoC 성능 측정 시나리오 (A/B)
+
+목적: `use-view-schedules.ts` step1 복호화 루프의 Worker 분리 효과를 계측으로 확인합니다.
+
+1. A안(기본): `NEXT_PUBLIC_PROMISE_DECRYPT_WORKER_POC=false`
+2. B안(PoC): `NEXT_PUBLIC_PROMISE_DECRYPT_WORKER_POC=true`
+3. Chrome DevTools Performance에서 CPU 4x~6x slowdown 설정 후 30초 녹화
+4. 약속 목록이 많은 동일 계정/동일 화면에서 각각 측정
+5. 비교 지표
+   - Long Task(>50ms) 개수
+   - TBT(Total Blocking Time)
+   - INP
+   - dropped frames
+6. 판정 기준(권장): TBT/Long Task가 20% 이상 개선되지 않으면 Worker 상시 도입 보류
 
 ---
 
