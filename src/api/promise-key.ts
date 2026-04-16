@@ -91,12 +91,14 @@ export const getEncPromiseKeyWithLookupFallback = async ({
   getLegacyEncUserId,
 }: GetEncPromiseKeyWithFallbackInput) => {
   const lookup = await resolveLookupContext();
+  const legacyProvider = getLegacyEncUserId;
 
   try {
     const request = buildPromiseLookupRequest(promiseId, lookup);
     return await getEncPromiseKey(request);
   } catch (error) {
-    const fallbackAllowed = shouldSendLegacyEncUserId() && Boolean(getLegacyEncUserId);
+    const fallbackAllowed =
+      shouldSendLegacyEncUserId() && typeof legacyProvider === "function";
     if (!fallbackAllowed || !isLookupTransitionError(error)) {
       throw error;
     }
@@ -109,7 +111,10 @@ export const getEncPromiseKeyWithLookupFallback = async ({
       serverCode: getLookupServerCode(error),
     });
 
-    const legacyEncUserId = await getLegacyEncUserId!();
+    const legacyEncUserId = await legacyProvider();
+    if (!legacyEncUserId) {
+      throw error;
+    }
     const fallbackRequest = buildPromiseLookupRequest(
       promiseId,
       lookup,

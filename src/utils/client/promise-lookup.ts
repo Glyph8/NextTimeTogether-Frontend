@@ -32,6 +32,7 @@ export async function makeLookupId(
 }
 
 export function getLookupSourceFromStorage(): { userId: string; indexKey: string } {
+  // Transitional naming: userId is currently used as the lookup subjectId across the app.
   const { subjectId, indexKey } = resolveLookupSubjectFromStorage();
   return { userId: subjectId, indexKey };
 }

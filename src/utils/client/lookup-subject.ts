@@ -13,11 +13,12 @@ export function resolveLookupSubjectFromStorage(): LookupSubject {
 
   const subjectId = localStorage.getItem(LOOKUP_USER_ID_KEY)?.trim();
   const rawIndexKey = localStorage.getItem(LOOKUP_INDEX_KEY)?.trim();
-  const indexKey = rawIndexKey && rawIndexKey.length > 0 ? rawIndexKey : subjectId;
 
-  if (!subjectId || !indexKey) {
-    throw new Error("Missing lookup subjectId or indexKey.");
+  if (!subjectId) {
+    throw new Error("Missing lookup subjectId.");
   }
+
+  const indexKey = rawIndexKey && rawIndexKey.length > 0 ? rawIndexKey : subjectId;
 
   return { subjectId, indexKey };
 }

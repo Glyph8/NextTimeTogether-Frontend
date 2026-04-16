@@ -115,6 +115,7 @@ export const getInviteEncNewMemberIdWithLookupFallback = async ({
   groupId,
   encGroupId,
 }: GroupInviteWithFallbackInput) => {
+  let lastLookupVersion: number | undefined;
   const requestLegacy = () => getInviteEncNewMemberId({ groupId, encGroupId });
 
   if (!shouldUseGroupLookup()) {
@@ -123,6 +124,7 @@ export const getInviteEncNewMemberIdWithLookupFallback = async ({
 
   const requestLookup = async () => {
     const lookup = await resolveGroupLookupContext(groupId);
+    lastLookupVersion = lookup.lookupVersion;
     const payload = buildGroupLookupRequest(groupId, lookup, encGroupId);
     return getInviteEncNewMemberId(payload);
   };
@@ -149,6 +151,7 @@ export const getInviteEncNewMemberIdWithLookupFallback = async ({
     trackLookupMetric("lookup_fallback_attempt", {
       domain: "group",
       route: "/group/invite1",
+      lookupVersion: lastLookupVersion,
       status: getLookupHttpStatus(error),
       serverCode: getLookupServerCode(error),
     });
@@ -158,12 +161,14 @@ export const getInviteEncNewMemberIdWithLookupFallback = async ({
       trackLookupMetric("lookup_fallback_success", {
         domain: "group",
         route: "/group/invite1",
+        lookupVersion: lastLookupVersion,
       });
       return response;
     } catch (fallbackError) {
       trackLookupMetric("lookup_fallback_failure", {
         domain: "group",
         route: "/group/invite1",
+        lookupVersion: lastLookupVersion,
         status: getLookupHttpStatus(fallbackError),
         serverCode: getLookupServerCode(fallbackError),
       });

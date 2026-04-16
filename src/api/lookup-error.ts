@@ -7,6 +7,25 @@ type LookupErrorLike = {
   };
 };
 
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const asLookupError = (error: unknown): LookupErrorLike | null => {
+  if (!isObject(error)) return null;
+
+  const response = isObject(error.response) ? error.response : undefined;
+  const data = response && isObject(response.data) ? response.data : undefined;
+
+  return {
+    response: {
+      status: typeof response?.status === "number" ? response.status : undefined,
+      data: {
+        code: typeof data?.code === "string" ? data.code : undefined,
+      },
+    },
+  };
+};
+
 export type LookupErrorType =
   | "INVALID_LOOKUP"
   | "FORBIDDEN"
@@ -16,11 +35,11 @@ export type LookupErrorType =
   | "UNKNOWN";
 
 export const getLookupHttpStatus = (error: unknown): number | undefined => {
-  return (error as LookupErrorLike)?.response?.status;
+  return asLookupError(error)?.response?.status;
 };
 
 export const getLookupServerCode = (error: unknown): string | undefined => {
-  return (error as LookupErrorLike)?.response?.data?.code;
+  return asLookupError(error)?.response?.data?.code;
 };
 
 export const getLookupErrorType = (error: unknown): LookupErrorType => {
@@ -38,7 +57,6 @@ export const isLookupTransitionError = (error: unknown): boolean => {
   const type = getLookupErrorType(error);
   return (
     type === "INVALID_LOOKUP" ||
-    type === "FORBIDDEN" ||
     type === "NOT_FOUND" ||
     type === "CONFLICT" ||
     type === "SERVER"
@@ -52,13 +70,13 @@ export const getLookupUserMessage = (
   const type = getLookupErrorType(error);
 
   if (type === "INVALID_LOOKUP") {
-    return "lookup 형식이 올바르지 않습니다. 다시 시도해주세요.";
+    return "Lookup 형식이 올바르지 않습니다. 다시 시도해주세요.";
   }
   if (type === "FORBIDDEN") {
     return "요청 권한이 없습니다.";
   }
   if (type === "NOT_FOUND") {
-    return "대상을 찾을 수 없습니다. 다시 동기화 후 시도해주세요.";
+    return "대상을 찾을 수 없습니다. 다시 동기화한 후 시도해주세요.";
   }
   if (type === "CONFLICT") {
     return "요청 충돌이 발생했습니다. 잠시 후 다시 시도해주세요.";

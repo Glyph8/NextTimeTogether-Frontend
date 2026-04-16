@@ -117,7 +117,6 @@ export default function ScheduleDetailPage() {
 
         // [수정] 서버 조회 실패 시, URL Hash에서 키 복구 시도
         const hash = window.location.hash;
-        console.log("⚠️ 약속 키 조회 실패", { hashExists: Boolean(hash) });
 
         if (hash && hash.includes("pkey=")) {
           const hashParams = new URLSearchParams(hash.substring(1));
@@ -131,6 +130,7 @@ export default function ScheduleDetailPage() {
         // ✅ [핵심] 에러가 발생해도 throw 하지 않고 콘솔에만 찍고 넘어갑니다.
         console.error("⚠️ 약속 키 조회 실패 (무시하고 진행):", {
           status: (error as { response?: { status?: number } })?.response?.status,
+          hashExists: Boolean(hash),
         });
         toast.error(getLookupUserMessage(error, "약속 키 조회에 실패했습니다."));
         // 에러 상황임을 알리는 null 반환 (React Query는 이를 '성공'으로 간주)

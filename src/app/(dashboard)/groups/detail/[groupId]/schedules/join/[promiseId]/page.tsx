@@ -130,7 +130,9 @@ export default function JoinPromisePage() {
       }
       if (errorType === "INVALID_LOOKUP") {
         setStatus("error");
-        setMessage(getLookupUserMessage(e, "요청 형식이 올바르지 않습니다."));
+        setMessage(
+          getLookupUserMessage(e, "Lookup 형식이 올바르지 않습니다. 다시 시도해주세요.")
+        );
         return;
       }
       if (errorType === "CONFLICT") {
