@@ -5,7 +5,14 @@ type WorkerRequest = {
 };
 
 type WorkerResponse =
-  | { id: string; ok: true; durationMs: number; processedCount: number }
+  | {
+      id: string;
+      ok: true;
+      durationMs: number;
+      processedCount: number;
+      longTaskCount: number;
+      longTaskTotalDurationMs: number;
+    }
   | { id: string; ok: false; error: string };
 
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
@@ -52,24 +59,44 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
       ["decrypt"]
     );
 
+    let longTaskCount = 0;
+    let longTaskTotalDurationMs = 0;
+    let observer: PerformanceObserver | undefined;
+
+    if (typeof PerformanceObserver !== "undefined") {
+      observer = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        for (const entry of entries) {
+          longTaskCount += 1;
+          longTaskTotalDurationMs += entry.duration;
+        }
+      });
+      observer.observe({ entryTypes: ["longtask"] });
+    }
+
     const started = performance.now();
     await Promise.all(encryptedList.map((item) => decryptDataClientLike(item, cryptoKey)));
     const durationMs = performance.now() - started;
+    observer?.disconnect();
 
     const response: WorkerResponse = {
       id,
       ok: true,
       durationMs,
       processedCount: encryptedList.length,
+      longTaskCount,
+      longTaskTotalDurationMs,
     };
     self.postMessage(response);
   } catch (error) {
     const response: WorkerResponse = {
       id,
       ok: false,
-      error: error instanceof Error ? error.message : "worker decrypt failed",
+      error:
+        error instanceof Error
+          ? `worker decrypt failed for ${encryptedList.length} items: ${error.message}`
+          : `worker decrypt failed for ${encryptedList.length} items`,
     };
     self.postMessage(response);
   }
 };
-

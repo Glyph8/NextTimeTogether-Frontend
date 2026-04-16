@@ -22,7 +22,14 @@ export type CryptoBenchmarkResult = {
 };
 
 type WorkerResponse =
-  | { id: string; ok: true; durationMs: number; processedCount: number }
+  | {
+      id: string;
+      ok: true;
+      durationMs: number;
+      processedCount: number;
+      longTaskCount: number;
+      longTaskTotalDurationMs: number;
+    }
   | { id: string; ok: false; error: string };
 
 function createPayload(index: number, size: number): string {
@@ -46,11 +53,24 @@ async function prepareEncryptedList(
   payloadSizeBytes: number,
   key: CryptoKey
 ): Promise<string[]> {
-  const plainList = Array.from({ length: payloadCount }, (_, idx) =>
-    createPayload(idx, payloadSizeBytes)
-  );
+  const encryptedList: string[] = [];
+  const batchSize = 200;
 
-  return Promise.all(plainList.map((plainText) => encryptDataClient(plainText, key)));
+  for (let start = 0; start < payloadCount; start += batchSize) {
+    const end = Math.min(start + batchSize, payloadCount);
+    const plainBatch: string[] = [];
+
+    for (let idx = start; idx < end; idx++) {
+      plainBatch.push(createPayload(idx, payloadSizeBytes));
+    }
+
+    const encryptedBatch = await Promise.all(
+      plainBatch.map((plainText) => encryptDataClient(plainText, key))
+    );
+    encryptedList.push(...encryptedBatch);
+  }
+
+  return encryptedList;
 }
 
 async function decryptOnMainThread(
@@ -109,7 +129,10 @@ async function runWithLongTaskMeasure(action: () => Promise<void>): Promise<{
   };
 }
 
-function runWorkerDecrypt(encryptedList: string[], keyBase64: string): Promise<number> {
+function runWorkerDecrypt(
+  encryptedList: string[],
+  keyBase64: string
+): Promise<{ durationMs: number; longTasks: LongTaskSummary }> {
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL("./crypto-benchmark-worker.ts", import.meta.url), {
       type: "module",
@@ -126,7 +149,13 @@ function runWorkerDecrypt(encryptedList: string[], keyBase64: string): Promise<n
         return;
       }
 
-      resolve(response.durationMs);
+      resolve({
+        durationMs: response.durationMs,
+        longTasks: {
+          longTaskCount: response.longTaskCount,
+          longTaskTotalDurationMs: response.longTaskTotalDurationMs,
+        },
+      });
     };
 
     worker.onerror = (event) => {
@@ -153,9 +182,7 @@ export async function runCryptoBenchmark(
     await decryptOnMainThread(encryptedList, keyBase64);
   });
 
-  const workerMeasure = await runWithLongTaskMeasure(async () => {
-    await runWorkerDecrypt(encryptedList, keyBase64);
-  });
+  const workerMeasure = await runWorkerDecrypt(encryptedList, keyBase64);
 
   return {
     payloadCount,
@@ -167,4 +194,3 @@ export async function runCryptoBenchmark(
     workerLongTasks: workerMeasure.longTasks,
   };
 }
-

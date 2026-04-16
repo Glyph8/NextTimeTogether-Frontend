@@ -39,11 +39,13 @@ export default function CryptoPocPage() {
     setError(null);
     setResults([]);
     setIsRunning(true);
+    let runningScenarioLabel = "unknown";
 
     try {
       const nextResults: CryptoBenchmarkResult[] = [];
 
       for (const scenario of SCENARIOS) {
+        runningScenarioLabel = scenario.label;
         const result = await runCryptoBenchmark({
           payloadCount: scenario.payloadCount,
           payloadSizeBytes: scenario.payloadSizeBytes,
@@ -52,7 +54,11 @@ export default function CryptoPocPage() {
         setResults([...nextResults]);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "benchmark failed");
+      setError(
+        e instanceof Error
+          ? e.message
+          : `benchmark failed during scenario: ${runningScenarioLabel}`
+      );
     } finally {
       setIsRunning(false);
     }
@@ -63,7 +69,7 @@ export default function CryptoPocPage() {
       <div className="max-w-4xl mx-auto space-y-4">
         <h1 className="text-xl font-bold">E2EE Worker PoC Benchmark</h1>
         <p className="text-sm text-gray-600">
-          메인 스레드 복호화와 Worker 오프로딩 복호화를 동일 입력으로 비교합니다.
+          메인 스레드 복호화를 Worker 오프로드 복호화와 동일 입력으로 비교합니다.
         </p>
         <button
           type="button"
@@ -127,4 +133,3 @@ export default function CryptoPocPage() {
     </div>
   );
 }
-
