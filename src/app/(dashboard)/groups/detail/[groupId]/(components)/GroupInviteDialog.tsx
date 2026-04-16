@@ -70,19 +70,14 @@ export const GroupInviteDialog = ({
               return requestInviteWithLookup(false);
             }
 
+            const isServerError = typeof status === "number" && status >= 500;
+            const isLookupTransitionError =
+              status === 400 || status === 404 || status === 409 || isServerError;
             const shouldFallbackToLegacyRequest =
-              shouldSendLegacyEncGroupId() &&
-              (status === 400 ||
-                status === 404 ||
-                status === 409 ||
-                (typeof status === "number" && status >= 500));
+              shouldSendLegacyEncGroupId() && isLookupTransitionError;
 
             if (shouldFallbackToLegacyRequest) {
-              if (
-                status === 409 ||
-                status === 404 ||
-                (typeof status === "number" && status >= 500)
-              ) {
+              if (status === 409 || status === 404 || isServerError) {
                 clearGroupLookupCacheForGroup(groupId);
               }
               return getInviteEncENcNewMemberId({ groupId, encGroupId });
