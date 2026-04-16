@@ -14,6 +14,16 @@ interface GroupLookupCacheValue {
 const normalizeUserId = (userId: string) => userId.trim().toLowerCase();
 const normalizeGroupId = (groupId: string) => groupId.trim();
 const normalizeIndexKey = (indexKey: string) => indexKey.trim();
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isValidLookupEntry = (
+  value: unknown
+): value is { lookupId: string; lookupVersion: number } =>
+  isPlainObject(value) &&
+  typeof value.lookupId === "string" &&
+  LOOKUP_ID_PATTERN.test(value.lookupId) &&
+  typeof value.lookupVersion === "number";
 
 function readGroupLookupCache(): GroupLookupCacheValue | null {
   if (typeof window === "undefined") {
@@ -23,11 +33,35 @@ function readGroupLookupCache(): GroupLookupCacheValue | null {
   try {
     const raw = localStorage.getItem(GROUP_LOOKUP_CACHE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as GroupLookupCacheValue;
-    if (!parsed || !parsed.userId || !parsed.entries) {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isPlainObject(parsed) || typeof parsed.userId !== "string") {
       return null;
     }
-    return parsed;
+
+    if (!isPlainObject(parsed.entries)) {
+      localStorage.removeItem(GROUP_LOOKUP_CACHE_KEY);
+      return null;
+    }
+
+    const sanitizedEntries: GroupLookupCacheValue["entries"] = {};
+    for (const [groupId, entry] of Object.entries(parsed.entries)) {
+      if (typeof groupId === "string" && isValidLookupEntry(entry)) {
+        sanitizedEntries[groupId] = entry;
+      }
+    }
+
+    const hasInvalidEntries =
+      Object.keys(sanitizedEntries).length !== Object.keys(parsed.entries).length;
+    if (hasInvalidEntries) {
+      const sanitizedCache = { userId: parsed.userId, entries: sanitizedEntries };
+      writeGroupLookupCache(sanitizedCache);
+      return sanitizedCache;
+    }
+
+    return {
+      userId: parsed.userId,
+      entries: sanitizedEntries,
+    };
   } catch {
     return null;
   }

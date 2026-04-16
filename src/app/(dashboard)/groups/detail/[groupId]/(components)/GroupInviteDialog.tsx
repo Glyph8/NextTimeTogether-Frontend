@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  getInviteEncENcNewMemberId as getInviteEncNewMemberId,
+  getInviteEncNewMemberId,
   getInviteEncGroupsKeyRequest,
 } from "@/api/group-invite-join";
 import { Button } from "@/components/ui/button/Button";

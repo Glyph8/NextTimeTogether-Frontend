@@ -36,7 +36,7 @@ export const apiPostGroupMemberSave = async (
 };
 
 /** 그룹 초대 1단계 - 그룹 아이디, 암호 그룹 아이디 전달 */
-export const getInviteEncENcNewMemberId = async (
+export const getInviteEncNewMemberId = async (
   groupData: InviteGroup1Request
 ) => {
   return clientBaseApi.api
@@ -67,6 +67,9 @@ export const getInviteEncENcNewMemberId = async (
       return handleApiError(error);
     });
 };
+
+/** @deprecated use getInviteEncNewMemberId */
+export const getInviteEncENcNewMemberId = getInviteEncNewMemberId;
 
 /** 그룹 초대 2단계 - 초대할 그룹 id와 초대하는 사용자 id 전송, 그룹 키 획득 */
 export const getInviteEncGroupsKeyRequest = async (
