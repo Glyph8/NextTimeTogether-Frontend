@@ -11,6 +11,7 @@ import { getMasterKey, storeMasterKey } from "@/utils/client/key-storage";
 // import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { useAuthStore } from "@/store/auth.store";
 import { encryptStringToBase64 } from "@/utils/client/crypto/crypto-storage";
+import { clearAllGroupLookupCache } from "@/utils/client/group-lookup";
 
 export const useLogin = () => {
   // 로그인 후 리턴 구현
@@ -99,6 +100,7 @@ export const useLogin = () => {
             id,
             masterCryptoKey
           );
+          clearAllGroupLookupCache();
           localStorage.setItem("encrypted_user_id", encryptedLoginId);
 
           // FIX : USER ID hmacSha256 ONLY VER - 매니저 구분용

@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  getInviteEncENcNewMemberId,
+  getInviteEncNewMemberId,
   getInviteEncGroupsKeyRequest,
 } from "@/api/group-invite-join";
 import { Button } from "@/components/ui/button/Button";
@@ -10,6 +10,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
+import {
+  buildGroupLookupRequest,
+  clearGroupLookupCacheForGroup,
+  resolveGroupLookupContext,
+  shouldSendLegacyEncGroupId,
+  shouldUseGroupLookup,
+} from "@/utils/client/group-lookup";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -44,10 +51,45 @@ export const GroupInviteDialog = ({
           masterKey,
           "group_proxy_user"
         );
-        const inviteResult1 = await getInviteEncENcNewMemberId({
-          groupId,
-          encGroupId,
-        });
+        const requestInviteWithLookup = async (retryOn404: boolean) => {
+          const lookupContext = await resolveGroupLookupContext(groupId);
+          const payload = buildGroupLookupRequest(
+            groupId,
+            lookupContext,
+            encGroupId
+          );
+
+          try {
+            return await getInviteEncNewMemberId(payload);
+          } catch (error) {
+            const status = (error as { response?: { status?: number } })?.response
+              ?.status;
+
+            if (status === 404 && retryOn404) {
+              clearGroupLookupCacheForGroup(groupId);
+              return requestInviteWithLookup(false);
+            }
+
+            const isServerError = typeof status === "number" && status >= 500;
+            const isLookupTransitionError =
+              status === 400 || status === 404 || status === 409 || isServerError;
+            const shouldFallbackToLegacyRequest =
+              shouldSendLegacyEncGroupId() && isLookupTransitionError;
+
+            if (shouldFallbackToLegacyRequest) {
+              if (status === 409 || status === 404 || isServerError) {
+                clearGroupLookupCacheForGroup(groupId);
+              }
+              return getInviteEncNewMemberId({ groupId, encGroupId });
+            }
+
+            throw error;
+          }
+        };
+
+        const inviteResult1 = shouldUseGroupLookup()
+          ? await requestInviteWithLookup(true)
+          : await getInviteEncNewMemberId({ groupId, encGroupId });
 
         if (!inviteResult1.encencGroupMemberId)
           throw new Error("초대 자격 증명 실패");
@@ -80,7 +122,19 @@ export const GroupInviteDialog = ({
         setInviteLink(link);
       } catch (error) {
         console.error("초대 링크 생성 실패:", error);
-        toast.error("초대 링크를 생성하지 못했습니다.");
+        const status = (error as { response?: { status?: number } })?.response
+          ?.status;
+
+        if (status === 400) {
+          toast.error("lookup 형식이 올바르지 않습니다. 다시 시도해주세요.");
+        } else if (status === 404) {
+          toast.error("그룹 정보를 다시 동기화한 뒤 재시도해주세요.");
+        } else if (status === 409) {
+          clearGroupLookupCacheForGroup(groupId);
+          toast.error("lookup 충돌이 발생했습니다. 다시 시도해주세요.");
+        } else {
+          toast.error("초대 링크를 생성하지 못했습니다.");
+        }
         setIsOpen(false);
       } finally {
         setIsLoading(false);

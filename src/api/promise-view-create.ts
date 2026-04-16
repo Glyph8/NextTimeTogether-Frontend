@@ -1,4 +1,6 @@
 import {
+  CreatePromise1Request,
+  CreatePromise1Response,
   CreatePromise4Request,
   GetPromiseRequest,
   PromiseView1Response,
@@ -27,6 +29,18 @@ export const createPromise = (data: CreatePromise4Request) => {
     .then((response) => {
       const realData =
         response.data as unknown as BackendResponse<CreatePromiseResponse>;
+      return realData.result || null;
+    })
+    .catch(handleApiError);
+};
+
+/** promise/create1 */
+export const createPromiseStep1 = (data: CreatePromise1Request) => {
+  return clientBaseApi.promise
+    .createPromise1(data)
+    .then((response) => {
+      const realData =
+        response.data as unknown as BackendResponse<CreatePromise1Response>;
       return realData.result || null;
     })
     .catch(handleApiError);
