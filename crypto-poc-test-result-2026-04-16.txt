@@ -2,76 +2,86 @@
 작성일: 2026-04-16
 대상 화면: /groups/crypto-poc
 
-1) 첨부 결과 요약(확인 가능한 스크린샷 기준)
-- Scenario: Small
-  - Payload: 200 x 64B
-  - Main(ms): 1.60
-  - Worker(ms): 2.90
-  - Diff(ms): -1.30
-  - Worker/Main: 181.2%
-  - Main LongTask: 0
-  - Worker LongTask: 0
+1) 기본 시나리오 결과 (Main vs Worker)
+설명: 메인 스레드 복호화를 Worker 오프로딩 복호화와 동일 입력으로 비교.
 
-- Scenario: Medium
-  - Payload: 1200 x 64B
-  - Main(ms): 9.30
-  - Worker(ms): 16.60
-  - Diff(ms): -7.30
-  - Worker/Main: 178.5%
-  - Main LongTask: 0
-  - Worker LongTask: 0
+| Scenario | Payload | Main(ms) | Worker(ms) | Diff(ms) | Worker/Main | Main LongTask | Worker LongTask |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Small | 200 x 64B | 1.60 | 2.90 | -1.30 | 181.2% | 0 | 0 |
+| Medium | 1200 x 64B | 9.30 | 16.60 | -7.30 | 178.5% | 0 | 0 |
+| Large | 4000 x 128B | 32.30 | 52.60 | -20.30 | 162.8% | 0 | 0 |
 
-- Scenario: Large
-  - Payload: 4000 x 128B
-  - Main(ms): 32.30
-  - Worker(ms): 52.60
-  - Diff(ms): -20.30
-  - Worker/Main: 162.8%
-  - Main LongTask: 0
-  - Worker LongTask: 0
+요약:
+- 전 시나리오에서 Worker가 Main보다 느림.
+- LongTask는 Main/Worker 모두 0.
 
-2) 결과 해석(위 수치 기준)
-- 본 실행에서는 Small/Medium/Large 모두 Worker가 Main 대비 느림.
-- Worker/Main 비율이 162.8%~181.2% 범위로, 현재 조건에서는 Worker 오프로딩 이점이 확인되지 않음.
-- Long Task가 양쪽 모두 0으로 기록되어, UI 블로킹 완화 관점에서도 유의미한 차이가 보이지 않음.
+2) 디바이스 분리 측정 결과 요약
+설명: 자동 감지 정보와 세그먼트 선택으로 기본 시나리오(Small/Medium/Large) 측정.
+감지된 환경: Desktop / hardwareConcurrency: 6 / deviceMemory: 8GB
 
-3) 이 테스트가 실제로 무엇을 측정했는가?
-결론: "단순 데이터 전달 테스트"가 아니라, 실제 Web Crypto API 연산(암호화+복호화)을 포함한 비교 테스트임.
+| 측정 시간 (Run At) | 측정 세그먼트 | Small W/M | Medium W/M | Large W/M |
+| --- | --- | ---: | ---: | ---: |
+| 2026-04-16 13:58:02 | Desktop 기본 | 120.0% | 118.2% | 144.6% |
+| 2026-04-16 13:59:54 | Desktop 저사양 시뮬레이션 (Payload 2배) | 160.6% | 150.2% | 141.1% |
+| 2026-04-16 14:00:10 | Mobile 실기기 | 206.7% | 179.3% | 128.4% |
+| 2026-04-16 14:00:24 | Mobile 저사양 시뮬레이션 (Payload 2배) | 164.5% | 159.3% | 153.7% |
 
-3-1. 포함된 실제 암호화/복호화 연산
-(1) 입력 데이터 준비 단계(메인 스레드)
-- benchmark 코드에서 AES-GCM 키를 생성/임포트한 뒤,
-- 각 payload를 encryptDataClient(...)로 암호화해 암호문 리스트를 만듦.
-- encryptDataClient 내부는 crypto.subtle.encrypt(AES-GCM)를 실제 호출함.
-- 즉, 사전 준비 단계에서 "실제 암호화"가 수행됨.
+참고:
+- 세그먼트 전체에서 Main/Worker LongTask는 모두 0.
 
-(2) Main 비교 구간
-- 같은 암호문 리스트를 메인 스레드에서 crypto.subtle.decrypt(AES-GCM)로 전량 복호화.
-- 측정값 Main(ms)는 이 실제 복호화 실행 시간.
+3) 후보 3개 구간 A/B 테스트 (Main vs Worker)
+설명: 후보 A/B/C를 반복 실행 후 평균값 비교.
 
-(3) Worker 비교 구간
-- 같은 암호문 리스트 + 키(Base64)를 Worker로 postMessage로 전달.
-- Worker 내부에서 키 import 후 crypto.subtle.decrypt(AES-GCM)로 전량 복호화.
-- 측정값 Worker(ms)는 Worker 내부 실제 복호화 실행 시간.
+[테스트 1: 반복 3회]
+| Candidate | Runs | Avg Main(ms) | Avg Worker(ms) | Diff(ms) | Worker/Main | Avg Main LT | Avg Worker LT | Winner |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Candidate A (멤버 다건 짧은 문자열) | 3 | 13.27 | 21.23 | -7.97 | 160.1% | 0.00 | 0.00 | Main |
+| Candidate B (스케줄 상세 중간 페이로드) | 3 | 7.90 | 12.97 | -5.07 | 164.1% | 0.00 | 0.00 | Main |
+| Candidate C (대형 페이로드 혼합 구간) | 3 | 6.73 | 13.00 | -6.27 | 193.1% | 0.00 | 0.00 | Main |
 
-3-2. 포함되는 오버헤드
-- Worker 경로에는 postMessage 전달/직렬화/스레드 전환/워커 lifecycle 오버헤드가 포함될 수 있음.
-- 현재 구현의 Worker(ms)는 Worker 내부 decrypt 실행 시간을 주로 반영하지만,
-  전체 사용자 체감에는 메시지 전달 및 생성/종료 비용도 영향 가능.
+[테스트 2: 반복 5회]
+| Candidate | Runs | Avg Main(ms) | Avg Worker(ms) | Diff(ms) | Worker/Main | Avg Main LT | Avg Worker LT | Winner |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Candidate A (멤버 다건 짧은 문자열) | 5 | 13.18 | 23.08 | -9.90 | 175.1% | 0.00 | 0.00 | Main |
+| Candidate B (스케줄 상세 중간 페이로드) | 5 | 7.22 | 12.86 | -5.64 | 178.1% | 0.00 | 0.00 | Main |
+| Candidate C (대형 페이로드 혼합 구간) | 5 | 6.18 | 11.80 | -5.62 | 190.9% | 0.00 | 0.00 | Main |
 
-3-3. 측정에 포함되지 않는 항목
+[테스트 3: 반복 3회 (다른 측정값)]
+| Candidate | Runs | Avg Main(ms) | Avg Worker(ms) | Diff(ms) | Worker/Main | Avg Main LT | Avg Worker LT | Winner |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Candidate A (멤버 다건 짧은 문자열) | 3 | 24.30 | 34.10 | -9.80 | 140.3% | 0.00 | 0.00 | Main |
+| Candidate B (스케줄 상세 중간 페이로드) | 3 | 12.93 | 27.00 | -14.07 | 208.8% | 0.00 | 0.00 | Main |
+| Candidate C (대형 페이로드 혼합 구간) | 3 | 9.53 | 17.07 | -7.53 | 179.0% | 0.00 | 0.00 | Main |
+
+4) 테스트 범위 상세 설명 (핵심)
+결론: 이 벤치마크는 "단순 데이터 전달 테스트"가 아니라, 실제 Web Crypto API 연산을 포함한 테스트임.
+
+4-1. 실제 crypto.subtle 암호화/복호화 포함 여부
+- 포함됨.
+- 입력 준비 단계에서 encryptDataClient(...)를 사용해 payload를 실제 AES-GCM 암호화함.
+- encryptDataClient 내부에서 crypto.subtle.encrypt(...)를 호출함.
+- Main 경로는 crypto.subtle.decrypt(...)로 암호문 전량 복호화.
+- Worker 경로도 worker 내부에서 키 import 후 crypto.subtle.decrypt(...)로 동일 암호문 전량 복호화.
+
+4-2. 무엇을 비교하는 테스트인가
+- 같은 암호문 리스트와 같은 키를 기준으로
+  - Main thread 복호화 시간
+  - Worker thread 복호화 시간
+  을 비교.
+- LongTask 관찰값도 함께 수집.
+
+4-3. Worker 경로에서 추가로 개입되는 비용
+- postMessage 전달/직렬화
+- 스레드 전환 및 워커 생성/종료 관련 오버헤드
+- 따라서 현재 페이로드 크기에서는 Worker의 부가비용이 복호화 병렬/오프로딩 이득을 상쇄하거나 초과할 수 있음.
+
+4-4. 측정 제외 항목
 - 네트워크 I/O 없음
 - 서버 API 호출 없음
-- 렌더링/DOM 업데이트 비용은 직접 측정 대상이 아님
-- 암호문 생성(prepareEncryptedList)은 Main vs Worker 비교 구간 밖에서 선행 수행됨
-  (비교 구간의 핵심은 "복호화 경로" 차이)
+- DOM 렌더링 비용 직접 측정 아님
+- 암호문 생성 단계는 Main vs Worker 복호화 비교 구간 이전에 선행됨
 
-4) 재현 시 참고
-- 브라우저/디바이스 스펙(코어 수, 메모리, 전원 상태) 따라 결과 변동 가능.
-- 워밍업 1회 후 3~5회 반복 측정 평균으로 판단 권장.
-- 저사양 모바일 환경에서 별도 재측정 필요.
-
-5) 첨부 이미지 관련 메모
-- 현재 세션에서는 첨부 이미지 중 1장만 직접 확인 가능했음.
-- 본 문서는 확인 가능한 1개 스크린샷의 수치를 기준으로 작성함.
-- 나머지 3개 이미지 수치를 주시면 동일 형식으로 즉시 합산/비교 정리 가능.
+5) 종합 해석
+- 제공된 전체 측정에서 Winner는 일관되게 Main.
+- LongTask가 지속적으로 0이므로, 현재 조건에서는 Worker 오프로딩의 UI 응답성 개선 근거도 확인되지 않음.
+- 현 페이로드/환경에서는 "메인 스레드 유지"가 더 합리적인 선택으로 해석 가능.
