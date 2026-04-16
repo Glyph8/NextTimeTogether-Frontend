@@ -724,19 +724,117 @@ Worker 도입을 전면 적용하기 전에, 실측 기반으로 도입 타당�
 - 벤치마크 유틸: `src/utils/client/crypto/perf/crypto-benchmark.ts`
 - 워커 구현: `src/utils/client/crypto/perf/crypto-benchmark-worker.ts`
 
-### 측정 방식
+### 지원 측정
 
-- 동일 입력(암호문 리스트)을 기준으로 아래 2가지를 비교합니다.
-  - Main Thread 일괄 복호화
-  - Web Worker 오프로딩 복호화
-- 시나리오(소형/중형/대형)별로 다음 지표를 기록합니다.
-  - 처리 시간(ms)
-  - Long Task 개수/총 시간
+- 공통: 동일 입력(암호문 리스트) 기준 Main Thread vs Worker 복호화 비교
+- 1) **디바이스 분리 측정**
+  - 세그먼트 선택: Desktop 기본 / Desktop 저사양 시뮬레이션 / Mobile 실기기 / Mobile 저사양 시뮬레이션
+  - 기본 시나리오: Small / Medium / Large
+  - 지표: Main(ms), Worker(ms), Diff(ms), Worker/Main(%), Main/Worker Long Task count
+  - 실행 기록 테이블: 실행 시각, 세그먼트별 Worker/Main 비율
+- 2) **후보 3개 구간 A/B 테스트**
+  - Candidate A/B/C 각 구간을 반복 측정(1~10회, 기본 3회)
+  - 평균 기준으로 Main vs Worker 우세(Winner) 비교
+  - 지표: Avg Main/Worker(ms), Diff(ms), Worker/Main(%), Avg Long Task count
+
+### 로컬 실행 방법
+
+1. 프로젝트 루트로 이동
+   - `/home/runner/work/NextTimeTogether-Frontend/NextTimeTogether-Frontend`
+2. 의존성 설치
+   - `npm install`
+3. 개발 서버 실행
+   - `npm run dev`
+4. 브라우저에서 `/groups/crypto-poc` 진입
+5. 상단 섹션 순서대로 측정
+   - 디바이스 분리 측정 먼저 수행
+   - 후보 3개 구간 A/B 테스트 수행
+
+### 상세 테스트 절차
+
+#### A. 디바이스 분리 측정 (저사양군/모바일 포함)
+
+1. 페이지 상단에서 감지된 디바이스 정보(모바일 여부, hardwareConcurrency, deviceMemory)를 확인
+2. 세그먼트 선택
+   - Desktop 기본: 일반 데스크톱 기준
+   - Desktop 저사양 시뮬레이션: payloadCount 2배로 부하 확대
+   - Mobile 실기기: 실제 모바일 브라우저에서 수행
+   - Mobile 저사양 시뮬레이션: 모바일 + payloadCount 2배
+3. `세그먼트 시나리오 실행` 클릭
+4. Small/Medium/Large 결과표 확인
+5. 실행 기록 테이블에 누적된 run을 확인하여 세그먼트 간 비교
+
+#### B. 후보 3개 구간 A/B 테스트 (Main vs Worker)
+
+1. 반복 횟수(1~10)를 입력 (권장: 5회 이상)
+2. `후보 A/B 테스트 실행` 클릭
+3. Candidate A/B/C 결과표 확인
+4. 각 후보의 Winner(Main 또는 Worker), Diff(ms), Worker/Main(%)를 기준으로 도입 우선순위 판단
+
+### 체크리스트
+
+- 공통 준비
+  - [ ] 불필요한 탭/앱 종료
+  - [ ] 전원 상태(배터리/충전), 브라우저 버전 기록
+  - [ ] 워밍업 실행 1회 후 본 측정 시작
+- 디바이스 분리 측정
+  - [ ] Desktop 기본 세그먼트 측정
+  - [ ] Desktop 저사양 시뮬레이션 측정
+  - [ ] Mobile 실기기 측정(가능 시 최소 1종)
+  - [ ] Mobile 저사양 시뮬레이션 측정
+  - [ ] 각 세그먼트에서 Small/Medium/Large 3개 모두 결과 확보
+- 후보 구간 A/B 테스트
+  - [ ] Candidate A 반복 측정 완료
+  - [ ] Candidate B 반복 측정 완료
+  - [ ] Candidate C 반복 측정 완료
+  - [ ] 후보별 Winner와 Diff(ms) 비교 완료
+- 품질 검증
+  - [ ] 에러 메시지 발생 여부 확인
+  - [ ] 이상치(run 급변) 별도 표시
+  - [ ] 최종 결론(전면 도입/부분 도입/보류) 기록
+
+### 기록해야 할 내용(템플릿)
+
+#### 1) 환경 메타
+
+- 측정 일시:
+- 실행자:
+- 디바이스:
+- OS:
+- 브라우저/버전:
+- 전원 상태:
+- 네트워크 상태:
+
+#### 2) 디바이스 분리 측정 결과
+
+- 세그먼트: Desktop 기본
+  - Small: Main / Worker / Diff / Ratio / Main LT / Worker LT
+  - Medium: ...
+  - Large: ...
+- 세그먼트: Desktop 저사양 시뮬레이션
+- 세그먼트: Mobile 실기기
+- 세그먼트: Mobile 저사양 시뮬레이션
+
+#### 3) 후보 3구간 A/B 결과
+
+- Candidate A: runs, Avg Main, Avg Worker, Diff, Ratio, Winner
+- Candidate B: runs, Avg Main, Avg Worker, Diff, Ratio, Winner
+- Candidate C: runs, Avg Main, Avg Worker, Diff, Ratio, Winner
+
+#### 4) 이슈/예외
+
+- 발생 시각:
+- 세그먼트/후보:
+- 증상:
+- 에러 메시지 원문:
+- 재현 여부:
 
 ### 해석 기준(권장)
 
-- 실사용 규모에서 Main vs Worker 차이가 미미하면 Worker 전면 도입을 보류합니다.
-- 중/대형에서만 차이가 크면, 실제 병목 구간(예: 대량 멤버 복호화 루프)만 선택적으로 Worker 적용합니다.
+- 실사용 구간에서 Worker가 시간/Long Task 모두 개선되면 해당 구간 우선 도입
+- 시간 개선은 작아도 Long Task가 유의미하게 감소하면 UI 민감 구간에 선택 적용
+- 저사양군(모바일 포함)에서 효과가 크고 데스크톱에서 미미하면 모바일 우선 전략 채택
+- 후보 3구간 중 개선 폭이 큰 구간부터 단계적 전개
 
 ---
 
