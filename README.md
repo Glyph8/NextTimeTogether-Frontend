@@ -740,7 +740,7 @@ Worker 도입을 전면 적용하기 전에, 실측 기반으로 도입 타당�
 ### 로컬 실행 방법
 
 1. 프로젝트 루트로 이동
-   - `/home/runner/work/NextTimeTogether-Frontend/NextTimeTogether-Frontend`
+   - 이 저장소의 프로젝트 루트 디렉터리
 2. 의존성 설치
    - `npm install`
 3. 개발 서버 실행
