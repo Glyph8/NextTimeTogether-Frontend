@@ -43,25 +43,25 @@ function readGroupLookupCache(): GroupLookupCacheValue | null {
       return null;
     }
 
+    const entries = Object.entries(parsed.entries);
     const sanitizedEntries: GroupLookupCacheValue["entries"] = {};
-    for (const [groupId, entry] of Object.entries(parsed.entries)) {
+    for (const [groupId, entry] of entries) {
       if (typeof groupId === "string" && isValidLookupEntry(entry)) {
         sanitizedEntries[groupId] = entry;
       }
     }
 
-    const hasInvalidEntries =
-      Object.keys(sanitizedEntries).length !== Object.keys(parsed.entries).length;
+    const sanitizedCache: GroupLookupCacheValue = {
+      userId: parsed.userId,
+      entries: sanitizedEntries,
+    };
+    const hasInvalidEntries = Object.keys(sanitizedEntries).length !== entries.length;
     if (hasInvalidEntries) {
-      const sanitizedCache = { userId: parsed.userId, entries: sanitizedEntries };
       writeGroupLookupCache(sanitizedCache);
       return sanitizedCache;
     }
 
-    return {
-      userId: parsed.userId,
-      entries: sanitizedEntries,
-    };
+    return sanitizedCache;
   } catch {
     return null;
   }
