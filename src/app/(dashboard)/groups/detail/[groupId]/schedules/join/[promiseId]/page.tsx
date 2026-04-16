@@ -8,6 +8,7 @@ import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { joinPromise } from "@/api/promise-invite-join";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { resolveLookupContext } from "@/utils/client/promise-lookup";
+import { getLookupErrorType, getLookupUserMessage } from "@/api/lookup-error";
 
 export default function JoinPromisePage() {
   const params = useParams<{ groupId: string; promiseId: string }>();
@@ -116,24 +117,23 @@ export default function JoinPromisePage() {
         throw new Error("서버 응답 없음");
       }
     } catch (e) {
-      const responseStatus = (e as { response?: { status?: number } })?.response
-        ?.status;
-      if (responseStatus === 403) {
+      const errorType = getLookupErrorType(e);
+      if (errorType === "FORBIDDEN") {
         setStatus("error");
-        setMessage("약속 참여 권한이 없습니다.");
+        setMessage(getLookupUserMessage(e, "약속 참여 권한이 없습니다."));
         return;
       }
-      if (responseStatus === 404) {
+      if (errorType === "NOT_FOUND") {
         setStatus("error");
-        setMessage("존재하지 않는 약속입니다.");
+        setMessage(getLookupUserMessage(e, "존재하지 않는 약속입니다."));
         return;
       }
-      if (responseStatus === 400) {
+      if (errorType === "INVALID_LOOKUP") {
         setStatus("error");
-        setMessage("요청 형식이 올바르지 않습니다. 다시 시도해주세요.");
+        setMessage(getLookupUserMessage(e, "요청 형식이 올바르지 않습니다."));
         return;
       }
-      if (responseStatus === 409) {
+      if (errorType === "CONFLICT") {
         setStatus("success");
         setMessage("이미 참여한 약속입니다. 상세 페이지로 이동합니다.");
         navigateToDetailWithHash(1200);

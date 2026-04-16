@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildGroupLookupRequest,
   GROUP_LOOKUP_VERSION,
   makeGroupLookupId,
   maskLookupId,
@@ -85,4 +86,23 @@ test("maskLookupId should not expose full id", () => {
     maskLookupId("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
     "12345678...cdef"
   );
+});
+
+test("buildGroupLookupRequest should include legacy field only when dual flag is enabled", () => {
+  const originalDual = process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST;
+  const lookup = { lookupId: "a".repeat(64), lookupVersion: 1 };
+
+  process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = "false";
+  const withoutLegacy = buildGroupLookupRequest("group-1", lookup, "legacy-group-id");
+  assert.equal(withoutLegacy.encGroupId, undefined);
+
+  process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = "true";
+  const withLegacy = buildGroupLookupRequest("group-1", lookup, "legacy-group-id");
+  assert.equal(withLegacy.encGroupId, "legacy-group-id");
+
+  if (originalDual === undefined) {
+    delete process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST;
+  } else {
+    process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = originalDual;
+  }
 });

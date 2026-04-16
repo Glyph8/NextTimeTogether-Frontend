@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildPromiseLookupRequest,
   makeLookupId,
   maskLookupId,
   PROMISE_LOOKUP_VERSION,
@@ -43,6 +44,25 @@ test("shouldSendLegacyEncUserId should follow env switch", () => {
 
   process.env.NEXT_PUBLIC_PROMISE_LOOKUP_DUAL_REQUEST = "true";
   assert.equal(shouldSendLegacyEncUserId(), true);
+
+  if (original === undefined) {
+    delete process.env.NEXT_PUBLIC_PROMISE_LOOKUP_DUAL_REQUEST;
+  } else {
+    process.env.NEXT_PUBLIC_PROMISE_LOOKUP_DUAL_REQUEST = original;
+  }
+});
+
+test("buildPromiseLookupRequest should include legacy field only when dual flag is enabled", () => {
+  const original = process.env.NEXT_PUBLIC_PROMISE_LOOKUP_DUAL_REQUEST;
+  const lookup = { lookupId: "a".repeat(64), lookupVersion: 1 };
+
+  process.env.NEXT_PUBLIC_PROMISE_LOOKUP_DUAL_REQUEST = "false";
+  const withoutLegacy = buildPromiseLookupRequest("promise-1", lookup, "legacy-id");
+  assert.equal(withoutLegacy.encUserId, undefined);
+
+  process.env.NEXT_PUBLIC_PROMISE_LOOKUP_DUAL_REQUEST = "true";
+  const withLegacy = buildPromiseLookupRequest("promise-1", lookup, "legacy-id");
+  assert.equal(withLegacy.encUserId, "legacy-id");
 
   if (original === undefined) {
     delete process.env.NEXT_PUBLIC_PROMISE_LOOKUP_DUAL_REQUEST;

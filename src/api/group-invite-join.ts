@@ -12,7 +12,20 @@ import {
   SaveGroupMemberRequest,
 } from "@/apis/generated/Api";
 import { BackendResponse, clientBaseApi, handleApiError } from ".";
-import { maskLookupId } from "@/utils/client/group-lookup";
+import {
+  buildGroupLookupRequest,
+  clearGroupLookupCacheForGroup,
+  maskLookupId,
+  resolveGroupLookupContext,
+  shouldSendLegacyEncGroupId,
+  shouldUseGroupLookup,
+} from "@/utils/client/group-lookup";
+import {
+  getLookupHttpStatus,
+  getLookupServerCode,
+  isLookupTransitionError,
+} from "./lookup-error";
+import { trackLookupMetric } from "./lookup-metrics";
 
 const GROUP_LOOKUP_EXPECTED_ERROR_STATUSES = [400, 404, 409];
 
@@ -39,15 +52,30 @@ export const apiPostGroupMemberSave = async (
 export const getInviteEncNewMemberId = async (
   groupData: InviteGroup1Request
 ) => {
+  if (groupData.lookupId && typeof groupData.lookupVersion === "number") {
+    trackLookupMetric("lookup_request", {
+      domain: "group",
+      route: "/group/invite1",
+      lookupVersion: groupData.lookupVersion,
+    });
+  }
+
   return clientBaseApi.api
     .inviteGroup1(groupData)
     .then((response) => {
       const realData =
         response.data as unknown as BackendResponse<InviteGroup1Response>;
+      if (groupData.lookupId && typeof groupData.lookupVersion === "number") {
+        trackLookupMetric("lookup_success", {
+          domain: "group",
+          route: "/group/invite1",
+          lookupVersion: groupData.lookupVersion,
+        });
+      }
       return realData.result || null;
     })
     .catch((error) => {
-      const status = error?.response?.status;
+      const status = getLookupHttpStatus(error);
       const isLookupRequest =
         Boolean(groupData.lookupId) && typeof groupData.lookupVersion === "number";
       const isExpected =
@@ -56,6 +84,13 @@ export const getInviteEncNewMemberId = async (
         GROUP_LOOKUP_EXPECTED_ERROR_STATUSES.includes(status);
 
       if (isExpected) {
+        trackLookupMetric("lookup_failure", {
+          domain: "group",
+          route: "/group/invite1",
+          lookupVersion: groupData.lookupVersion,
+          status,
+          serverCode: getLookupServerCode(error),
+        });
         console.warn("invite1 요청 실패", {
           status,
           groupId: groupData.groupId,
@@ -70,6 +105,72 @@ export const getInviteEncNewMemberId = async (
 
 /** @deprecated use getInviteEncNewMemberId */
 export const getInviteEncENcNewMemberId = getInviteEncNewMemberId;
+
+interface GroupInviteWithFallbackInput {
+  groupId: string;
+  encGroupId: string;
+}
+
+export const getInviteEncNewMemberIdWithLookupFallback = async ({
+  groupId,
+  encGroupId,
+}: GroupInviteWithFallbackInput) => {
+  const requestLegacy = () => getInviteEncNewMemberId({ groupId, encGroupId });
+
+  if (!shouldUseGroupLookup()) {
+    return requestLegacy();
+  }
+
+  const requestLookup = async () => {
+    const lookup = await resolveGroupLookupContext(groupId);
+    const payload = buildGroupLookupRequest(groupId, lookup, encGroupId);
+    return getInviteEncNewMemberId(payload);
+  };
+
+  try {
+    return await requestLookup();
+  } catch (error) {
+    const status = getLookupHttpStatus(error);
+    if (status === 404) {
+      clearGroupLookupCacheForGroup(groupId);
+      try {
+        return await requestLookup();
+      } catch (retryError) {
+        error = retryError;
+      }
+    }
+
+    const fallbackAllowed =
+      shouldSendLegacyEncGroupId() && isLookupTransitionError(error);
+    if (!fallbackAllowed) {
+      throw error;
+    }
+
+    trackLookupMetric("lookup_fallback_attempt", {
+      domain: "group",
+      route: "/group/invite1",
+      status: getLookupHttpStatus(error),
+      serverCode: getLookupServerCode(error),
+    });
+
+    try {
+      const response = await requestLegacy();
+      trackLookupMetric("lookup_fallback_success", {
+        domain: "group",
+        route: "/group/invite1",
+      });
+      return response;
+    } catch (fallbackError) {
+      trackLookupMetric("lookup_fallback_failure", {
+        domain: "group",
+        route: "/group/invite1",
+        status: getLookupHttpStatus(fallbackError),
+        serverCode: getLookupServerCode(fallbackError),
+      });
+      throw fallbackError;
+    }
+  }
+};
 
 /** 그룹 초대 2단계 - 초대할 그룹 id와 초대하는 사용자 id 전송, 그룹 키 획득 */
 export const getInviteEncGroupsKeyRequest = async (

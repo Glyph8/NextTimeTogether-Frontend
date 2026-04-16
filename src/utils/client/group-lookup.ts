@@ -1,8 +1,8 @@
 import { getLookupIndexKeyFromStorage } from "@/utils/client/promise-lookup";
+import { resolveLookupSubjectFromStorage } from "@/utils/client/lookup-subject";
 
 export const GROUP_LOOKUP_VERSION = 1;
 
-const LOOKUP_USER_ID_KEY = "hashed_user_id_for_manager";
 const GROUP_LOOKUP_CACHE_KEY = "group_lookup_cache_v1";
 const LOOKUP_ID_PATTERN = /^[0-9a-f]{64}$/;
 
@@ -176,7 +176,7 @@ export async function resolveGroupLookupContext(
     throw new Error("group lookup can only be resolved in browser environments.");
   }
 
-  const userId = localStorage.getItem(LOOKUP_USER_ID_KEY)?.trim();
+  const userId = resolveLookupSubjectFromStorage().subjectId;
   if (!userId) {
     throw new Error("Missing user identifier for group lookup.");
   }
