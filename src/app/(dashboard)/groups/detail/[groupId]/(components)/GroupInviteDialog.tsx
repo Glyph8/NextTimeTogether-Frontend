@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  getInviteEncENcNewMemberId,
+  getInviteEncENcNewMemberId as getInviteEncNewMemberId,
   getInviteEncGroupsKeyRequest,
 } from "@/api/group-invite-join";
 import { Button } from "@/components/ui/button/Button";
@@ -60,7 +60,7 @@ export const GroupInviteDialog = ({
           );
 
           try {
-            return await getInviteEncENcNewMemberId(payload);
+            return await getInviteEncNewMemberId(payload);
           } catch (error) {
             const status = (error as { response?: { status?: number } })?.response
               ?.status;
@@ -80,7 +80,7 @@ export const GroupInviteDialog = ({
               if (status === 409 || status === 404 || isServerError) {
                 clearGroupLookupCacheForGroup(groupId);
               }
-              return getInviteEncENcNewMemberId({ groupId, encGroupId });
+              return getInviteEncNewMemberId({ groupId, encGroupId });
             }
 
             throw error;
@@ -89,7 +89,7 @@ export const GroupInviteDialog = ({
 
         const inviteResult1 = shouldUseGroupLookup()
           ? await requestInviteWithLookup(true)
-          : await getInviteEncENcNewMemberId({ groupId, encGroupId });
+          : await getInviteEncNewMemberId({ groupId, encGroupId });
 
         if (!inviteResult1.encencGroupMemberId)
           throw new Error("초대 자격 증명 실패");
