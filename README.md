@@ -29,6 +29,7 @@
 8. [✨ 기술 구현 하이라이트](#8--기술-구현-하이라이트)
 9. [개발 가이드](#9-개발-가이드)
 10. [API 코드 자동 생성](#10-api-코드-자동-생성)
+11. [E2EE Worker PoC 벤치마크](#11-e2ee-worker-poc-벤치마크)
 
 ---
 
@@ -711,6 +712,31 @@ npm run generate:api:local
 
 생성 결과물은 `src/apis/generated/Api.ts`에 저장됩니다.  
 API 스펙 소스: `https://meetnow.duckdns.org/v3/api-docs`
+
+---
+
+## 11. E2EE Worker PoC 벤치마크
+
+Worker 도입을 전면 적용하기 전에, 실측 기반으로 도입 타당성을 판단하기 위한 내부 PoC 페이지를 추가했습니다.
+
+- 경로: `/groups/crypto-poc`
+- 페이지: `src/app/(dashboard)/groups/crypto-poc/page.tsx`
+- 벤치마크 유틸: `src/utils/client/crypto/perf/crypto-benchmark.ts`
+- 워커 구현: `src/utils/client/crypto/perf/crypto-benchmark-worker.ts`
+
+### 측정 방식
+
+- 동일 입력(암호문 리스트)을 기준으로 아래 2가지를 비교합니다.
+  - Main Thread 일괄 복호화
+  - Web Worker 오프로딩 복호화
+- 시나리오(소형/중형/대형)별로 다음 지표를 기록합니다.
+  - 처리 시간(ms)
+  - Long Task 개수/총 시간
+
+### 해석 기준(권장)
+
+- 실사용 규모에서 Main vs Worker 차이가 미미하면 Worker 전면 도입을 보류합니다.
+- 중/대형에서만 차이가 크면, 실제 병목 구간(예: 대량 멤버 복호화 루프)만 선택적으로 Worker 적용합니다.
 
 ---
 
