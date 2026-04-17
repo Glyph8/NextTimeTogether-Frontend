@@ -118,32 +118,30 @@ export default function JoinPromisePage() {
       }
     } catch (e) {
       const lookupFallbackMessage = "처리 중 오류가 발생했습니다. 다시 시도해주세요.";
+      const lookupMessageOverrides = {
+        FORBIDDEN: "약속 참여 권한이 없습니다.",
+        NOT_FOUND: "존재하지 않는 약속입니다.",
+        INVALID_LOOKUP: "Lookup 형식이 올바르지 않습니다. 다시 시도해주세요.",
+      } as const;
       const errorType = getLookupErrorType(e);
+      const lookupErrorMessage = getLookupUserMessage(
+        e,
+        lookupFallbackMessage,
+        lookupMessageOverrides
+      );
       if (errorType === "FORBIDDEN") {
         setStatus("error");
-        setMessage(
-          getLookupUserMessage(e, lookupFallbackMessage, {
-            FORBIDDEN: "약속 참여 권한이 없습니다.",
-          })
-        );
+        setMessage(lookupErrorMessage);
         return;
       }
       if (errorType === "NOT_FOUND") {
         setStatus("error");
-        setMessage(
-          getLookupUserMessage(e, lookupFallbackMessage, {
-            NOT_FOUND: "존재하지 않는 약속입니다.",
-          })
-        );
+        setMessage(lookupErrorMessage);
         return;
       }
       if (errorType === "INVALID_LOOKUP") {
         setStatus("error");
-        setMessage(
-          getLookupUserMessage(e, lookupFallbackMessage, {
-            INVALID_LOOKUP: "Lookup 형식이 올바르지 않습니다. 다시 시도해주세요.",
-          })
-        );
+        setMessage(lookupErrorMessage);
         return;
       }
       if (errorType === "CONFLICT") {
