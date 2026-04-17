@@ -4,7 +4,8 @@ type LookupMetricEvent =
   | "lookup_failure"
   | "lookup_fallback_attempt"
   | "lookup_fallback_success"
-  | "lookup_fallback_failure";
+  | "lookup_fallback_failure"
+  | "lookup_fallback_blocked_server";
 
 interface LookupMetricPayload {
   domain: "group" | "promise";

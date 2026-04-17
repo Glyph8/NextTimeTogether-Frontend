@@ -28,6 +28,7 @@ import {
 import { trackLookupMetric } from "./lookup-metrics";
 
 const GROUP_LOOKUP_EXPECTED_ERROR_STATUSES = [400, 404, 409];
+const GROUP_LOOKUP_FALLBACK_ERROR_STATUSES = [400, 404, 409];
 
 /** 이메일 보내는 로직이라 현재 지원 안됨 */
 export const apiGetGroupJoinRequest = async (
@@ -79,11 +80,10 @@ export const getInviteEncNewMemberId = async (
       const isLookupRequest =
         Boolean(groupData.lookupId) && typeof groupData.lookupVersion === "number";
       const isExpected =
-        isLookupRequest &&
         typeof status === "number" &&
         GROUP_LOOKUP_EXPECTED_ERROR_STATUSES.includes(status);
 
-      if (isExpected) {
+      if (isLookupRequest && (typeof status === "number" || getLookupServerCode(error))) {
         trackLookupMetric("lookup_failure", {
           domain: "group",
           route: "/group/invite1",
@@ -91,6 +91,9 @@ export const getInviteEncNewMemberId = async (
           status,
           serverCode: getLookupServerCode(error),
         });
+      }
+
+      if (isLookupRequest && isExpected) {
         console.warn("invite1 요청 실패", {
           status,
           groupId: groupData.groupId,
@@ -133,8 +136,10 @@ export const getInviteEncNewMemberIdWithLookupFallback = async ({
     return await requestLookup();
   } catch (error) {
     const status = getLookupHttpStatus(error);
-    if (status === 404) {
+    if (status === 404 || status === 409) {
       clearGroupLookupCacheForGroup(groupId);
+    }
+    if (status === 404) {
       try {
         return await requestLookup();
       } catch (retryError) {
@@ -142,8 +147,23 @@ export const getInviteEncNewMemberIdWithLookupFallback = async ({
       }
     }
 
+    const shouldBlockFallbackByServerError =
+      typeof status === "number" && status >= 500;
+    if (shouldBlockFallbackByServerError) {
+      trackLookupMetric("lookup_fallback_blocked_server", {
+        domain: "group",
+        route: "/group/invite1",
+        lookupVersion: lastLookupVersion,
+        status,
+        serverCode: getLookupServerCode(error),
+      });
+    }
+
     const fallbackAllowed =
-      shouldSendLegacyEncGroupId() && isLookupTransitionError(error);
+      shouldSendLegacyEncGroupId() &&
+      typeof status === "number" &&
+      GROUP_LOOKUP_FALLBACK_ERROR_STATUSES.includes(status) &&
+      isLookupTransitionError(error);
     if (!fallbackAllowed) {
       throw error;
     }
