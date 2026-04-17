@@ -124,22 +124,16 @@ export default function JoinPromisePage() {
         INVALID_LOOKUP: "Lookup 형식이 올바르지 않습니다. 다시 시도해주세요.",
       } as const;
       const errorType = getLookupErrorType(e);
-      const lookupErrorMessage = getLookupUserMessage(
-        e,
-        lookupFallbackMessage,
-        lookupMessageOverrides
-      );
-      if (errorType === "FORBIDDEN") {
-        setStatus("error");
-        setMessage(lookupErrorMessage);
-        return;
-      }
-      if (errorType === "NOT_FOUND") {
-        setStatus("error");
-        setMessage(lookupErrorMessage);
-        return;
-      }
-      if (errorType === "INVALID_LOOKUP") {
+      if (
+        errorType === "FORBIDDEN" ||
+        errorType === "NOT_FOUND" ||
+        errorType === "INVALID_LOOKUP"
+      ) {
+        const lookupErrorMessage = getLookupUserMessage(
+          e,
+          lookupFallbackMessage,
+          lookupMessageOverrides
+        );
         setStatus("error");
         setMessage(lookupErrorMessage);
         return;
