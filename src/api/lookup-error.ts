@@ -37,6 +37,10 @@ export type LookupErrorType =
   | "SERVER"
   | "UNKNOWN";
 
+type LookupMessageOverride = Partial<
+  Record<Exclude<LookupErrorType, "UNKNOWN">, string>
+>;
+
 export const getLookupHttpStatus = (error: unknown): number | undefined => {
   return asLookupError(error)?.response?.status;
 };
@@ -77,24 +81,37 @@ export const shouldAllowLookupFallback = (error: unknown): boolean => {
 
 export const getLookupUserMessage = (
   error: unknown,
-  fallback: string
+  fallback: string,
+  overrides?: LookupMessageOverride
 ): string => {
   const type = getLookupErrorType(error);
 
   if (type === "INVALID_LOOKUP") {
-    return "Lookup 형식이 올바르지 않습니다. 다시 시도해주세요.";
+    return (
+      overrides?.INVALID_LOOKUP ??
+      "Lookup 형식이 올바르지 않습니다. 다시 시도해주세요."
+    );
   }
   if (type === "FORBIDDEN") {
-    return "요청 권한이 없습니다.";
+    return overrides?.FORBIDDEN ?? "요청 권한이 없습니다.";
   }
   if (type === "NOT_FOUND") {
-    return "대상을 찾을 수 없습니다. 다시 동기화한 후 시도해주세요.";
+    return (
+      overrides?.NOT_FOUND ??
+      "대상을 찾을 수 없습니다. 다시 동기화한 후 시도해주세요."
+    );
   }
   if (type === "CONFLICT") {
-    return "요청 충돌이 발생했습니다. 잠시 후 다시 시도해주세요.";
+    return (
+      overrides?.CONFLICT ??
+      "요청 충돌이 발생했습니다. 잠시 후 다시 시도해주세요."
+    );
   }
   if (type === "SERVER") {
-    return "일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    return (
+      overrides?.SERVER ??
+      "일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+    );
   }
   return fallback;
 };
