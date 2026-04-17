@@ -45,7 +45,7 @@ const originalGroupLookupDual = process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUES
 
 let metricLogs: unknown[][] = [];
 
-const makeHttpError = (status: number, code = "ERR") => ({
+const makeHttpError = (status: number, code: string | number = "ERR") => ({
   response: {
     status,
     data: { code },
@@ -216,4 +216,26 @@ test("lookup 5xx should not fallback and should track blocked metric", async () 
   assert.equal("lookupId" in requests[0], true);
   assert.equal(getMetricEvents().includes("lookup_fallback_attempt"), false);
   assert.equal(getMetricEvents().includes("lookup_fallback_blocked_server"), true);
+});
+
+test("lookup 404 with numeric code should not fallback to legacy request", async () => {
+  const requests: Array<Record<string, unknown>> = [];
+  let callCount = 0;
+
+  mockInviteGroup1(async (payload) => {
+    callCount += 1;
+    requests.push(payload as Record<string, unknown>);
+    throw makeHttpError(404, 404);
+  });
+
+  await assert.rejects(
+    getInviteEncNewMemberIdWithLookupFallback({
+      groupId: "group-numeric-404",
+      encGroupId: "legacy-group",
+    })
+  );
+
+  assert.equal(callCount, 2);
+  assert.equal(getMetricEvents().includes("lookup_fallback_attempt"), false);
+  assert.equal(requests.every((request) => "lookupId" in request), true);
 });

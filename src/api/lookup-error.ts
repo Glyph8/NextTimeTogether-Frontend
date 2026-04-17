@@ -2,7 +2,7 @@ type LookupErrorLike = {
   response?: {
     status?: number;
     data?: {
-      code?: string;
+      code?: string | number;
     };
   };
 };
@@ -20,7 +20,10 @@ const asLookupError = (error: unknown): LookupErrorLike | null => {
     response: {
       status: typeof response?.status === "number" ? response.status : undefined,
       data: {
-        code: typeof data?.code === "string" ? data.code : undefined,
+        code:
+          typeof data?.code === "string" || typeof data?.code === "number"
+            ? data.code
+            : undefined,
       },
     },
   };
@@ -39,7 +42,10 @@ export const getLookupHttpStatus = (error: unknown): number | undefined => {
 };
 
 export const getLookupServerCode = (error: unknown): string | undefined => {
-  return asLookupError(error)?.response?.data?.code;
+  const code = asLookupError(error)?.response?.data?.code;
+  if (typeof code === "string") return code;
+  if (typeof code === "number") return String(code);
+  return undefined;
 };
 
 export const getLookupErrorType = (error: unknown): LookupErrorType => {
@@ -54,11 +60,18 @@ export const getLookupErrorType = (error: unknown): LookupErrorType => {
 };
 
 export const shouldAllowLookupFallback = (error: unknown): boolean => {
-  const type = getLookupErrorType(error);
+  const serverCode = getLookupServerCode(error)?.trim().toUpperCase();
+  if (!serverCode) {
+    return false;
+  }
+
   return (
-    type === "INVALID_LOOKUP" ||
-    type === "NOT_FOUND" ||
-    type === "CONFLICT"
+    serverCode === "INVALID_LOOKUP" ||
+    serverCode === "LOOKUP_INVALID_FORMAT" ||
+    serverCode === "NOT_FOUND" ||
+    serverCode === "LOOKUP_NOT_FOUND" ||
+    serverCode === "CONFLICT" ||
+    serverCode === "LOOKUP_CONFLICT"
   );
 };
 

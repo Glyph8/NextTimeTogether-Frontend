@@ -23,6 +23,7 @@ import {
 import {
   getLookupHttpStatus,
   getLookupServerCode,
+  shouldAllowLookupFallback,
 } from "./lookup-error";
 import { trackLookupMetric } from "./lookup-metrics";
 
@@ -159,8 +160,7 @@ export const getInviteEncNewMemberIdWithLookupFallback = async ({
 
     const fallbackAllowed =
       shouldSendLegacyEncGroupId() &&
-      typeof status === "number" &&
-      GROUP_LOOKUP_EXPECTED_ERROR_STATUSES.includes(status);
+      shouldAllowLookupFallback(error);
     if (!fallbackAllowed) {
       throw error;
     }
