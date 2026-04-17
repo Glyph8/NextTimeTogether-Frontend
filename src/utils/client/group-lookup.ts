@@ -177,9 +177,6 @@ export async function resolveGroupLookupContext(
   }
 
   const userId = resolveLookupSubjectFromStorage().subjectId;
-  if (!userId) {
-    throw new Error("Missing user identifier for group lookup.");
-  }
 
   const normalizedUserId = normalizeUserId(userId);
   const normalizedGroupId = normalizeGroupId(groupId);

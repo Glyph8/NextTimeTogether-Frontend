@@ -48,12 +48,15 @@ export const getEncPromiseKey = (data: GetPromiseRequest) => {
     .then((response) => {
       const realData =
         response.data as unknown as BackendResponse<EncPromiseKey>;
+      if (!realData.result) {
+        throw new Error("Missing promise key result from backend response");
+      }
       trackLookupMetric("lookup_success", {
         domain: "promise",
         route: "/promise/promisekey2",
         lookupVersion: data.lookupVersion,
       });
-      return realData.result || [];
+      return realData.result;
     })
     .catch((error) => {
       const status = getLookupHttpStatus(error);

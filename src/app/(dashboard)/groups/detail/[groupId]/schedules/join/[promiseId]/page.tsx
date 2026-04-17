@@ -117,22 +117,21 @@ export default function JoinPromisePage() {
         throw new Error("서버 응답 없음");
       }
     } catch (e) {
+      const lookupFallbackMessage = "처리 중 오류가 발생했습니다. 다시 시도해주세요.";
       const errorType = getLookupErrorType(e);
       if (errorType === "FORBIDDEN") {
         setStatus("error");
-        setMessage(getLookupUserMessage(e, "약속 참여 권한이 없습니다."));
+        setMessage(getLookupUserMessage(e, lookupFallbackMessage));
         return;
       }
       if (errorType === "NOT_FOUND") {
         setStatus("error");
-        setMessage(getLookupUserMessage(e, "존재하지 않는 약속입니다."));
+        setMessage(getLookupUserMessage(e, lookupFallbackMessage));
         return;
       }
       if (errorType === "INVALID_LOOKUP") {
         setStatus("error");
-        setMessage(
-          getLookupUserMessage(e, "Lookup 형식이 올바르지 않습니다. 다시 시도해주세요.")
-        );
+        setMessage(getLookupUserMessage(e, lookupFallbackMessage));
         return;
       }
       if (errorType === "CONFLICT") {
