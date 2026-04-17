@@ -9,7 +9,7 @@ import {
 import {
   getLookupHttpStatus,
   getLookupServerCode,
-  isLookupTransitionError,
+  shouldAllowLookupFallback,
 } from "./lookup-error";
 import { trackLookupMetric } from "./lookup-metrics";
 
@@ -97,9 +97,21 @@ export const getEncPromiseKeyWithLookupFallback = async ({
     const request = buildPromiseLookupRequest(promiseId, lookup);
     return await getEncPromiseKey(request);
   } catch (error) {
+    const status = getLookupHttpStatus(error);
+    if (typeof status === "number" && status >= 500) {
+      trackLookupMetric("lookup_fallback_blocked_server", {
+        domain: "promise",
+        route: "/promise/promisekey2",
+        lookupVersion: lookup.lookupVersion,
+        status,
+        serverCode: getLookupServerCode(error),
+      });
+      throw error;
+    }
+
     const fallbackAllowed =
       shouldSendLegacyEncUserId() && typeof legacyProvider === "function";
-    if (!fallbackAllowed || !isLookupTransitionError(error)) {
+    if (!fallbackAllowed || !shouldAllowLookupFallback(error)) {
       throw error;
     }
 

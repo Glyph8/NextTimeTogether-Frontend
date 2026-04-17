@@ -23,12 +23,10 @@ import {
 import {
   getLookupHttpStatus,
   getLookupServerCode,
-  isLookupTransitionError,
 } from "./lookup-error";
 import { trackLookupMetric } from "./lookup-metrics";
 
 const GROUP_LOOKUP_EXPECTED_ERROR_STATUSES = [400, 404, 409];
-const GROUP_LOOKUP_FALLBACK_ERROR_STATUSES = [400, 404, 409];
 
 /** 이메일 보내는 로직이라 현재 지원 안됨 */
 export const apiGetGroupJoinRequest = async (
@@ -162,8 +160,7 @@ export const getInviteEncNewMemberIdWithLookupFallback = async ({
     const fallbackAllowed =
       shouldSendLegacyEncGroupId() &&
       typeof status === "number" &&
-      GROUP_LOOKUP_FALLBACK_ERROR_STATUSES.includes(status) &&
-      isLookupTransitionError(error);
+      GROUP_LOOKUP_EXPECTED_ERROR_STATUSES.includes(status);
     if (!fallbackAllowed) {
       throw error;
     }

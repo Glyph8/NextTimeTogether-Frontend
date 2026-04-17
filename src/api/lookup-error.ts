@@ -53,13 +53,12 @@ export const getLookupErrorType = (error: unknown): LookupErrorType => {
   return "UNKNOWN";
 };
 
-export const isLookupTransitionError = (error: unknown): boolean => {
+export const shouldAllowLookupFallback = (error: unknown): boolean => {
   const type = getLookupErrorType(error);
   return (
     type === "INVALID_LOOKUP" ||
     type === "NOT_FOUND" ||
-    type === "CONFLICT" ||
-    type === "SERVER"
+    type === "CONFLICT"
   );
 };
 
