@@ -5,7 +5,7 @@ import { createGroupInfoAction, createGroupMetadataAction } from "./action";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
-import { useAuthStore } from "@/store/auth.store";
+import { resolveGroupLookupContext } from "@/utils/client/group-lookup";
 
 interface CreateGroupParams {
   groupName: string;
@@ -30,6 +30,8 @@ export const useCreateGroup = () => {
       }
 
       const { groupId } = firstApiResponse;
+
+      const lookupContext = await resolveGroupLookupContext(groupId);
       console.log(`✅ [E2EE 1단계] 성공, groupId: ${groupId}`);
       console.log("🟡 [E2EE 2단계] 클라이언트 암호화 시작");
 
@@ -71,6 +73,8 @@ export const useCreateGroup = () => {
       console.log("🔵 [E2EE 3단계] 암호화된 메타데이터 전송");
       const secondApiResponse = await createGroupMetadataAction({
         groupId: groupId,
+        lookupId: lookupContext.lookupId,
+        lookupVersion: lookupContext.lookupVersion,
         encGroupId: encGroupId,
         encencGroupMemberId: encencGroupMemberId,
         encUserId: encUserId,

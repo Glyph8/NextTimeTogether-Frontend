@@ -1,5 +1,6 @@
 import { getLookupIndexKeyFromStorage } from "@/utils/client/promise-lookup";
 import { resolveLookupSubjectFromStorage } from "@/utils/client/lookup-subject";
+import { makeCanonicalLookupId } from "@/utils/client/lookup-id";
 
 export const GROUP_LOOKUP_VERSION = 1;
 
@@ -78,26 +79,6 @@ function writeGroupLookupCache(value: GroupLookupCacheValue): void {
   }
 }
 
-async function makeHmacSha256Hex(payload: string, indexKey: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(indexKey),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(payload)
-  );
-
-  return Array.from(new Uint8Array(signature))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 function ensureCacheForUser(userId: string): GroupLookupCacheValue {
   const current = readGroupLookupCache();
   if (!current || current.userId !== userId) {
@@ -126,12 +107,12 @@ export async function makeGroupLookupId(
     throw new Error("lookupVersion must be an integer greater than or equal to 1.");
   }
 
-  const payload =
-    version === GROUP_LOOKUP_VERSION
-      ? `${normalizedUserId}:${normalizedGroupId}`
-      : `v${version}:${normalizedUserId}:${normalizedGroupId}`;
-
-  return makeHmacSha256Hex(payload, normalizedIndexKey);
+  return makeCanonicalLookupId({
+    subjectId: normalizedUserId,
+    resourceId: normalizedGroupId,
+    indexKey: normalizedIndexKey,
+    version,
+  });
 }
 
 export function shouldUseGroupLookup(): boolean {
@@ -192,9 +173,6 @@ export async function resolveGroupLookupContext(
 
   const indexKey = getLookupIndexKeyFromStorage(userId);
   const lookupId = await makeGroupLookupId(userId, normalizedGroupId, indexKey, version);
-  if (!LOOKUP_ID_PATTERN.test(lookupId)) {
-    throw new Error("lookupId must be 64 lowercase hex characters.");
-  }
 
   const context = {
     lookupId,

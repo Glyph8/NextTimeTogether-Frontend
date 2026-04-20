@@ -9,6 +9,7 @@ import {
   // apiGetGroupJoinRequest,
   apiPostGroupMemberSave,
 } from "@/api/group-invite-join";
+import { resolveGroupLookupContext } from "@/utils/client/group-lookup";
 import toast from "react-hot-toast";
 
 export type JoinStatus = "CHECKING" | "READY" | "JOINING" | "ERROR";
@@ -120,9 +121,13 @@ export const useJoinGroup = () => {
         "group_proxy_user"
       );
 
+      const lookupContext = await resolveGroupLookupContext(groupId);
+
       // --- C. 가입 요청 전송 (POST) ---
       await apiPostGroupMemberSave({
         groupId,
+        lookupId: lookupContext.lookupId,
+        lookupVersion: lookupContext.lookupVersion,
         encGroupKey,
         encUserId,
         encGroupId,

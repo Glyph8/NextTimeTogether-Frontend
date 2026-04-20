@@ -1,8 +1,19 @@
 type LookupErrorLike = {
   response?: {
     status?: number;
+    headers?: Record<string, unknown>;
     data?: {
       code?: string | number;
+      requestId?: string;
+      request_id?: string;
+      traceId?: string;
+      trace_id?: string;
+      result?: {
+        requestId?: string;
+        request_id?: string;
+        traceId?: string;
+        trace_id?: string;
+      };
     };
   };
 };
@@ -19,11 +30,38 @@ const asLookupError = (error: unknown): LookupErrorLike | null => {
   return {
     response: {
       status: typeof response?.status === "number" ? response.status : undefined,
+      headers: isObject(response?.headers)
+        ? (response.headers as Record<string, unknown>)
+        : undefined,
       data: {
         code:
           typeof data?.code === "string" || typeof data?.code === "number"
             ? data.code
             : undefined,
+        requestId: typeof data?.requestId === "string" ? data.requestId : undefined,
+        request_id: typeof data?.request_id === "string" ? data.request_id : undefined,
+        traceId: typeof data?.traceId === "string" ? data.traceId : undefined,
+        trace_id: typeof data?.trace_id === "string" ? data.trace_id : undefined,
+        result: isObject(data?.result)
+          ? {
+              requestId:
+                typeof data.result.requestId === "string"
+                  ? data.result.requestId
+                  : undefined,
+              request_id:
+                typeof data.result.request_id === "string"
+                  ? data.result.request_id
+                  : undefined,
+              traceId:
+                typeof data.result.traceId === "string"
+                  ? data.result.traceId
+                  : undefined,
+              trace_id:
+                typeof data.result.trace_id === "string"
+                  ? data.result.trace_id
+                  : undefined,
+            }
+          : undefined,
       },
     },
   };
@@ -50,6 +88,57 @@ export const getLookupServerCode = (error: unknown): string | undefined => {
   if (typeof code === "string") return code;
   if (typeof code === "number") return String(code);
   return undefined;
+};
+
+const pickStringHeader = (
+  headers: Record<string, unknown> | undefined,
+  candidates: string[]
+): string | undefined => {
+  if (!headers) return undefined;
+
+  for (const [rawKey, rawValue] of Object.entries(headers)) {
+    const key = rawKey.toLowerCase();
+    if (!candidates.includes(key)) continue;
+
+    if (typeof rawValue === "string" && rawValue.trim()) {
+      return rawValue.trim();
+    }
+
+    if (Array.isArray(rawValue) && rawValue.length > 0) {
+      const first = rawValue[0];
+      if (typeof first === "string" && first.trim()) {
+        return first.trim();
+      }
+    }
+  }
+
+  return undefined;
+};
+
+export const getLookupRequestId = (error: unknown): string | undefined => {
+  const lookupError = asLookupError(error);
+  if (!lookupError) return undefined;
+
+  const fromHeaders = pickStringHeader(lookupError.response?.headers, [
+    "x-request-id",
+    "x-correlation-id",
+    "x-trace-id",
+    "request-id",
+    "trace-id",
+  ]);
+  if (fromHeaders) return fromHeaders;
+
+  const data = lookupError.response?.data;
+  return (
+    data?.requestId ??
+    data?.request_id ??
+    data?.traceId ??
+    data?.trace_id ??
+    data?.result?.requestId ??
+    data?.result?.request_id ??
+    data?.result?.traceId ??
+    data?.result?.trace_id
+  );
 };
 
 export const getLookupErrorType = (error: unknown): LookupErrorType => {

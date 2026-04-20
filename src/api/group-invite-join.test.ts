@@ -3,7 +3,13 @@ import test, { afterEach, beforeEach } from "node:test";
 import { webcrypto } from "node:crypto";
 
 import { clientBaseApi } from ".";
-import { getInviteEncNewMemberIdWithLookupFallback } from "./group-invite-join";
+import {
+  apiPostGroupMemberSave,
+  ensureGroupMemberMappingForInvite,
+  getInviteEncNewMemberId,
+  getInviteEncNewMemberIdWithLookupFallback,
+  GroupInvitePreconditionError,
+} from "./group-invite-join";
 
 class MemoryStorage implements Storage {
   private readonly store = new Map<string, string>();
@@ -34,14 +40,15 @@ class MemoryStorage implements Storage {
 }
 
 type InviteGroup1Fn = typeof clientBaseApi.api.inviteGroup1;
+type SaveGroupMemberFn = typeof clientBaseApi.api.saveGroupMember;
 
 const originalInviteGroup1 = clientBaseApi.api.inviteGroup1;
+const originalSaveGroupMember = clientBaseApi.api.saveGroupMember;
 const originalConsoleInfo = console.info;
 const originalCrypto = globalThis.crypto;
 const originalWindow = globalThis.window;
 const originalLocalStorage = globalThis.localStorage;
 const originalGroupLookupEnabled = process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED;
-const originalGroupLookupDual = process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST;
 
 let metricLogs: unknown[][] = [];
 
@@ -61,8 +68,22 @@ const mockInviteGroup1 = (impl: InviteGroup1Fn) => {
   (clientBaseApi.api as { inviteGroup1: InviteGroup1Fn }).inviteGroup1 = impl;
 };
 
+const mockSaveGroupMember = (impl: SaveGroupMemberFn) => {
+  (clientBaseApi.api as { saveGroupMember: SaveGroupMemberFn }).saveGroupMember = impl;
+};
+
+const createAesKey = () =>
+  globalThis.crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, [
+    "encrypt",
+    "decrypt",
+  ]);
+
 beforeEach(() => {
-  globalThis.crypto = webcrypto as Crypto;
+  Object.defineProperty(globalThis, "crypto", {
+    value: webcrypto as Crypto,
+    writable: true,
+    configurable: true,
+  });
   Object.defineProperty(globalThis, "window", {
     value: globalThis,
     writable: true,
@@ -78,7 +99,6 @@ beforeEach(() => {
   localStorage.setItem("pseudo_id_index_key", "index-key");
 
   process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = "true";
-  process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = "true";
 
   metricLogs = [];
   console.info = (...args: unknown[]) => {
@@ -88,12 +108,18 @@ beforeEach(() => {
 
 afterEach(() => {
   (clientBaseApi.api as { inviteGroup1: InviteGroup1Fn }).inviteGroup1 = originalInviteGroup1;
+  (clientBaseApi.api as { saveGroupMember: SaveGroupMemberFn }).saveGroupMember =
+    originalSaveGroupMember;
   console.info = originalConsoleInfo;
 
   if (originalCrypto === undefined) {
     delete (globalThis as { crypto?: Crypto }).crypto;
   } else {
-    globalThis.crypto = originalCrypto;
+    Object.defineProperty(globalThis, "crypto", {
+      value: originalCrypto,
+      writable: true,
+      configurable: true,
+    });
   }
 
   if (originalWindow === undefined) {
@@ -121,35 +147,33 @@ afterEach(() => {
   } else {
     process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = originalGroupLookupEnabled;
   }
-  if (originalGroupLookupDual === undefined) {
-    delete process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST;
-  } else {
-    process.env.NEXT_PUBLIC_GROUP_LOOKUP_DUAL_REQUEST = originalGroupLookupDual;
-  }
 });
 
-test("lookup success should return response without fallback", async () => {
-  let callCount = 0;
+test("invite1 payload missing lookup fields should fail before request", async () => {
+  let called = false;
   mockInviteGroup1(async () => {
-    callCount += 1;
-    return { data: { result: { encencGroupMemberId: "enc-member" } } } as never;
+    called = true;
+    return { data: { result: { encencGroupMemberId: "unused" } } } as never;
   });
 
-  const result = await getInviteEncNewMemberIdWithLookupFallback({
-    groupId: "group-1",
-    encGroupId: "legacy-group",
-  });
+  await assert.rejects(
+    getInviteEncNewMemberId({
+      groupId: "group-1",
+      encGroupId: "legacy-group",
+      lookupId: "",
+      lookupVersion: Number.NaN,
+    } as never),
+    /invite1 payload missing required field\(s\): lookupId/
+  );
 
-  assert.equal(result?.encencGroupMemberId, "enc-member");
-  assert.equal(callCount, 1);
-  assert.deepEqual(getMetricEvents(), ["lookup_request", "lookup_success"]);
+  assert.equal(called, false);
 });
 
-test("lookup 404 should retry with refreshed lookup cache and succeed", async () => {
-  let callCount = 0;
-  mockInviteGroup1(async () => {
-    callCount += 1;
-    if (callCount === 1) {
+test("lookup 404 retry should keep lookup payload fields", async () => {
+  const requests: Array<Record<string, unknown>> = [];
+  mockInviteGroup1(async (payload) => {
+    requests.push(payload as unknown as Record<string, unknown>);
+    if (requests.length === 1) {
       throw makeHttpError(404, "LOOKUP_NOT_FOUND");
     }
     return { data: { result: { encencGroupMemberId: "enc-member" } } } as never;
@@ -161,81 +185,87 @@ test("lookup 404 should retry with refreshed lookup cache and succeed", async ()
   });
 
   assert.equal(result?.encencGroupMemberId, "enc-member");
-  assert.equal(callCount, 2);
+  assert.equal(requests.length, 2);
+  assert.equal(typeof requests[0].lookupId, "string");
+  assert.equal(typeof requests[0].lookupVersion, "number");
+  assert.equal(requests[0].lookupId, requests[1].lookupId);
+  assert.equal(requests[0].lookupVersion, requests[1].lookupVersion);
 });
 
-for (const status of [400, 404, 409] as const) {
-  test(`lookup ${status} should fallback to legacy request`, async () => {
-    const requests: Array<Record<string, unknown>> = [];
-    let callCount = 0;
+test("mapping precondition should block when encrypted group key is missing", async () => {
+  const masterKey = await createAesKey();
+  const groupKey = await createAesKey();
 
-    mockInviteGroup1(async (payload) => {
-      callCount += 1;
-      requests.push(payload as Record<string, unknown>);
+  await assert.rejects(
+    ensureGroupMemberMappingForInvite({
+      groupId: "group-1",
+      encGroupId: "enc-group-id",
+      encGroupKey: "",
+      groupKey,
+      masterKey,
+    }),
+    (error: unknown) => error instanceof GroupInvitePreconditionError
+  );
+});
 
-      if (status === 404) {
-        if (callCount <= 2) throw makeHttpError(404, "LOOKUP_NOT_FOUND");
-      } else if (callCount === 1) {
-        throw makeHttpError(status, `LOOKUP_${status}`);
-      }
-
-      return { data: { result: { encencGroupMemberId: "legacy-member" } } } as never;
-    });
-
-    const result = await getInviteEncNewMemberIdWithLookupFallback({
-      groupId: `group-${status}`,
-      encGroupId: "legacy-group",
-    });
-
-    const fallbackRequest = requests[requests.length - 1];
-    assert.equal(result?.encencGroupMemberId, "legacy-member");
-    assert.equal("lookupId" in fallbackRequest, false);
-    assert.equal("lookupVersion" in fallbackRequest, false);
-    assert.equal(fallbackRequest.encGroupId, "legacy-group");
-    assert.ok(getMetricEvents().includes("lookup_fallback_attempt"));
-    assert.ok(getMetricEvents().includes("lookup_fallback_success"));
-  });
-}
-
-test("lookup 5xx should not fallback and should track blocked metric", async () => {
-  const requests: Array<Record<string, unknown>> = [];
-
-  mockInviteGroup1(async (payload) => {
-    requests.push(payload as Record<string, unknown>);
-    throw makeHttpError(500, "INTERNAL_ERROR");
+test("member/save should fail fast when lookup fields are missing", async () => {
+  let saveCalled = false;
+  mockSaveGroupMember(async () => {
+    saveCalled = true;
+    return { data: { message: "ok" } } as never;
   });
 
   await assert.rejects(
-    getInviteEncNewMemberIdWithLookupFallback({
-      groupId: "group-500",
-      encGroupId: "legacy-group",
-    })
+    apiPostGroupMemberSave({
+      groupId: "group-1",
+      encGroupId: "enc-group-id",
+      encGroupKey: "enc-group-key",
+      encUserId: "enc-user-id",
+      encencGroupMemberId: "enc-enc-group-member-id",
+    } as never),
+    /member\/save payload missing required field\(s\): lookupId, lookupVersion/
   );
 
-  assert.equal(requests.length, 1);
-  assert.equal("lookupId" in requests[0], true);
-  assert.equal(getMetricEvents().includes("lookup_fallback_attempt"), false);
-  assert.equal(getMetricEvents().includes("lookup_fallback_blocked_server"), true);
+  assert.equal(saveCalled, false);
 });
 
-test("lookup 404 with numeric code should not fallback to legacy request", async () => {
-  const requests: Array<Record<string, unknown>> = [];
-  let callCount = 0;
+test("mapping sync success then invite1 success path", async () => {
+  const saveRequests: Array<Record<string, unknown>> = [];
+  const inviteRequests: Array<Record<string, unknown>> = [];
 
-  mockInviteGroup1(async (payload) => {
-    callCount += 1;
-    requests.push(payload as Record<string, unknown>);
-    throw makeHttpError(404, 404);
+  mockSaveGroupMember(async (payload) => {
+    saveRequests.push(payload as unknown as Record<string, unknown>);
+    return { data: { message: "ok" } } as never;
   });
 
-  await assert.rejects(
-    getInviteEncNewMemberIdWithLookupFallback({
-      groupId: "group-numeric-404",
-      encGroupId: "legacy-group",
-    })
-  );
+  mockInviteGroup1(async (payload) => {
+    inviteRequests.push(payload as unknown as Record<string, unknown>);
+    return { data: { result: { encencGroupMemberId: "enc-member" } } } as never;
+  });
 
-  assert.equal(callCount, 2);
-  assert.equal(getMetricEvents().includes("lookup_fallback_attempt"), false);
-  assert.equal(requests.every((request) => "lookupId" in request), true);
+  const masterKey = await createAesKey();
+  const groupKey = await createAesKey();
+
+  await ensureGroupMemberMappingForInvite({
+    groupId: "group-integration",
+    encGroupId: "enc-group-id",
+    encGroupKey: "enc-group-key",
+    groupKey,
+    masterKey,
+  });
+
+  const result = await getInviteEncNewMemberIdWithLookupFallback({
+    groupId: "group-integration",
+    encGroupId: "enc-group-id",
+  });
+
+  assert.equal(result?.encencGroupMemberId, "enc-member");
+  assert.equal(saveRequests.length, 1);
+  assert.equal(saveRequests[0].groupId, "group-integration");
+  assert.equal(typeof saveRequests[0].lookupId, "string");
+  assert.equal(typeof saveRequests[0].lookupVersion, "number");
+  assert.equal(inviteRequests.length, 1);
+  assert.equal(typeof inviteRequests[0].lookupId, "string");
+  assert.equal(typeof inviteRequests[0].lookupVersion, "number");
+  assert.deepEqual(getMetricEvents(), ["lookup_request", "lookup_success"]);
 });

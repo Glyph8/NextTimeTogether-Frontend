@@ -1,6 +1,6 @@
-import { makePseudoId } from "@/utils/client/crypto/encryptClient";
 import { resolveLookupSubjectFromStorage } from "@/utils/client/lookup-subject";
 import { GetPromiseRequest } from "@/apis/generated/Api";
+import { makeCanonicalLookupId } from "@/utils/client/lookup-id";
 
 export const PROMISE_LOOKUP_VERSION = 1;
 
@@ -23,12 +23,11 @@ export async function makeLookupId(
     throw new Error("lookupVersion must be an integer greater than or equal to 1.");
   }
 
-  const payload =
-    version === PROMISE_LOOKUP_VERSION
-      ? normalizedUserId
-      : `v${version}:${normalizedUserId}`;
-
-  return makePseudoId(payload, normalizedIndexKey);
+  return makeCanonicalLookupId({
+    subjectId: normalizedUserId,
+    indexKey: normalizedIndexKey,
+    version,
+  });
 }
 
 export function getLookupSourceFromStorage(): { userId: string; indexKey: string } {

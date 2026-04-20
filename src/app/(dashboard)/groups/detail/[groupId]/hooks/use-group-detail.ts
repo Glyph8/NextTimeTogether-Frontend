@@ -99,7 +99,7 @@ export const useGroupDetail = (
 
   // --- 2단계: 해당 그룹의 암호화 키(Group Key) 조회 & 복호화 ---
   const {
-    data: groupKey,
+    data: groupKeyContext,
     isPending: isStep2Pending,
     error: errorStep2,
     isError: isStep2Error,
@@ -128,13 +128,18 @@ export const useGroupDetail = (
 
       const groupKeyArrayBuffer = base64ToArrayBuffer(groupKeyString);
 
-      return await crypto.subtle.importKey(
+      const cryptoKey = await crypto.subtle.importKey(
         "raw",
         groupKeyArrayBuffer,
         { name: "AES-GCM" },
         false,
         ["decrypt", "encrypt"]
       );
+
+      return {
+        cryptoKey,
+        encGroupKey: data[0].encGroupKey,
+      };
     },
     // Step 1이 성공했고 에러가 없을 때만 실행
     enabled: !!groupMetadata && !isStep1Error,
@@ -153,7 +158,7 @@ export const useGroupDetail = (
   } = useQuery<DecryptedGroupInfo | null>({
     queryKey: ["groupDetail", "step3", targetGroupId],
     queryFn: async () => {
-      if (!groupMetadata || !groupKey) {
+      if (!groupMetadata || !groupKeyContext?.cryptoKey) {
         throw new Error("필수 데이터가 준비되지 않았습니다.");
       }
 
@@ -169,7 +174,7 @@ export const useGroupDetail = (
 
       const decryptedMemberIds = await Promise.all(
         targetGroup.encUserId.map((encId) =>
-          decryptDataClient(encId, groupKey, "group_sharekey")
+          decryptDataClient(encId, groupKeyContext.cryptoKey, "group_sharekey")
         )
       );
 
@@ -183,7 +188,11 @@ export const useGroupDetail = (
       };
     },
     // Step 1, 2가 모두 성공했고 에러가 없을 때만 실행
-    enabled: !!groupMetadata && !!groupKey && !isStep1Error && !isStep2Error,
+    enabled:
+      !!groupMetadata &&
+      !!groupKeyContext?.cryptoKey &&
+      !isStep1Error &&
+      !isStep2Error,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: shouldRetry,
@@ -194,7 +203,7 @@ export const useGroupDetail = (
   const isPending =
     isStep1Pending ||
     (!isStep1Error && !!groupMetadata && isStep2Pending) ||
-    (!isStep1Error && !isStep2Error && !!groupKey && isStep3Pending);
+    (!isStep1Error && !isStep2Error && !!groupKeyContext?.cryptoKey && isStep3Pending);
 
   const error = errorStep1 || errorStep2 || errorStep3;
   const errorMessage = error instanceof Error ? error.message : "정보 로드 실패";
@@ -203,11 +212,12 @@ export const useGroupDetail = (
   // 이 훅을 사용하는 컴포넌트의 불필요한 리렌더링을 막기 위해 필수
   return useMemo(() => ({
     data: finalGroupData,
-    groupKey: groupKey,
+    groupKey: groupKeyContext?.cryptoKey,
+    encGroupKey: groupKeyContext?.encGroupKey,
     isPending,
     error: isError ? errorMessage : null,
     isError,
-  }), [finalGroupData, groupKey, isPending, isError, errorMessage]);
+  }), [finalGroupData, groupKeyContext, isPending, isError, errorMessage]);
   // return {
   //   data: finalGroupData,
   //   groupKey: groupKey,
