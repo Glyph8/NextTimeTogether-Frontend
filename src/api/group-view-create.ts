@@ -23,6 +23,7 @@ export interface ViewGroupThirdResponseData {
   explanation: string;
   groupImg: string;
   managerId: string;
+  /** groupKey("group_sharekey")로 암호화된 userId 리스트 */
   encUserId: string[];
 }
 

@@ -172,6 +172,7 @@ export const useGroupDetail = (
 
       const targetGroup = dataList[0];
 
+      // encUserId는 groupKey("group_sharekey")로 암호화된 userId. 단일 단계 복호화.
       const decryptedMemberIds = await Promise.all(
         targetGroup.encUserId.map((encId) =>
           decryptDataClient(encId, groupKeyContext.cryptoKey, "group_sharekey")
