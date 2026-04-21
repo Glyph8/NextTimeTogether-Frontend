@@ -34,6 +34,7 @@ export default function DetailGroupPage() {
   const {
     data: groupDetail,
     groupKey,
+    encGroupKey,
     isPending: isGroupFetching,
   } = useGroupDetail(groupId, {
     refetchInterval: 3000 // 멤버 변동 사항도 3초마다 체크
@@ -180,6 +181,8 @@ export default function DetailGroupPage() {
         isOpen={inviteModal}
         setIsOpen={setInviteModal}
         groupId={groupId ?? "error"}
+        groupKey={groupKey}
+        encGroupKey={encGroupKey}
       />
     </div>
   );

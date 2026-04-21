@@ -462,6 +462,10 @@ export interface ViewGroup2Request {
 
 export interface CreateGroup2Request {
   groupId?: string;
+  /** 그룹 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion: number;
   encGroupId?: string;
   encencGroupMemberId?: string;
   encUserId?: string;
@@ -476,6 +480,10 @@ export interface CreateGroup1Request {
 
 export interface SaveGroupMemberRequest {
   groupId?: string;
+  /** 그룹 식별값 기반으로 생성한 64자 hex lookupId */
+  lookupId: string;
+  /** lookupId 생성 버전 (현재 1) */
+  lookupVersion: number;
   encGroupKey?: string;
   encUserId?: string;
   encGroupId?: string;
@@ -523,11 +531,11 @@ export interface InviteGroup2Response {
 }
 
 export interface InviteGroup1Request {
-  groupId?: string;
+  groupId: string;
   /** 그룹 식별값 기반으로 생성한 64자 hex lookupId */
-  lookupId?: string;
+  lookupId: string;
   /** lookupId 생성 버전 (현재 1) */
-  lookupVersion?: number;
+  lookupVersion: number;
   /** 호환기간 fallback 조회용 encGroupId */
   encGroupId?: string;
 }

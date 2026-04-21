@@ -3,6 +3,7 @@
 
 import { createGroupRequest, createGroupRequest2 } from "@/api/group-view-create";
 import { CreateGroup2Request } from "@/apis/generated/Api";
+import { getLookupRequestId } from "@/api/lookup-error";
 // crypto 관련 import 모두 제거
 
 interface GroupData {
@@ -40,10 +41,15 @@ export async function createGroupInfoAction(groupData: GroupData) {
  * 이 액션은 암호화된 데이터를 그대로 전달만 합니다.
  */
 export async function createGroupMetadataAction(
-  encryptedMetaData: CreateGroup2Request
+  encryptedMetaData: CreateGroup2Request & {
+    lookupId: string;
+    lookupVersion: number;
+  }
 ) {
   try {
     // 1. API 2 호출
+    console.log("!! createGroup2 payload", JSON.stringify(encryptedMetaData, null, 2));
+
     const response = await createGroupRequest2(encryptedMetaData);
 
     if (!response || !response.result) {
@@ -53,10 +59,17 @@ export async function createGroupMetadataAction(
     // 2. 클라이언트에 최종 성공 여부 반환
     return { success: true, data: response.result };
   } catch (error) {
-    console.error("2단계 액션 실패:", error);
+    const requestId = getLookupRequestId(error);
+    console.error("2단계 액션 실패:", {
+      requestId,
+      error,
+      groupId: encryptedMetaData.groupId,
+      lookupVersion: encryptedMetaData.lookupVersion,
+    });
     return {
       success: false,
-      error: error instanceof Error ? error.message : "2단계 API 호출 오류"
+      error: error instanceof Error ? error.message : "2단계 API 호출 오류",
+      requestId,
     };
   }
 }

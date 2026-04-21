@@ -12,9 +12,110 @@ import {
   SaveGroupMemberRequest,
 } from "@/apis/generated/Api";
 import { BackendResponse, clientBaseApi, handleApiError } from ".";
-import { maskLookupId } from "@/utils/client/group-lookup";
+import {
+  buildGroupLookupRequest,
+  clearGroupLookupCacheForGroup,
+  maskLookupId,
+  resolveGroupLookupContext,
+  shouldUseGroupLookup,
+} from "@/utils/client/group-lookup";
+import { resolveLookupSubjectFromStorage } from "@/utils/client/lookup-subject";
+import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
+import {
+  getLookupHttpStatus,
+  getLookupRequestId,
+  getLookupServerCode,
+} from "./lookup-error";
+import { trackLookupMetric } from "./lookup-metrics";
 
 const GROUP_LOOKUP_EXPECTED_ERROR_STATUSES = [400, 404, 409];
+
+export type InviteGroup1RequiredPayload = Omit<
+  InviteGroup1Request,
+  "groupId" | "lookupId" | "lookupVersion"
+> & {
+  groupId: string;
+  lookupId: string;
+  lookupVersion: number;
+};
+
+export type SaveGroupMemberRequiredPayload = Omit<
+  SaveGroupMemberRequest,
+  "groupId" | "lookupId" | "lookupVersion"
+> & {
+  groupId: string;
+  lookupId: string;
+  lookupVersion: number;
+};
+
+const getMissingInviteRequiredFields = (
+  payload: Partial<InviteGroup1RequiredPayload>
+): string[] => {
+  const missing: string[] = [];
+
+  if (!payload.groupId?.trim()) missing.push("groupId");
+  if (!payload.lookupId?.trim()) missing.push("lookupId");
+  if (typeof payload.lookupVersion !== "number") missing.push("lookupVersion");
+
+  return missing;
+};
+
+const assertInviteGroup1Payload: (
+  payload: Partial<InviteGroup1RequiredPayload>
+) => asserts payload is InviteGroup1RequiredPayload = (
+  payload: Partial<InviteGroup1RequiredPayload>
+) => {
+  const missing = getMissingInviteRequiredFields(payload);
+  if (missing.length > 0) {
+    const error = new Error(
+      `invite1 payload missing required field(s): ${missing.join(", ")}`
+    );
+    (error as Error & { code?: string }).code = "INVITE1_REQUIRED_FIELDS_MISSING";
+    throw error;
+  }
+};
+
+const getMissingSaveGroupMemberRequiredFields = (
+  payload: Partial<SaveGroupMemberRequiredPayload>
+): string[] => {
+  const missing: string[] = [];
+
+  if (!payload.groupId?.trim()) missing.push("groupId");
+  if (!payload.lookupId?.trim()) missing.push("lookupId");
+  if (typeof payload.lookupVersion !== "number") missing.push("lookupVersion");
+
+  return missing;
+};
+
+const assertSaveGroupMemberPayload: (
+  payload: Partial<SaveGroupMemberRequiredPayload>
+) => asserts payload is SaveGroupMemberRequiredPayload = (
+  payload: Partial<SaveGroupMemberRequiredPayload>
+) => {
+  const missing = getMissingSaveGroupMemberRequiredFields(payload);
+  if (missing.length > 0) {
+    const error = new Error(
+      `member/save payload missing required field(s): ${missing.join(", ")}`
+    );
+    (error as Error & { code?: string }).code = "MEMBER_SAVE_REQUIRED_FIELDS_MISSING";
+    throw error;
+  }
+};
+
+export interface EnsureGroupMemberMappingInput {
+  groupId: string;
+  encGroupId: string;
+  encGroupKey: string;
+  groupKey: CryptoKey;
+  masterKey: CryptoKey;
+}
+
+export class GroupInvitePreconditionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GroupInvitePreconditionError";
+  }
+}
 
 /** 이메일 보내는 로직이라 현재 지원 안됨 */
 export const apiGetGroupJoinRequest = async (
@@ -27,8 +128,10 @@ export const apiGetGroupJoinRequest = async (
 };
 
 export const apiPostGroupMemberSave = async (
-  payload: SaveGroupMemberRequest
+  payload: SaveGroupMemberRequiredPayload
 ): Promise<JoinGroupResponse> => {
+  assertSaveGroupMemberPayload(payload);
+
   return clientBaseApi.api
     .saveGroupMember(payload)
     .then((response) => response.data)
@@ -37,27 +140,61 @@ export const apiPostGroupMemberSave = async (
 
 /** 그룹 초대 1단계 - 그룹 아이디, 암호 그룹 아이디 전달 */
 export const getInviteEncNewMemberId = async (
-  groupData: InviteGroup1Request
+  groupData: InviteGroup1RequiredPayload
 ) => {
+  assertInviteGroup1Payload(groupData);
+
+  trackLookupMetric("lookup_request", {
+    domain: "group",
+    route: "/group/invite1",
+    lookupVersion: groupData.lookupVersion,
+  });
+
   return clientBaseApi.api
     .inviteGroup1(groupData)
     .then((response) => {
       const realData =
         response.data as unknown as BackendResponse<InviteGroup1Response>;
+      trackLookupMetric("lookup_success", {
+        domain: "group",
+        route: "/group/invite1",
+        lookupVersion: groupData.lookupVersion,
+      });
       return realData.result || null;
     })
     .catch((error) => {
-      const status = error?.response?.status;
-      const isLookupRequest =
-        Boolean(groupData.lookupId) && typeof groupData.lookupVersion === "number";
+      const status = getLookupHttpStatus(error);
       const isExpected =
-        isLookupRequest &&
         typeof status === "number" &&
         GROUP_LOOKUP_EXPECTED_ERROR_STATUSES.includes(status);
+      const requestId = getLookupRequestId(error);
+
+      if (typeof status === "number" || getLookupServerCode(error)) {
+        trackLookupMetric("lookup_failure", {
+          domain: "group",
+          route: "/group/invite1",
+          lookupVersion: groupData.lookupVersion,
+          status,
+          serverCode: getLookupServerCode(error),
+        });
+      }
+
+      if (status === 400) {
+        const missing = getMissingInviteRequiredFields(groupData);
+        console.error("invite1 validation failure (client bug suspected)", {
+          status,
+          missingRequiredFields: missing,
+          requestId,
+          groupId: groupData.groupId,
+          lookupVersion: groupData.lookupVersion,
+          lookupId: maskLookupId(groupData.lookupId),
+        });
+      }
 
       if (isExpected) {
         console.warn("invite1 요청 실패", {
           status,
+          requestId,
           groupId: groupData.groupId,
           lookupVersion: groupData.lookupVersion,
           lookupId: maskLookupId(groupData.lookupId),
@@ -70,6 +207,82 @@ export const getInviteEncNewMemberId = async (
 
 /** @deprecated use getInviteEncNewMemberId */
 export const getInviteEncENcNewMemberId = getInviteEncNewMemberId;
+
+interface GroupInviteWithFallbackInput {
+  groupId: string;
+  encGroupId: string;
+}
+
+export const getInviteEncNewMemberIdWithLookupFallback = async ({
+  groupId,
+  encGroupId,
+}: GroupInviteWithFallbackInput) => {
+  if (!shouldUseGroupLookup()) {
+    throw new GroupInvitePreconditionError(
+      "group lookup is required for invite1 but disabled by feature flag"
+    );
+  }
+
+  const lookup = await resolveGroupLookupContext(groupId);
+  const payload = buildGroupLookupRequest(
+    groupId,
+    lookup,
+    encGroupId
+  ) as InviteGroup1RequiredPayload;
+  const immutablePayload = Object.freeze({ ...payload });
+
+  try {
+    return await getInviteEncNewMemberId(immutablePayload);
+  } catch (error) {
+    const status = getLookupHttpStatus(error);
+    if (status === 404 || status === 409) {
+      clearGroupLookupCacheForGroup(groupId);
+    }
+
+    if (status === 404) {
+      return getInviteEncNewMemberId(immutablePayload);
+    }
+
+    throw error;
+  }
+};
+
+export const ensureGroupMemberMappingForInvite = async ({
+  groupId,
+  encGroupId,
+  encGroupKey,
+  groupKey,
+  masterKey,
+}: EnsureGroupMemberMappingInput): Promise<void> => {
+  if (!groupId.trim()) {
+    throw new GroupInvitePreconditionError("groupId is required for mapping sync.");
+  }
+
+  if (!encGroupKey) {
+    throw new GroupInvitePreconditionError(
+      "encGroupKey is required to sync group mapping before invite1."
+    );
+  }
+
+  const { subjectId } = resolveLookupSubjectFromStorage();
+  const lookupContext = await resolveGroupLookupContext(groupId);
+  const encUserId = await encryptDataClient(subjectId, groupKey, "group_sharekey");
+  const encencGroupMemberId = await encryptDataClient(
+    encUserId,
+    masterKey,
+    "group_proxy_user"
+  );
+
+  await apiPostGroupMemberSave({
+    groupId,
+    lookupId: lookupContext.lookupId,
+    lookupVersion: lookupContext.lookupVersion,
+    encGroupId,
+    encGroupKey,
+    encUserId,
+    encencGroupMemberId,
+  });
+};
 
 /** 그룹 초대 2단계 - 초대할 그룹 id와 초대하는 사용자 id 전송, 그룹 키 획득 */
 export const getInviteEncGroupsKeyRequest = async (

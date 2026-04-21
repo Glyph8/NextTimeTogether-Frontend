@@ -3,7 +3,6 @@
 import Header from "@/components/ui/header/Header";
 import LeftArrow from "@/assets/svgs/icons/arrow-left-black.svg";
 import Menu from "@/assets/svgs/icons/menu-black.svg";
-import { GetPromiseRequest } from "@/apis/generated/Api";
 import { useEffect, useState } from "react";
 import { When2Meet } from "./When2Meet";
 import { Where2Meet } from "./Where2Meet";
@@ -16,7 +15,10 @@ import {
   getPromiseMemberDetail,
 } from "@/api/promise-view-create";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
-import { getEncPromiseId, getEncPromiseKey } from "@/api/promise-key";
+import {
+  getEncPromiseId,
+  getEncPromiseKeyWithLookupFallback,
+} from "@/api/promise-key";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
@@ -31,11 +33,7 @@ import { parseScheduleString } from "@/app/(dashboard)/appointment/[scheduleId]/
 import { parseConfrimedPromiseDateTime } from "../utils/promise-utils";
 import toast from "react-hot-toast";
 import { ConfirmedPlaceCard } from "@/app/(dashboard)/appointment/[scheduleId]/detail/components/ConfirmedPlaceCard";
-import {
-  maskLookupId,
-  resolveLookupContext,
-  shouldSendLegacyEncUserId,
-} from "@/utils/client/promise-lookup";
+import { getLookupUserMessage } from "@/api/lookup-error";
 
 interface PromiseData {
   encMembers: any; // 실제 타입으로 변경 (예: EncryptedPromiseMemberId)
@@ -98,25 +96,12 @@ export default function ScheduleDetailPage() {
         throw new Error("유저 아이디가 없습니다.");
       }
 
-      const { lookupId, lookupVersion } = await resolveLookupContext();
-
       try {
-        const getPromiseKeyRequest: GetPromiseRequest = {
+        const result = await getEncPromiseKeyWithLookupFallback({
           promiseId,
-          lookupId,
-          lookupVersion,
-        };
-
-        if (shouldSendLegacyEncUserId()) {
-          getPromiseKeyRequest.encUserId = await encryptDataClient(
-            decryptedUserId,
-            groupKey,
-            "group_sharekey"
-          );
-        }
-
-        // 1. 여기서 실제 요청은 보냅니다. (서버 로그엔 404가 찍힘)
-        const result = await getEncPromiseKey(getPromiseKeyRequest);
+          getLegacyEncUserId: async () =>
+            encryptDataClient(decryptedUserId, groupKey, "group_sharekey"),
+        });
 
         // 2. 성공하면 복호화 진행
         const decPromiseKey = await decryptDataWithCryptoKey(
@@ -132,11 +117,6 @@ export default function ScheduleDetailPage() {
 
         // [수정] 서버 조회 실패 시, URL Hash에서 키 복구 시도
         const hash = window.location.hash;
-        console.log("⚠️ 약속 키 조회 실패", {
-          lookupId: maskLookupId(lookupId),
-          lookupVersion,
-          hashExists: Boolean(hash),
-        });
 
         if (hash && hash.includes("pkey=")) {
           const hashParams = new URLSearchParams(hash.substring(1));
@@ -150,9 +130,9 @@ export default function ScheduleDetailPage() {
         // ✅ [핵심] 에러가 발생해도 throw 하지 않고 콘솔에만 찍고 넘어갑니다.
         console.error("⚠️ 약속 키 조회 실패 (무시하고 진행):", {
           status: (error as { response?: { status?: number } })?.response?.status,
-          lookupId: maskLookupId(lookupId),
-          lookupVersion,
+          hashExists: Boolean(hash),
         });
+        toast.error(getLookupUserMessage(error, "약속 키 조회에 실패했습니다."));
         // 에러 상황임을 알리는 null 반환 (React Query는 이를 '성공'으로 간주)
         return null;
       }

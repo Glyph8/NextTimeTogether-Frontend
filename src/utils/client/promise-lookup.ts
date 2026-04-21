@@ -1,9 +1,8 @@
-import { makePseudoId } from "@/utils/client/crypto/encryptClient";
+import { resolveLookupSubjectFromStorage } from "@/utils/client/lookup-subject";
+import { GetPromiseRequest } from "@/apis/generated/Api";
+import { makeCanonicalLookupId } from "@/utils/client/lookup-id";
 
 export const PROMISE_LOOKUP_VERSION = 1;
-
-const LOOKUP_USER_ID_KEY = "hashed_user_id_for_manager";
-const LOOKUP_INDEX_KEY = "pseudo_id_index_key";
 
 const normalizeUserId = (userId: string) => userId.trim().toLowerCase();
 const normalizeIndexKey = (indexKey: string) => indexKey.trim();
@@ -24,27 +23,17 @@ export async function makeLookupId(
     throw new Error("lookupVersion must be an integer greater than or equal to 1.");
   }
 
-  const payload =
-    version === PROMISE_LOOKUP_VERSION
-      ? normalizedUserId
-      : `v${version}:${normalizedUserId}`;
-
-  return makePseudoId(payload, normalizedIndexKey);
+  return makeCanonicalLookupId({
+    subjectId: normalizedUserId,
+    indexKey: normalizedIndexKey,
+    version,
+  });
 }
 
 export function getLookupSourceFromStorage(): { userId: string; indexKey: string } {
-  if (typeof window === "undefined") {
-    throw new Error("lookup source can only be read in browser environments.");
-  }
-
-  const userId = localStorage.getItem(LOOKUP_USER_ID_KEY)?.trim();
-  const indexKey = getLookupIndexKeyFromStorage(userId);
-
-  if (!userId) {
-    throw new Error("Missing user identifier or lookup index key.");
-  }
-
-  return { userId, indexKey };
+  // Transitional naming: userId is currently used as the lookup subjectId across the app.
+  const { subjectId, indexKey } = resolveLookupSubjectFromStorage();
+  return { userId: subjectId, indexKey };
 }
 
 export function getLookupIndexKeyFromStorage(providedUserId?: string): string {
@@ -52,10 +41,10 @@ export function getLookupIndexKeyFromStorage(providedUserId?: string): string {
     throw new Error("lookup source can only be read in browser environments.");
   }
 
-  const userId = providedUserId ?? localStorage.getItem(LOOKUP_USER_ID_KEY)?.trim();
+  const userId = providedUserId ?? resolveLookupSubjectFromStorage().subjectId;
   // Backward compatibility: old sessions may not have pseudo_id_index_key yet.
   // In that case, we fall back to userId as indexKey to keep lookup derivation stable.
-  const rawIndexKey = localStorage.getItem(LOOKUP_INDEX_KEY)?.trim();
+  const rawIndexKey = localStorage.getItem("pseudo_id_index_key")?.trim();
   const indexKey = rawIndexKey && rawIndexKey.length > 0 ? rawIndexKey : userId;
 
   if (!indexKey) {
@@ -85,6 +74,19 @@ export async function resolveLookupContextForUser(
 
 export function shouldSendLegacyEncUserId(): boolean {
   return process.env.NEXT_PUBLIC_PROMISE_LOOKUP_DUAL_REQUEST !== "false";
+}
+
+export function buildPromiseLookupRequest(
+  promiseId: string,
+  lookup: { lookupId: string; lookupVersion: number },
+  encUserId?: string
+): GetPromiseRequest {
+  return {
+    promiseId,
+    lookupId: lookup.lookupId,
+    lookupVersion: lookup.lookupVersion,
+    ...(encUserId && shouldSendLegacyEncUserId() ? { encUserId } : {}),
+  };
 }
 
 export function maskLookupId(lookupId?: string): string {
