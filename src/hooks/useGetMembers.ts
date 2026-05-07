@@ -12,7 +12,7 @@ export const usePromiseMemberNames = (userIds: string[]) => {
             const res = await getNickName({ userIds });
             // 응답에서 닉네임만 추출하여 콤마로 연결된 문자열 생성
             // API 응답 구조에 따라 userInfoDTOList가 없을 수도 있으므로 옵셔널 체이닝 사용
-            const names = res?.userInfoDTOList?.map((user: any) => user.userName).join(", ");
+            const names = res?.userInfoDTOList?.map((user) => user.userName ?? "").join(", ");
             return names;
         },
         // ID가 있을 때만 쿼리 실행
@@ -48,7 +48,7 @@ export const usePromiseDecryptedMemberNames = (
 
                 // 3. 닉네임 추출 및 결합
                 const names = res?.userInfoDTOList
-                    ?.map((user: any) => user.userName)
+                    ?.map((user) => user.userName ?? "")
                     .join(", ");
 
                 return names || "";

@@ -41,7 +41,7 @@ export const parseServerDateToScheduleId = (serverDateTime: string) => {
     return {
       scheduleId,
       timeStampInfo: datePart // "2025-12-06" 그대로 사용
-      // timeStampInfo: scheduleId // TODO : 추후 확장용
+      // timeStampInfo: scheduleId // TODO : 추후 확장용으로 scheduleId 전체를 넘길 수도 있음
     };
   } catch (error) {
     console.error("날짜 파싱 에러:", error);

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "@/store/auth.store";
 
 // 1. 카테고리 상수 데이터 분리 (유지보수성 및 타입 안정성)
 const FOOD_CATEGORIES = [
@@ -55,7 +56,12 @@ export default function AddPlaceAIPage() {
     queryKey: ["search", debouncedText],
     queryFn: async () => {
       if (!debouncedText) return { documents: [] };
-      const res = await fetch(`/api/search?query=${debouncedText}`);
+      const accessToken = useAuthStore.getState().accessToken;
+      if (!accessToken) throw new Error("AccessToken 이 없습니다. 다시 로그인 해주세요.");
+      const res = await fetch(`/api/search?query=${encodeURIComponent(debouncedText)}`, {
+        headers: { Authorization: accessToken },
+      });
+      if (!res.ok) throw new Error("장소 검색 요청 실패");
       return res.json();
     },
     enabled: debouncedText.length > 0,
