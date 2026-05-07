@@ -5,7 +5,6 @@ import axios from "axios"; // 메인 백엔드 통신용
 import {
   getRefreshTokenFromSetCookie,
   IS_PRODUCTION,
-  ACCESS_TOKEN_MAX_AGE_SECONDS,
   REFRESH_TOKEN_MAX_AGE_SECONDS,
 } from "@/lib/tokenCookie";
 
@@ -48,23 +47,15 @@ export async function login(formData: FormData): Promise<LoginActionState> {
 
     console.log(`✅ [BFF] 메인 백엔드 인증 성공. 토큰 프록시 시작.`);
 
-    const cookieStore = await cookies(); // 3. (BFF -> Client) RefreshToken은 httpOnly 쿠키에 저장 //    (이 쿠키는 오직 /api/auth/refresh 같은 BFF 엔드포인트에서만 사용됨)
-    
+    const cookieStore = await cookies();
+    // RefreshToken만 httpOnly 쿠키에 저장. AccessToken은 메모리(Zustand)로만 전달.
     cookieStore.set("refresh_token", refreshToken, {
       httpOnly: true,
       secure: IS_PRODUCTION,
       maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
-      path: "/", // /api/auth/refresh 경로로 제한하는 것이 더 안전할 수 있음
+      path: "/",
       sameSite: "lax",
-    }); // 4. (BFF -> Client) AccessToken은 JSON 응답으로 클라이언트에 반환
-
-    cookieStore.set("access_token", accessToken, {
-      httpOnly: true,
-      secure: IS_PRODUCTION,
-      maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
-      path: "/", 
-      sameSite: "lax",
-    }); 
+    });
 
     return { success: true, accessToken: accessToken };
   } catch (err) {

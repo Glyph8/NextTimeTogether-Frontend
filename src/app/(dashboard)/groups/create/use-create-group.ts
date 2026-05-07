@@ -6,6 +6,7 @@ import { getMasterKey } from "@/utils/client/key-storage";
 import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { resolveGroupLookupContext } from "@/utils/client/group-lookup";
+import { useAuthStore } from "@/store/auth.store";
 
 interface CreateGroupParams {
   groupName: string;
@@ -18,12 +19,14 @@ export const useCreateGroup = () => {
     mutationFn: async (groupData) => {
       // const userId = useAuthStore.getState().userId;
       const userId = localStorage.getItem("hashed_user_id_for_manager");
+      const accessToken = useAuthStore.getState().accessToken;
 
       if (!userId) throw new Error("유저 ID를 찾을 수 없습니다.");
+      if (!accessToken) throw new Error("AccessToken이 없습니다. 다시 로그인 해주세요.");
       console.log("🔵 [E2EE 그룹 생성 1단계] 그룹 '정보' 전송 시작");
 
       // 1. (API 1) E2EE가 아닌 정보(그룹명 등)로 그룹 생성 요청
-      const firstApiResponse = await createGroupInfoAction(groupData);
+      const firstApiResponse = await createGroupInfoAction(accessToken, groupData);
 
       if (!firstApiResponse.success || !firstApiResponse.groupId) {
         throw new Error(firstApiResponse.error || "1단계 그룹 정보 생성 실패");
@@ -71,7 +74,7 @@ export const useCreateGroup = () => {
 
       // 4. (API 2) 암호화된 메타데이터를 서버 액션으로 전송
       console.log("🔵 [E2EE 3단계] 암호화된 메타데이터 전송");
-      const secondApiResponse = await createGroupMetadataAction({
+      const secondApiResponse = await createGroupMetadataAction(accessToken, {
         groupId: groupId,
         lookupId: lookupContext.lookupId,
         lookupVersion: lookupContext.lookupVersion,

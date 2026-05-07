@@ -79,7 +79,7 @@ export const useAuthSession = () => {
             cookieError
           );
         }
-        clearClientAuthState();
+        await clearClientAuthState();
         if (pathname !== "/login") {
           router.replace("/login");
         }

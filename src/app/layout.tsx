@@ -18,10 +18,11 @@ export default async function RootLayout({
   // 미들웨어가 요청 헤더에 설정한 nonce를 읽어 옴.
   // 이 nonce는 프로덕션 환경에서 CSP script-src의 'nonce-{nonce}' 값과 일치해야 함.
   // 외부 스크립트가 필요할 경우 <Script nonce={nonce} src="..." /> 형태로 전달.
+  // ※ DOM(html attribute, body data-* 등)에는 절대 노출 금지 — XSS 시 nonce가 즉시 우회됨.
   const nonce = (await headers()).get("x-nonce") || undefined;
 
   return (
-    <html lang="ko" className={`${pretandard.variable}`} data-nonce={nonce}>
+    <html lang="ko" className={`${pretandard.variable}`}>
       <head>
         <title>Time Together</title>
       </head>

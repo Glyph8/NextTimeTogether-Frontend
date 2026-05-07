@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { refreshAccessToken } from "@/app/(auth)/login/refresh.action";
-import { cookies } from "next/headers";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -60,36 +58,16 @@ const isValidAccessToken = (token?: string): boolean => {
 };
 
 /**
- * 업로드 요청 인증을 확인하고, access token 유효성 검증 실패 시 refresh로 1회 재시도한다.
- * - true: 인증 확인 성공
- * - false: 인증 실패
- * access_token(exp 기준)이 유효하면 통과하고, 아니면 refresh_token으로 재발급을 시도한다.
- * @returns {Promise<boolean>} 인증 성공 여부
+ * 클라이언트(Zustand 메모리)가 Authorization 헤더로 전달한 AccessToken을 기준으로 인증을 검증한다.
+ * AccessToken이 만료되었거나 형식이 잘못되었으면 401. 갱신은 클라이언트가 별도로 수행한다.
  */
-const ensureAuthenticated = async () => {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value;
-
-  if (isValidAccessToken(accessToken)) {
-    return true;
-  }
-
-  const refreshToken = cookieStore.get("refresh_token")?.value;
-  if (!refreshToken) {
-    return false;
-  }
-
-  const refreshResult = await refreshAccessToken();
-  if (!refreshResult.success || !refreshResult.accessToken) {
-    return false;
-  }
-
-  return isValidAccessToken(refreshResult.accessToken);
+const ensureAuthenticated = (request: NextRequest): boolean => {
+  const headerToken = request.headers.get("authorization") ?? undefined;
+  return isValidAccessToken(headerToken);
 };
 
 export async function POST(request: NextRequest) {
-  const isAuthorized = await ensureAuthenticated();
-  if (!isAuthorized) {
+  if (!ensureAuthenticated(request)) {
     return NextResponse.json(
       { error: "Unauthorized or invalid token" },
       { status: 401 }

@@ -10,11 +10,4 @@ export const clearAuthTokenCookies = async () => {
     path: "/",
     sameSite: "lax",
   });
-  cookieStore.set("access_token", "", {
-    httpOnly: true,
-    secure: IS_PRODUCTION,
-    maxAge: 0,
-    path: "/",
-    sameSite: "lax",
-  });
 };

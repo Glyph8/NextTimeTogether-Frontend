@@ -13,6 +13,13 @@ import {
 } from "@/api/group-view-create";
 import decryptDataClient from "@/utils/client/crypto/decryptClient";
 import { base64ToArrayBuffer } from "@/utils/client/helper";
+import { useAuthStore } from "@/store/auth.store";
+
+const requireAccessToken = (): string => {
+  const token = useAuthStore.getState().accessToken;
+  if (!token) throw new Error("AccessToken이 없습니다. 다시 로그인 해주세요.");
+  return token;
+};
 
 // 타입 정의 유지 (GroupInfoData, DecryptedGroupInfo 등)
 export interface GroupInfoData {
@@ -39,7 +46,7 @@ export const useDecryptedGroupList = () => {
     queryKey: ["groupList", "step1", "decryptedIds"],
     queryFn: async () => {
       // 1. 데이터 가져오기
-      const result = await getEncGroupsIdAction();
+      const result = await getEncGroupsIdAction(requireAccessToken());
 
       if (result.error) throw new Error(result.error);
       if (!result.data || result.data.length === 0) return []; // 빈 배열 즉시 반환
@@ -80,7 +87,7 @@ export const useDecryptedGroupList = () => {
 
       const settled = await Promise.allSettled(
         decryptedGroupObjects.map(async (obj) => {
-          const result = await getEncGroupsKeyAction([obj]);
+          const result = await getEncGroupsKeyAction(requireAccessToken(), [obj]);
           if (result.error) throw new Error(result.error);
           const encKeys = result.data as ViewGroupSecResponseData[];
           if (!encKeys || encKeys.length === 0) {
@@ -131,7 +138,7 @@ export const useDecryptedGroupList = () => {
 
       const settled = await Promise.allSettled(
         validEntries.map(async ({ groupId, cryptoKey }) => {
-          const result = await getGroupsInfoAction([{ groupId }]);
+          const result = await getGroupsInfoAction(requireAccessToken(), [{ groupId }]);
           if (result.error) throw new Error(result.error);
           const dataList = result.data;
           if (!dataList || dataList.length === 0) {

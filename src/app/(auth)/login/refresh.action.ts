@@ -3,7 +3,6 @@
 import { cookies } from "next/headers";
 import axios from "axios";
 import {
-  ACCESS_TOKEN_MAX_AGE_SECONDS,
   getRefreshTokenFromSetCookie,
   IS_PRODUCTION,
   REFRESH_TOKEN_MAX_AGE_SECONDS,
@@ -57,13 +56,7 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
     );
 
     if (code === 200 && newAccessToken) {
-      cookieStore.set("access_token", newAccessToken, {
-        httpOnly: true,
-        secure: IS_PRODUCTION,
-        maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
-        path: "/",
-        sameSite: "lax",
-      });
+      // AccessToken은 쿠키에 저장하지 않고 응답으로만 반환 → 클라이언트 Zustand에 보관.
       if (rotatedRefreshToken) {
         cookieStore.set("refresh_token", rotatedRefreshToken, {
           httpOnly: true,

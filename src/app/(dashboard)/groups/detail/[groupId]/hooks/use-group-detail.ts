@@ -16,6 +16,13 @@ import {
 } from "../../../action";
 import { DecryptedGroupInfo } from "../../../use-group-list";
 import { useMemo } from "react";
+import { useAuthStore } from "@/store/auth.store";
+
+const requireAccessToken = (): string => {
+  const token = useAuthStore.getState().accessToken;
+  if (!token) throw new Error("AccessToken이 없습니다. 다시 로그인 해주세요.");
+  return token;
+};
 
 interface UseGroupDetailOptions {
   refetchInterval?: number;
@@ -52,7 +59,7 @@ export const useGroupDetail = (
     queryFn: async () => {
       if (!targetGroupId) throw new Error("GroupId가 필요합니다.");
 
-      const result = await getEncGroupsIdAction();
+      const result = await getEncGroupsIdAction(requireAccessToken());
       if (result.error) throw new Error(result.error);
       if (!result.data || result.data.length === 0) return null;
 
@@ -110,7 +117,7 @@ export const useGroupDetail = (
         throw new Error("그룹 메타데이터가 없습니다.");
       }
 
-      const result = await getEncGroupsKeyAction([groupMetadata]);
+      const result = await getEncGroupsKeyAction(requireAccessToken(), [groupMetadata]);
 
       if (result.error) throw new Error(result.error);
       const data = result.data as ViewGroupSecResponseData[];
@@ -164,7 +171,7 @@ export const useGroupDetail = (
 
       const payload = [{ groupId: groupMetadata.groupId }];
 
-      const result = await getGroupsInfoAction(payload);
+      const result = await getGroupsInfoAction(requireAccessToken(), payload);
       if (result.error) throw new Error(result.error);
 
       const dataList = result.data as ViewGroupThirdResponseData[];

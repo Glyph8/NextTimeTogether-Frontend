@@ -64,6 +64,25 @@ export async function storeMasterKey(masterKey: ArrayBuffer): Promise<void> {
 }
 
 /**
+ * 로그아웃 시 IndexedDB에서 MasterKey를 제거합니다.
+ */
+export async function deleteMasterKey(): Promise<void> {
+  try {
+    const db = await openKeyStoreDB();
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+
+    await new Promise<void>((resolve, reject) => {
+      const request = store.delete(KEY_ID);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.warn("[key-storage] MasterKey 삭제 실패:", error);
+  }
+}
+
+/**
  * [앱 부트스트랩용] IndexedDB에서 '추출 불가' CryptoKey를 불러옵니다.
  * @returns {Promise<CryptoKey | null>} - 저장된 CryptoKey 또는 null
  */

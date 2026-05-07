@@ -2,8 +2,9 @@
 
 import { useAuthStore } from "@/store/auth.store";
 import { clearAllGroupLookupCache } from "@/utils/client/group-lookup";
+import { deleteMasterKey } from "@/utils/client/key-storage";
 
-export const clearClientAuthState = () => {
+export const clearClientAuthState = async () => {
   useAuthStore.getState().clearAccessToken();
   clearAllGroupLookupCache();
   try {
@@ -13,4 +14,5 @@ export const clearClientAuthState = () => {
   } catch (error) {
     console.warn("[AuthCleanup] Failed to clear localStorage auth artifacts.", error);
   }
+  await deleteMasterKey();
 };

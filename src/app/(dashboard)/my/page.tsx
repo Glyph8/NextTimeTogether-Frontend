@@ -23,7 +23,8 @@ export default function MyPage() {
   };
 
   const handleLogout = () => {
-    Promise.allSettled([logoutRequest(), clearAuthCookies()]).then((results) => {
+    // 1) 서버 로그아웃 + RT 쿠키 클리어를 병렬로 실행 (Zustand의 AT는 securityWorker가 즉시 읽으므로 클리어 전에 호출되어야 함)
+    Promise.allSettled([logoutRequest(), clearAuthCookies()]).then(async (results) => {
       const [backendResult, cookieResult] = results;
       const hasFailure =
         backendResult.status === "rejected" || cookieResult.status === "rejected";
@@ -35,7 +36,9 @@ export default function MyPage() {
         console.warn("[Logout] cookie cleanup failed:", cookieResult.reason);
       }
 
-      clearClientAuthState();
+      // 2) Zustand(AT/userId), localStorage, IndexedDB MasterKey 정리
+      await clearClientAuthState();
+
       if (hasFailure) {
         toast.error("일부 로그아웃 처리가 실패하여 로그인 페이지로 이동합니다.");
       } else {
