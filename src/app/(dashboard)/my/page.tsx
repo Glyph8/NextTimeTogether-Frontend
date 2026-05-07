@@ -10,11 +10,11 @@ import toast from "react-hot-toast";
 import { useMemberName } from "../groups/detail/[groupId]/(components)/GroupMemberItemContainer";
 import { clearClientAuthState } from "@/lib/clearClientAuthState";
 import { clearAuthCookies } from "@/app/(auth)/login/refresh.action";
+import { useCurrentUserId } from "@/lib/currentUser";
 
 export default function MyPage() {
   const router = useRouter();
-  // const userId = useAuthStore.getState().userId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const userId = useCurrentUserId();
 
   const { data: memberName } = useMemberName(userId || '');
 

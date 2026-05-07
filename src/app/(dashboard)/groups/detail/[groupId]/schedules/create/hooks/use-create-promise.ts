@@ -6,6 +6,7 @@ import { invitePromiseService } from "../utils/join-promise";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import testGenerateKey from "@/utils/crypto/generate-key/key-generator";
 import { useGroupDetail } from "../../../hooks/use-group-detail";
+import { getCurrentUserId } from "@/lib/currentUser";
 
 export type PurposeType = "스터디" | "식사";
 
@@ -101,11 +102,9 @@ export const useCreatePromise = (groupId: string | undefined) => {
   };
 
   const submitPromise = async () => {
-    // const userId = useAuthStore.getState().userId;
-    const userId = localStorage.getItem("hashed_user_id_for_manager");
-    const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
+    const userId = getCurrentUserId();
 
-    if (!userId || !groupId || !decryptedUserId || !groupKey) {
+    if (!userId || !groupId || !groupKey) {
       if (!groupKey) toast.error("보안 키를 불러오는 중입니다. 잠시만 기다려주세요.");
       return;
     }
@@ -118,8 +117,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
       title: topic,
       type: purpose,
       promiseImg: "default_image.png",
-      // managerId: userId,
-      managerId: decryptedUserId,
+      managerId: userId,
       startDate: startIso,
       endDate: endIso,
     };
@@ -134,8 +132,7 @@ export const useCreatePromise = (groupId: string | undefined) => {
         // 2. 생성자(나)를 약속에 자동 참여시킴 (초대 로직 재사용)
 
         await invitePromiseService(
-          // userId,
-          decryptedUserId,
+          userId,
           createResult.promiseId,
           groupKey, // groupKey는 null일 수 있으므로 체크 필요
           newPromiseKey // <--- 생성한 키 전달

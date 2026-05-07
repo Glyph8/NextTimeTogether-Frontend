@@ -2,8 +2,9 @@ import { create } from 'zustand';
 
 /**
  * 전역 인증 상태.
- * AccessToken 만 메모리(Zustand)에 보관. RefreshToken 은 httpOnly 쿠키 단일 소스.
- * userId 식별자는 화면별 요구사항이 달라 localStorage 의 hashed_user_id_for_manager 등으로 분리 관리한다.
+ * - AccessToken: Zustand 메모리 단일 소스. RefreshToken 은 httpOnly 쿠키 단일 소스.
+ * - 사용자 식별자(hashedUserId): AT 의 sub 클레임에서 추출 (src/lib/currentUser.ts).
+ *   별도 localStorage 키를 두지 않으므로 store 도 식별자 필드를 보유하지 않는다.
  */
 interface AuthState {
   accessToken: string | null;

@@ -7,6 +7,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useCurrentUserId } from "@/lib/currentUser";
 import toast from "react-hot-toast";
 import { StarRatingInput } from "./StarRatingInput";
 import { makePseudoId } from "@/utils/client/crypto/encryptClient";
@@ -31,8 +32,7 @@ export const RatingDialog = ({
   onRateSuccess,
 }: RatingDialogProps) => {
   const [showDetails, setShowDetails] = useState(false);
-  // const userId = useAuthStore.getState().userId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const userId = useCurrentUserId();
   const { data: scheduleDetail, isPending } = useQuery({
     queryKey: ["scheduleDetail", scheduleId],
     queryFn: async () => {

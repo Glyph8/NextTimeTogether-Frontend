@@ -1,4 +1,5 @@
 import { getCalendarInfoList, getEncTimeStampList } from "@/api/calendar";
+import { useCurrentUserId } from "@/lib/currentUser";
 import {
   generateMonthDates,
   parseEncryptedString,
@@ -19,7 +20,7 @@ export interface CalendarDetail {
 }
 
 export const useCalendarView = (date: Date) => {
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const userId = useCurrentUserId();
 
   // 1. 조회할 날짜 범위 생성
   const timeStampInfoList = generateMonthDates(date);

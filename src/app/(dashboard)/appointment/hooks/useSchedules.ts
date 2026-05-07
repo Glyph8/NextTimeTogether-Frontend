@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAllScheduleList, getScheduleListPerGroups, getTimeStampList, searchScheduleList, TimestampResDTO } from '@/api/appointment';
 import { GetPromiseBatchReqDTO } from '@/apis/generated/Api';
 import { makePseudoId } from '@/utils/client/crypto/encryptClient';
+import { getCurrentUserId } from '@/lib/currentUser';
 
 const generateCurrentMonthDates = (): string[] => {
   const date = new Date();
@@ -91,9 +92,8 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
   return useQuery({
     queryKey: ['schedules', { groupId, keyword, monthKey: targetDates?.[0] }],
     queryFn: async () => {
-      const userId = localStorage.getItem("hashed_user_id_for_manager");
+      const userId = getCurrentUserId();
       const pseudoIdIndexKey = localStorage.getItem("pseudo_id_index_key") || userId;
-      // const userId = useAuthStore.getState().userId;
       if (!userId) {
         console.warn("유저 ID가 없습니다.");
         return { result: [] };
@@ -104,7 +104,6 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
       }
       // 1. 검색어가 있을 경우 검색 API 호출
       if (keyword) {
-        console.log("keyword 존재함", keyword);
         const pseudoId = await makePseudoId(userId, pseudoIdIndexKey);
         return await searchScheduleList(keyword, {
           pseudoId

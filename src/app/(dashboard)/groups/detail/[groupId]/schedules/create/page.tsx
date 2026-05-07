@@ -32,11 +32,6 @@ export default function CreateSchedulePage() {
   const promiseForm = useCreatePromise(groupIdFromUrl);
   const { values, actions } = promiseForm;
 
-  // TODO : 매니저용 임시 해시된 id (회원가입 시 사용되어 서버에 전달된 masterkey로 암호화된 아이디)
-  // const userId = useAuthStore.getState().userId;
-  // const decryptedUserId = localStorage.getItem("encrypted_user_id");
-  // const hashed = localStorage.getItem("hashed_user_id_for_manager");
-
   // [Flow Control] 약속 생성 성공 시 공유 화면 렌더링
   if (values.createdPromiseId && groupIdFromUrl) {
     return (

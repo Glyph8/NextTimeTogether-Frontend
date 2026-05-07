@@ -97,10 +97,10 @@ export const useLogin = () => {
           clearAllGroupLookupCache();
           localStorage.setItem("encrypted_user_id", encryptedLoginId);
 
-          // FIX : USER ID hmacSha256 ONLY VER - 매니저 구분용
-          const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
-          localStorage.setItem("hashed_user_id_for_manager", hashedUserId);
-
+          // 사용자 식별자(hashedUserId)는 더 이상 localStorage 에 저장하지 않는다.
+          // 백엔드가 JWT 의 sub 클레임으로 같은 값을 박아주므로 AccessToken 이 단일 진실 소스.
+          // → src/lib/currentUser.ts 의 getCurrentUserId() / useCurrentUserId() 로 추출.
+          // pseudo_id_index_key 는 sub 와 다른 hash 라 별도 저장 유지.
           const pseudoIdIndexKey = await hmacSha256Truncated(
             masterKey,
             `${id}:pseudo_id_index`,

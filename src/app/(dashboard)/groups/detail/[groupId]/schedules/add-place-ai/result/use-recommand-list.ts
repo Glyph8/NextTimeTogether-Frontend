@@ -1,5 +1,5 @@
 import { getAIRecommand } from "@/api/where2meet";
-import { useAuthStore } from "@/store/auth.store";
+import { useCurrentUserId } from "@/lib/currentUser";
 import { makePseudoId } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { useQuery } from "@tanstack/react-query";
@@ -10,8 +10,7 @@ export const useRecommandList = (
   longitude: number,
   purpose: string,
 ) => {
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
-  // const userId = useAuthStore((state) => state.userId);
+  const userId = useCurrentUserId();
 
   const {
     data: recommandList,
@@ -36,13 +35,10 @@ export const useRecommandList = (
         purpose: purpose,
       };
 
-      console.log("🔵 약속 장소 게시판 조회");
-      // const result = await getAIRecommand(promiseId, requestBody);
       const result = await getAIRecommand(requestBody);
-      console.log("🔵 장소 게시판 서버 응답:", result);
 
       if (!result) {
-        console.error("🔴 장소 게시판 로딩 에러:", result);
+        console.error("[useRecommandList] 장소 게시판 로딩 실패:", result);
         throw new Error(result);
       }
 

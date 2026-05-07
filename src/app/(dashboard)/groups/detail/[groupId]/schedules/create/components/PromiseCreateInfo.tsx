@@ -1,5 +1,6 @@
 import React from "react";
 import { useCreatePromise } from "../hooks/use-create-promise";
+import { useCurrentUserId } from "@/lib/currentUser";
 import { GroupMemberItem } from "@/app/(dashboard)/groups/detail/[groupId]/(components)/GroupMemberItem";
 import { DecryptedGroupInfo } from "@/app/(dashboard)/groups/use-group-list";
 import XWhite from "@/assets/svgs/icons/x-white.svg";
@@ -16,7 +17,7 @@ export default function PromiseCreateInfo({
   groupData,
 }: CreatePromiseFormProps) {
   const { values, actions, helpers } = form;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const userId = useCurrentUserId();
   return (
     <>
       <nav className="text-black-1 text-xl font-medium leading-loose">

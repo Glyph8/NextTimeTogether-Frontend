@@ -7,6 +7,7 @@ import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { resolveGroupLookupContext } from "@/utils/client/group-lookup";
 import { useAuthStore } from "@/store/auth.store";
+import { getCurrentUserId } from "@/lib/currentUser";
 
 interface CreateGroupParams {
   groupName: string;
@@ -17,7 +18,7 @@ interface CreateGroupParams {
 export const useCreateGroup = () => {
   return useMutation<void, Error, CreateGroupParams>({
     mutationFn: async (groupData) => {
-      const userId = localStorage.getItem("hashed_user_id_for_manager");
+      const userId = getCurrentUserId();
       const accessToken = useAuthStore.getState().accessToken;
 
       if (!userId) throw new Error("유저 ID를 찾을 수 없습니다.");

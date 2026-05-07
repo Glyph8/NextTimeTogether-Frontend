@@ -10,6 +10,28 @@ import {
   getInviteEncNewMemberIdWithLookupFallback,
   GroupInvitePreconditionError,
 } from "./group-invite-join";
+import { useAuthStore } from "@/store/auth.store";
+
+/**
+ * 테스트용 mock JWT 생성기.
+ * 백엔드 서명 검증을 거치지 않으므로 시그니처는 placeholder 로 둔다.
+ * 프론트엔드의 `getCurrentUserId()` 는 sub 클레임만 추출하므로 충분.
+ */
+const base64url = (obj: object): string =>
+  Buffer.from(JSON.stringify(obj))
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+
+const makeMockJwt = (sub: string): string => {
+  const header = base64url({ alg: "HS256", typ: "JWT" });
+  const payload = base64url({
+    sub,
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  });
+  return `${header}.${payload}.mock-signature`;
+};
 
 class MemoryStorage implements Storage {
   private readonly store = new Map<string, string>();
@@ -95,7 +117,8 @@ beforeEach(() => {
     configurable: true,
   });
 
-  localStorage.setItem("hashed_user_id_for_manager", "user@test.com");
+  // 사용자 식별자는 AccessToken 의 sub 클레임에서 추출되므로 mock JWT 를 Zustand 에 세팅.
+  useAuthStore.getState().setAccessToken(makeMockJwt("user@test.com"));
   localStorage.setItem("pseudo_id_index_key", "index-key");
 
   process.env.NEXT_PUBLIC_GROUP_LOOKUP_ENABLED = "true";
@@ -111,6 +134,7 @@ afterEach(() => {
   (clientBaseApi.api as { saveGroupMember: SaveGroupMemberFn }).saveGroupMember =
     originalSaveGroupMember;
   console.info = originalConsoleInfo;
+  useAuthStore.getState().clearAccessToken();
 
   if (originalCrypto === undefined) {
     delete (globalThis as { crypto?: Crypto }).crypto;
