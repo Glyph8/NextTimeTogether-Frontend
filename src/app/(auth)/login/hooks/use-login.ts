@@ -24,8 +24,7 @@ export const useLogin = () => {
   const [pw, setPw] = useState("");
 
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
-  const setUserId = useAuthStore((state) => state.setUserId);
-  
+
   // 서버 액션 상태
   const initialState: LoginActionState = {
     error: null,
@@ -51,8 +50,6 @@ export const useLogin = () => {
       // 2. (클라이언트) 서버 인증용 해시 생성
       const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
       const hashedPassword = await hashPassword(pw, masterKey);
-
-      // console.log("###############", hashedUserId, hashedPassword)
 
       // 3. 서버 액션에 전달할 FormData 수정
       formData.set("hashedUserId", hashedUserId);
@@ -80,9 +77,6 @@ export const useLogin = () => {
         try {
           // 1. AccessToken을 Zustand 전역 상태(메모리)에 저장
           setAccessToken(newAccessToken);
-          if (setUserId) {
-             setUserId(id); 
-          }
           // 서버 인증 성공 시, 사용했던 id/pw로 masterKey 재파생
           const masterKey = await deriveMasterKeyPBKDF2(id, pw);
           // IndexedDB에 '추출 불가' 키로 저장
@@ -131,7 +125,7 @@ export const useLogin = () => {
         }
       })();
     }
-  }, [state, router, id, pw, setAccessToken, setUserId, returnUrl]); // id, pw 의존성 포함
+  }, [state, router, id, pw, setAccessToken, returnUrl]);
 
   // --- 4. 훅이 반환하는 값들 ---
   return {

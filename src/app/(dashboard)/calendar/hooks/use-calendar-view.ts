@@ -1,5 +1,4 @@
 import { getCalendarInfoList, getEncTimeStampList } from "@/api/calendar";
-import { useAuthStore } from "@/store/auth.store";
 import {
   generateMonthDates,
   parseEncryptedString,
@@ -9,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarViewRequest2 } from "@/apis/generated/Api";
 import { useMemo } from "react";
 
-// TODO : 실제 데이터 받아보기 전까지 모름,,
+// 백엔드 응답 스키마. 실제 응답 형태가 확정되면 OpenAPI 자동 생성 타입으로 교체 예정.
 export interface CalendarDetail {
   scheduleId: string;
   title: string;
@@ -21,7 +20,6 @@ export interface CalendarDetail {
 
 export const useCalendarView = (date: Date) => {
   const userId = localStorage.getItem("hashed_user_id_for_manager");
-  // const userId = useAuthStore((state) => state.userId);
 
   // 1. 조회할 날짜 범위 생성
   const timeStampInfoList = generateMonthDates(date);
@@ -66,10 +64,6 @@ export const useCalendarView = (date: Date) => {
   const { data: eventsData, isLoading: isEventsLoading } = useQuery({
     queryKey: ["calendarEvents", scheduleIds], // ID 목록이 바뀌면 재요청
     queryFn: async () => {
-      // TODO : 복호화 필요 예상
-      // TODO : 텍스트 파싱하여서, '97582bfc-1669-4e8d-b09c-043a0fa8b8f32025-12-12T00:00:00.0002025-12-13T23:59:00.000'
-      // 앞에서 스케쥴 아이디를 요청에 담기, 해당 스케쥴 아이디의 응답을 파싱한 텍스트에서 시작 시간과 종료 시간과 함께 묶어서 반환하기
-
       const requestBody: CalendarViewRequest2 = {
         scheduleIdList: scheduleIds, // API 명세에 맞는 필드명 사용
       };

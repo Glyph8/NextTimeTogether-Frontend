@@ -22,21 +22,14 @@ export async function registerAction(
 
   // 1. (BFF -> 백엔드) BFF는 DTO의 내용을 모른 채 메인 백엔드로 전달
   try {
-    console.log("=== BFF가 메인 백엔드로 전달하는 DTO ===");
-    console.log(JSON.stringify(userDto, null, 2));
-
-    // 'signupRequest'는 axios 인스턴스를 사용한다고 가정
     const signupResult = await signupRequest(userDto);
 
     if (!signupResult || signupResult.code !== 200) {
-      console.log("회원가입 요청 실패:", signupResult);
+      console.warn("[register] 회원가입 요청 실패:", signupResult?.message);
       return { success: false, error: signupResult?.message || "회원가입에 실패했습니다." };
     }
-
-    console.log("✅ 회원가입 성공!");
-    
   } catch (err) {
-    console.error("BFF 회원가입 액션 처리 중 에러:", err);
+    console.error("[register] 회원가입 처리 중 에러:", err);
 
     let errorMessage = "서버 오류가 발생했습니다.";
     if (axios.isAxiosError(err) && err.response) {

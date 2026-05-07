@@ -17,15 +17,13 @@ interface CreateGroupParams {
 export const useCreateGroup = () => {
   return useMutation<void, Error, CreateGroupParams>({
     mutationFn: async (groupData) => {
-      // const userId = useAuthStore.getState().userId;
       const userId = localStorage.getItem("hashed_user_id_for_manager");
       const accessToken = useAuthStore.getState().accessToken;
 
       if (!userId) throw new Error("유저 ID를 찾을 수 없습니다.");
       if (!accessToken) throw new Error("AccessToken이 없습니다. 다시 로그인 해주세요.");
-      console.log("🔵 [E2EE 그룹 생성 1단계] 그룹 '정보' 전송 시작");
 
-      // 1. (API 1) E2EE가 아닌 정보(그룹명 등)로 그룹 생성 요청
+      // 1단계: E2EE 가 아닌 그룹 정보(이름·설명·이미지)로 그룹 생성 요청
       const firstApiResponse = await createGroupInfoAction(accessToken, groupData);
 
       if (!firstApiResponse.success || !firstApiResponse.groupId) {
@@ -33,15 +31,11 @@ export const useCreateGroup = () => {
       }
 
       const { groupId } = firstApiResponse;
-
       const lookupContext = await resolveGroupLookupContext(groupId);
-      console.log(`✅ [E2EE 1단계] 성공, groupId: ${groupId}`);
-      console.log("🟡 [E2EE 2단계] 클라이언트 암호화 시작");
 
-      // 2. (Client Crypto) 클라이언트에서 키/데이터 암호화
+      // 2단계: 클라이언트에서 그룹키 생성·암호화
       const [masterKey, newGroupKey] = await Promise.all([
         getMasterKey(),
-        // 새 그룹 키(AES-GCM)를 클라이언트에서 직접 생성
         crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, [
           "encrypt",
           "decrypt",
@@ -49,31 +43,23 @@ export const useCreateGroup = () => {
       ]);
 
       if (!masterKey) throw new Error("마스터키를 찾을 수 없습니다.");
-      if (!userId) throw new Error("유저 ID를 찾을 수 없습니다.");
 
-      console.log("🟡 [E2EE 2단계] 키 로드 및 생성 완료, 암호화 진행");
-
-      // 3. (Client Crypto) 기존 action.ts에 있던 모든 암호화 로직을 클라이언트에서 수행
       const [encGroupId, encUserId, exportedGroupKeyBuffer] = await Promise.all(
         [
           encryptDataClient(groupId, masterKey, "group_proxy_user"),
           encryptDataClient(userId, newGroupKey, "group_sharekey"),
-          crypto.subtle.exportKey("raw", newGroupKey), // CryptoKey를 전송 가능한 형식으로 변환
+          crypto.subtle.exportKey("raw", newGroupKey),
         ]
       );
 
-      // ArrayBuffer를 base64 문자열로 변환 (서버 전송용)
       const groupKeyString = arrayBufferToBase64(exportedGroupKeyBuffer);
 
       const [encencGroupMemberId, encGroupKey] = await Promise.all([
         encryptDataClient(encUserId, masterKey, "group_proxy_user"),
-        encryptDataClient(groupKeyString, masterKey, "group_sharekey"), // 문자열이 된 그룹키를 마스터키로 암호화
+        encryptDataClient(groupKeyString, masterKey, "group_sharekey"),
       ]);
 
-      console.log("✅ [E2EE 2단계] 클라이언트 암호화 완료");
-
-      // 4. (API 2) 암호화된 메타데이터를 서버 액션으로 전송
-      console.log("🔵 [E2EE 3단계] 암호화된 메타데이터 전송");
+      // 3단계: 암호화된 메타데이터 전송
       const secondApiResponse = await createGroupMetadataAction(accessToken, {
         groupId: groupId,
         lookupId: lookupContext.lookupId,
@@ -85,13 +71,12 @@ export const useCreateGroup = () => {
       });
 
       if (!secondApiResponse.success) {
-        // TODO: 1단계 롤백(Rollback) API 호출이 필요할 수 있음
+        // 1단계는 성공했지만 메타데이터 전송이 실패한 경우.
+        // 백엔드에 1단계 롤백 API 가 추가되면 여기서 호출해 정합성을 맞춰야 함.
         throw new Error(
           secondApiResponse.error || "2단계 메타데이터 전송 실패"
         );
       }
-
-      console.log("✅ [E2EE 3단계] 그룹 생성 최종 완료!");
     },
   });
 };

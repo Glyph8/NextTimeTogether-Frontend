@@ -164,8 +164,9 @@ export default function ScheduleDetailPage() {
             return await decryptDataWithCryptoKey(
               id,
               // promiseKey, // 상위 스코프의 promiseKey 사용
-              groupKey, // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐 - 리얼 이거.. 얼탱..?
-              // "promise_proxy_user",
+              // 백엔드 스펙상 promiseKey 가 아니라 groupKey 로 암호화되어 내려옴.
+              // 추후 promiseKey 분리 시 이 부분도 함께 변경 필요.
+              groupKey,
               "group_sharekey"
             );
           })

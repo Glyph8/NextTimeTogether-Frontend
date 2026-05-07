@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   if (!query) {
     return NextResponse.json({ documents: [] });
   }
-console.log("현재 사용 중인 API KEY:", process.env.KAKAO_REST_API_KEY);
+
   try {
     const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}`;
     

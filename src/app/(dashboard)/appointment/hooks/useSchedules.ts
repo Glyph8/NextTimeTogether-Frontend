@@ -71,8 +71,7 @@ const processTimestampItem = async (timestamp: string): Promise<ProcessedSchedul
   // 2. 그 외의 경우 (암호화된 문자열 케이스)
   // 예: "GmdBg9o0lCaRuiJP53ACgWo..."
   else {
-    // TODO : 약속장의 개인키로 암호화되는 문제로 일단 암호화안한 처리 TESTED
-    console.log("TESTED 암호화된 스케줄 ", timestamp)
+    // 백엔드가 약속장 개인키로 재암호화하는 이슈로 클라이언트 복호화 일시 비활성. 스펙 합의 후 재적용 예정.
     // const decrypted = await decryptDataWithCryptoKey(
     //   timestamp,
     //   masterKey,
@@ -128,7 +127,7 @@ export const useSchedules = ({ groupId, keyword, targetDates }: UseSchedulesProp
         console.log("timeStampData", timeStampList);
         // 3. 병렬 복호화 수행 (Promise.all)
         // timestamp 값을 복호화하여 scheduleId 리스트로 변환
-        // TODO : 약속장의 개인키로 암호화되는 문제로 일단 암호화안한 처리 TESTED
+        // 백엔드가 약속장 개인키로 재암호화하는 이슈로 클라이언트 복호화 일시 비활성. 스펙 합의 후 재적용 예정.
         const decryptedScheduleIds = await Promise.all(
           timeStampList.map(async (item: TimestampResDTO) => {
             try {

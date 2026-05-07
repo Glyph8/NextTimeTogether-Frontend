@@ -63,23 +63,19 @@ export const useConfirmSchedule = (promiseId: string, groupId: string) => {
 
       const decryptedUserIds = await Promise.all(
         memberData?.userIds.map(async (id) => {
+          // 백엔드 스펙상 promiseKey 가 아닌 groupKey 로 암호화되어 내려옴.
+          // 추후 promiseKey 분리 시 이 부분도 함께 변경 필요.
           return await decryptDataWithCryptoKey(
             id,
-            // promiseKey, // 상위 스코프의 promiseKey 사용
-            groupKey ?? "", // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐
-            // "promise_proxy_user",
+            groupKey ?? "",
             "group_sharekey"
           );
         })
       );
 
 
-      // TODO : masterKey로 암호화하면 다른 멤버가 못보는 거 아님? 🤦‍♂️🤦‍♂️ TESTED
-      // const encTimeStamp = await encryptDataClient(
-      //   scheduleId,
-      //   masterKey,
-      //   "promise_proxy_user"
-      // );
+      // masterKey 로 암호화하면 같은 그룹의 다른 멤버가 복호화하지 못하므로 평문 유지.
+      // 약속별 키(promiseKey) 도입 시 그 키로 암호화하도록 변경 예정.
       const encTimeStamp = scheduleId;
       const resolvedPurpose = resolveSchedulePurpose(serverResult);
 
