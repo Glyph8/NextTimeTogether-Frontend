@@ -19,7 +19,7 @@ export const invitePromiseService = async (
     return null;
   }
 
-  // TODO : 메일 보내기 생략. 추후 로직 정립 후 적용
+  // NOTICE : 서버에서 초대 메일 보내기 보류됨. 외부 메신저 직접 이용하도록 설정.
 
   // 개인키로 암호화한 약속 아이디 - role :
   const encPromiseId = await encryptDataClient(
@@ -34,7 +34,7 @@ export const invitePromiseService = async (
     masterkey,
     "promise_proxy_user"
   );
-  // 그룹키로 암호화한 사용자의 아이디 - TODO : 그룹 키로 암호화는 게 맞나?
+  // 그룹키로 암호화한 사용자의 아이디
   const encUserId = await encryptDataClient(
     userId,
     groupKey,

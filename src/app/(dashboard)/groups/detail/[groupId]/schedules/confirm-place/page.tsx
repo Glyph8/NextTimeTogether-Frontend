@@ -55,21 +55,16 @@ export default function ConfirmPlacePage() {
     // mutationFn: async (placeId: number) => {
     mutationFn: async (placeInfo: PlaceBoardItem) => {
       if (!promiseId) throw new Error("약속 ID가 없습니다.");
-      // TODO : 직접 추가한 장소의 aiPlaceID는 0으로 처리하고 있는 듯.
       if (placeInfo.aiPlace === 0) {
         return await confirmPlaceApi(promiseId, placeInfo.id);
-        // return await confirmPlaceApi(promiseId, placeInfo.id);
       }
       return await confirmPlaceApi(promiseId, placeInfo.id, placeInfo.aiPlace);
-      // return await confirmPlaceApi(promiseId, placeInfo.aiPlace, placeInfo.id);
     },
     onSuccess: (response) => {
       // response 구조: { code: 200, result: { dateTime, title, ... } }
-      // TODO : ai PlaceId 전달 부분 확인 필요 기존 로직과 백엔드 측 서버 로직 변경
       console.log("📍 장소 확정 성공, 일정 생성 시작:", response);
 
       if (response.code === 200 && response.result.placeId) {
-        // [핵심] 장소 확정의 결과값을 그대로 일정 생성 훅으로 전달
         confirmSchedule({
           // placeId: selectedPlaceId,
           placeId: response.result.placeId,

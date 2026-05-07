@@ -103,7 +103,6 @@ export const GroupInviteDialog = ({
           "group_sharekey"
         );
 
-        // TODO : 얻은 groupKey를 같이 줘야하는게 맞는 지 체크.
         // 4. 링크 생성 (Hash에 키 포함)
         const link = `${
           window.location.origin

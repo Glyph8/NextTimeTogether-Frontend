@@ -104,11 +104,6 @@ export const useJoinGroup = () => {
         "group_proxy_user"
       );
 
-      // 기존 로직 주석 및 흐름 유지
-      // TODO : 암호화할 때 그룹키인지 마스터 키인지..
-      // 초대에서는 개인키를 쓰라고 명시함
-      // TODO : iv도 초대에서는 proxy user 사용
-
       const encUserId = await encryptDataClient(
         myUserId,
         groupKey,

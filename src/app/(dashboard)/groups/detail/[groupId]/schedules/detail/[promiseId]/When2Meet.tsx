@@ -137,22 +137,6 @@ export const When2Meet = ({ promiseId, encMemberIdList }: When2MeetProps) => {
     updateMutation.mutate(payload);
   };
 
-  // [SELECT 모드] 캘린더 불러오기 토글 핸들러 - 삭제 권장
-  const handleToggleCalendar = () => {
-    if (disabledSlots) {
-      setDisabledSlots(undefined);
-    } else {
-      if (!timeBoardData) return;
-      // TODO: 실제로는 useQuery로 내 캘린더 데이터를 가져와야 함 (현재는 더미 데이터)
-      const disabled = convertScheduleIdsToDisabledSlots(
-        dummyMyScheduleData.result.scheduleIds,
-        timeBoardData.timeRange.startDateTime,
-        timeBoardData.timeRange.endDateTime
-      );
-      setDisabledSlots(disabled);
-    }
-  };
-
   // --------------------------------------------------------------------------
   // 6. Render
   // --------------------------------------------------------------------------

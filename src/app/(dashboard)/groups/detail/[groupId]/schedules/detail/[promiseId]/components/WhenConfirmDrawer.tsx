@@ -129,8 +129,7 @@ export const WhenConfirmDrawer = ({
     if (!timeBoardData) return [];
 
     const durationMinutes = parseInt(selectedDuration);
-    // TODO: 전체 멤버 수를 API에서 받아오거나 상위 컴포넌트에서 전달받아야 정확함.
-    // 현재는 데이터 내 최대 count를 기준으로 추정
+
     let maxFoundMembers = 0;
 
     const timesArray = Array.isArray(timeBoardData.availableTimes)

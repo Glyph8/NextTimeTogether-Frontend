@@ -351,7 +351,6 @@ export function ScheduleCreateDrawer({
   // --- 삭제 핸들러 ---
   const handleDelete = () => {
     if (isEditMode) {
-      // TODO: "정말 삭제하시겠습니까?" 확인 모달 추가하면 좋음
       onEventDeleted(editingEvent.id);
     }
   };
