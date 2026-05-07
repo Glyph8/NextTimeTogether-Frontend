@@ -2,64 +2,58 @@ import { getNickName } from "@/api/appointment";
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
 import { useQuery } from "@tanstack/react-query";
 
-// 평문 userId 받아서 닉네임을 1개 문자열로 가져오는 커스텀 훅
+/** 평문 userId 리스트로 닉네임을 ", " 결합한 단일 문자열 반환. */
 export const usePromiseMemberNames = (userIds: string[]) => {
-    return useQuery({
-        queryKey: ["promiseMemberNames", userIds],
-        queryFn: async () => {
-            if (!userIds || userIds.length === 0) return "";
+  return useQuery({
+    queryKey: ["promiseMemberNames", "plain", userIds],
+    queryFn: async () => {
+      if (!userIds || userIds.length === 0) return "";
 
-            const res = await getNickName({ userIds });
-            // 응답에서 닉네임만 추출하여 콤마로 연결된 문자열 생성
-            // API 응답 구조에 따라 userInfoDTOList가 없을 수도 있으므로 옵셔널 체이닝 사용
-            const names = res?.userInfoDTOList?.map((user) => user.userName ?? "").join(", ");
-            return names;
-        },
-        // ID가 있을 때만 쿼리 실행
-        enabled: !!userIds && userIds.length > 0,
-        staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
-    });
+      const res = await getNickName({ userIds });
+      const names = res?.userInfoDTOList
+        ?.map((user) => user.userName ?? "")
+        .filter((name): name is string => name.length > 0)
+        .join(", ");
+      return names ?? "";
+    },
+    enabled: !!userIds && userIds.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
 };
 
+/**
+ * 암호화된 userId 리스트(encUserIds)를 groupKey 로 복호화한 뒤 닉네임 조회.
+ * usePromiseMemberNames 와 queryKey 가 충돌하지 않도록 별도 prefix("decrypted") 사용.
+ */
 export const usePromiseDecryptedMemberNames = (
-    encUserIds: string[],
-    groupKey?: string | CryptoKey
+  encUserIds: string[],
+  groupKey?: string | CryptoKey
 ) => {
-    return useQuery({
-        // 1. queryKey에 groupKey의 존재 여부를 포함시켜 키가 생기면 다시 캐싱/실행되도록 유도 (선택 사항이나 안전함)
-        queryKey: ["promiseMemberNames", encUserIds, !!groupKey],
+  return useQuery({
+    queryKey: ["promiseMemberNames", "decrypted", encUserIds, !!groupKey],
+    queryFn: async () => {
+      if (!encUserIds || encUserIds.length === 0 || !groupKey) return "";
 
-        queryFn: async () => {
-            if (!encUserIds || encUserIds.length === 0 || !groupKey) return "";
+      try {
+        const decryptedUserIds = await Promise.all(
+          encUserIds.map(async (encryptedId) =>
+            decryptDataWithCryptoKey(encryptedId, groupKey, "group_sharekey")
+          )
+        );
 
-            try {
-                const decryptedUserIds = await Promise.all(
-                    encUserIds.map(async (encryptedId) => {
-                        // 2. 수정: encUserIds는 이미 string[]이므로 .userId 접근 제거
-                        return await decryptDataWithCryptoKey(
-                            encryptedId, // user.userId (X) -> encryptedId (O)
-                            groupKey,
-                            "group_sharekey"
-                        );
-                    })
-                );
+        const res = await getNickName({ userIds: decryptedUserIds });
+        const names = res?.userInfoDTOList
+          ?.map((user) => user.userName ?? "")
+          .filter((name): name is string => name.length > 0)
+          .join(", ");
 
-                const res = await getNickName({ userIds: decryptedUserIds });
-
-                // 3. 닉네임 추출 및 결합
-                const names = res?.userInfoDTOList
-                    ?.map((user) => user.userName ?? "")
-                    .join(", ");
-
-                return names || "";
-            } catch (error) {
-                console.error("Decryption or Fetching failed:", error);
-                return "";
-            }
-        },
-
-        // 4. 핵심 수정: ID 배열이 있고, "groupKey도 존재해야만" 쿼리 실행
-        enabled: !!encUserIds && encUserIds.length > 0 && !!groupKey,
-        staleTime: 1000 * 60 * 5,
-    });
+        return names ?? "";
+      } catch (error) {
+        console.error("[usePromiseDecryptedMemberNames] 복호화/조회 실패:", error);
+        return "";
+      }
+    },
+    enabled: !!encUserIds && encUserIds.length > 0 && !!groupKey,
+    staleTime: 1000 * 60 * 5,
+  });
 };
