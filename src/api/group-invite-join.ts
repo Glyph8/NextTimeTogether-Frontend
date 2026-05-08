@@ -9,6 +9,7 @@ import {
   JoinGroupResponse,
   LeavGroup1Request,
   LeaveGroup2Request,
+  LeaveGroup3Request,
   SaveGroupMemberRequest,
 } from "@/apis/generated/Api";
 import { BackendResponse, clientBaseApi, handleApiError } from ".";
@@ -326,4 +327,84 @@ export const postGroupLeaveStep2 = async (
     .leaveGroup2(payload)
     .then((response) => response.data)
     .catch(handleApiError);
+};
+
+/**
+ * 그룹 나가기 3단계 — 일반 멤버는 퇴장, 방장은 그룹 자체 폭파(삭제).
+ * 분기는 isManager 플래그로 결정되며 응답 메시지가 *그룹에서 나갔어요* 또는
+ * *그룹이 삭제되었어요* 형태로 다르게 내려온다.
+ */
+export const postGroupLeaveStep3 = async (
+  payload: LeaveGroup3Request
+) => {
+  return clientBaseApi.api
+    .leaveGroup3(payload)
+    .then((response) => response.data)
+    .catch(handleApiError);
+};
+
+/**
+ * 그룹 나가기 / 삭제 오케스트레이션.
+ * 1) leave1 — 사용자의 그룹 프록시 유효성 검증 + isManager 판별
+ * 2) leave2 — encencGroupMemberId 획득
+ * 3) (클라) masterKey 로 encencGroupMemberId 복호화 → encUserId
+ * 4) leave3 — 일반 멤버는 퇴장, 방장은 그룹 자체 삭제
+ *
+ * 백엔드 응답에 따라 isManager 가 결정되므로, 호출 측은 같은 함수로 두 시나리오를 처리할 수 있다.
+ */
+export const leaveGroupFlow = async (
+  groupId: string,
+  masterKey: CryptoKey
+): Promise<{ isManager: boolean; message?: string }> => {
+  const decryptDataWithCryptoKey = (
+    await import("@/utils/client/crypto/decryptClient")
+  ).default;
+  const lookup = await resolveGroupLookupContext(groupId);
+
+  const step1Raw = await postGroupLeaveStep1({
+    groupId,
+    lookupId: lookup.lookupId,
+    lookupVersion: lookup.lookupVersion,
+  });
+  const step1 = (step1Raw as BackendResponse<{
+    groupId?: string;
+    message?: string;
+    isManager?: boolean;
+  }>).result;
+  const isManager = step1?.isManager ?? false;
+
+  const step2Raw = await postGroupLeaveStep2({
+    groupId,
+    lookupId: lookup.lookupId,
+    lookupVersion: lookup.lookupVersion,
+    isManager,
+  });
+  const encencGroupMemberId = (step2Raw as BackendResponse<{
+    encencGroupMemberId?: string;
+  }>).result?.encencGroupMemberId;
+
+  if (!encencGroupMemberId) {
+    throw new Error("그룹 멤버 식별 정보를 받지 못했습니다.");
+  }
+
+  // encencGroupMemberId = enc_by_master(enc_by_group(userId)) 이므로
+  // masterKey 로 한 번 복호화 → encUserId(= enc_by_group(userId))
+  const encUserId = await decryptDataWithCryptoKey(
+    encencGroupMemberId,
+    masterKey,
+    "group_proxy_user"
+  );
+
+  const step3Raw = await postGroupLeaveStep3({
+    groupId,
+    isManager,
+    encUserId,
+    encencGroupMemberId,
+  });
+  const step3 = (step3Raw as BackendResponse<{ message?: string }>).result;
+
+  // 그룹 단위 lookup 캐시 정리 (해당 그룹 정보가 더 이상 의미 없음)
+  clearGroupLookupCacheForGroup(groupId);
+
+  return { isManager, message: step3?.message };
 };

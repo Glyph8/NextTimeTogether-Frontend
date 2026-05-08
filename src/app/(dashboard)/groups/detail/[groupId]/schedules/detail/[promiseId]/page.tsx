@@ -258,6 +258,8 @@ export default function ScheduleDetailPage() {
         isMaster={isMaster}
         managerId={data?.managerId ?? ""}
         promiseId={promiseId}
+        promiseKey={promiseKey}
+        groupId={groupId}
         participants={
           data?.memberDetails ?? encPromiseMemberList?.userIds ?? []
         }

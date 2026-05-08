@@ -1,7 +1,6 @@
 "use client";
 
 import Header from "@/components/ui/header/Header";
-import { GroupItem } from "./(components)/GroupItem";
 import { ExitGroupDialog } from "./(components)/ExitGroupDialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,9 +9,14 @@ import { useDecryptedGroupList } from "./use-group-list";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
 import { GroupItemContainer } from "./(components)/GroupItemContainer";
 
+interface SelectedGroup {
+  groupId: string;
+  groupName: string;
+}
+
 export default function GroupsPage() {
   const router = useRouter();
-  const [isOpenExitDialog, setIsOpenExitDialog] = useState(false);
+  const [selectedExitGroup, setSelectedExitGroup] = useState<SelectedGroup | null>(null);
   const [isOpenEnterDialog, setIsOpenEnterDialog] = useState(false);
 
   const { data, isPending } = useDecryptedGroupList();
@@ -35,8 +39,16 @@ export default function GroupsPage() {
           setIsOpen={setIsOpenEnterDialog}
         />
         <ExitGroupDialog
-          isOpen={isOpenExitDialog}
-          setIsOpen={setIsOpenExitDialog}
+          isOpen={selectedExitGroup !== null}
+          setIsOpen={(openOrSetter) => {
+            const open =
+              typeof openOrSetter === "function"
+                ? openOrSetter(selectedExitGroup !== null)
+                : openOrSetter;
+            if (!open) setSelectedExitGroup(null);
+          }}
+          groupId={selectedExitGroup?.groupId ?? ""}
+          groupName={selectedExitGroup?.groupName ?? ""}
         />
         <button
           className="inline-flex w-30 px-5 py-2.5 bg-main rounded-[8px] text-center justify-center text-white text-base font-medium leading-tight"
@@ -56,7 +68,7 @@ export default function GroupsPage() {
                 <GroupItemContainer
                   key={group.groupId}
                   group={group}
-                  setIsOpenExitDialog={setIsOpenExitDialog}
+                  onRequestExit={setSelectedExitGroup}
                 />
               ))}
             </div>
