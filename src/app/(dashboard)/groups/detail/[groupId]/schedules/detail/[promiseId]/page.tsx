@@ -101,7 +101,6 @@ export default function ScheduleDetailPage() {
             encryptDataClient(userId, groupKey, "group_sharekey"),
         });
 
-        // 2. 성공하면 복호화 진행
         const decPromiseKey = await decryptDataWithCryptoKey(
           result.encPromiseKey,
           masterKey,
@@ -109,29 +108,26 @@ export default function ScheduleDetailPage() {
         );
         return decPromiseKey;
       } catch (error) {
-        if (handlePromiseError(error)) {
-          return null;
-        }
-
-        // [수정] 서버 조회 실패 시, URL Hash에서 키 복구 시도
-        const hash = window.location.hash;
-
+        // 신규 생성된 약속의 경우 lookup 인덱스가 아직 없을 수 있으므로
+        // 서버 조회 실패 시 URL Hash 의 pkey 를 먼저 시도 (생성 직후 공유 링크 케이스).
+        const hash = typeof window !== "undefined" ? window.location.hash : "";
         if (hash && hash.includes("pkey=")) {
           const hashParams = new URLSearchParams(hash.substring(1));
           const extractedKeyString = hashParams.get("pkey");
           if (extractedKeyString) {
-            console.log("✅ Hash에서 약속 키 복구 성공");
             return extractedKeyString;
           }
         }
 
-        // ✅ [핵심] 에러가 발생해도 throw 하지 않고 콘솔에만 찍고 넘어갑니다.
-        console.error("⚠️ 약속 키 조회 실패 (무시하고 진행):", {
+        // Hash 도 없는 경우에만 redirect 정책 적용 (404 = 삭제/확정된 약속).
+        if (handlePromiseError(error)) {
+          return null;
+        }
+
+        console.warn("[promiseKey] 조회 실패, null 반환:", {
           status: (error as { response?: { status?: number } })?.response?.status,
-          hashExists: Boolean(hash),
         });
         toast.error(getLookupUserMessage(error, "약속 키 조회에 실패했습니다."));
-        // 에러 상황임을 알리는 null 반환 (React Query는 이를 '성공'으로 간주)
         return null;
       }
     },
@@ -189,26 +185,24 @@ export default function ScheduleDetailPage() {
   const isMaster = data?.managerId === userId;
   const encPromiseMemberList = data?.encMembers;
 
+  // [중요] 시간/장소 확정 여부 조회는 약속 자체의 존재 검증을 책임지지 않는다.
+  // - 미확정(404/500)은 API 레이어에서 null 로 정규화됨 → 정상 응답으로 취급.
+  // - 그 외 에러도 polling 에서는 redirect 하지 않고 단순히 미확정으로 간주.
+  // - 약속 존재 자체가 무효화된 경우는 메인 데이터 쿼리(getEncryptedPromiseMemberId)
+  //   가 잡아서 handlePromiseError 로 처리한다.
   const { data: confirmedTime, isLoading: isConfirmedTimeLoading } = useQuery({
     queryKey: ["confirmedTime", promiseId],
     queryFn: async () => {
       try {
-        const result = await CheckWhenConfirmed(promiseId);
-        console.log("🔵 일시 확정 여부 조회", result);
-        return result;
+        return await CheckWhenConfirmed(promiseId);
       } catch (error) {
-        if (handlePromiseError(error)) {
-          return null;
-        }
-        throw error;
+        console.warn("[confirmedTime] polling 에러, 미확정으로 간주:", error);
+        return null;
       }
     },
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data && data.dateTime) {
-        // return false; // 확정 장소 재요청 안하는 경우
-        return 9000;
-      }
+      if (data && data.dateTime) return 9000;
       return 6000;
     },
     refetchIntervalInBackground: false,
@@ -221,21 +215,15 @@ export default function ScheduleDetailPage() {
     queryKey: ["confirmedPlace", promiseId],
     queryFn: async () => {
       try {
-        const result = await CheckWhereConfirmed(promiseId);
-        console.log("🔵 장소 확정 여부 조회", result);
-        return result;
+        return await CheckWhereConfirmed(promiseId);
       } catch (error) {
-        if (handlePromiseError(error)) {
-          return null;
-        }
-        throw error;
+        console.warn("[confirmedPlace] polling 에러, 미확정으로 간주:", error);
+        return null;
       }
     },
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data && data.placeName) {
-        return false;
-      }
+      if (data && data.placeName) return false;
       return 6000;
     },
     refetchIntervalInBackground: false,
@@ -270,6 +258,8 @@ export default function ScheduleDetailPage() {
         isMaster={isMaster}
         managerId={data?.managerId ?? ""}
         promiseId={promiseId}
+        promiseKey={promiseKey}
+        groupId={groupId}
         participants={
           data?.memberDetails ?? encPromiseMemberList?.userIds ?? []
         }

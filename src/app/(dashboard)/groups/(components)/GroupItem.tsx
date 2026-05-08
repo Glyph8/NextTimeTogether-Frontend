@@ -1,4 +1,3 @@
-// import Image from "next/image";
 import Trashcan from "@/assets/svgs/icons/trashcan.svg";
 import { useRouter } from "next/navigation";
 import { CldImage } from "next-cloudinary";
@@ -10,7 +9,8 @@ interface GroupItemProps {
   title: string;
   description: string;
   members: string;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  /** 휴지통 버튼 클릭 시 호출. 호출 측이 어떤 그룹인지 캡처해 다이얼로그를 띄운다. */
+  onRequestExit: () => void;
 }
 
 export const GroupItem = ({
@@ -19,7 +19,7 @@ export const GroupItem = ({
   title,
   description,
   members,
-  setIsOpen,
+  onRequestExit,
 }: GroupItemProps) => {
   const router = useRouter();
 
@@ -29,7 +29,7 @@ export const GroupItem = ({
 
   const handleExit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    setIsOpen(true);
+    onRequestExit();
   };
 
   return (
@@ -38,9 +38,9 @@ export const GroupItem = ({
       onClick={handleToDetail}
     >
       <CldImage
-        src={image ?? DEFAULT_IMAGE} // 전체 URL을 넣어도 되고, 파일 ID만 넣어도 됨
+        src={image ?? DEFAULT_IMAGE}
         alt="image"
-        width="64" // 문자열로 넣어도 됨
+        width="64"
         height="64"
         className="border-gray-1 rounded-[8px]"
         crop="fill"
@@ -50,7 +50,7 @@ export const GroupItem = ({
           <p className="text-black-1 text-base font-medium leading-tight tracking-tight">
             {title}
           </p>
-          <button className="w-6 h-6" onClick={handleExit}>
+          <button type="button" className="w-6 h-6" onClick={handleExit}>
             <Trashcan />
           </button>
         </div>

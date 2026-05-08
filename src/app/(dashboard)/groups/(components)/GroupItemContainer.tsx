@@ -1,14 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Dispatch, SetStateAction } from "react";
 import { getNickName } from "@/api/appointment";
 import { GroupItem } from "./GroupItem";
 import { DEFAULT_IMAGE } from "@/constants";
 import type { UserInfoDTO } from "@/apis/generated/Api";
 import type { DecryptedGroupInfo } from "../use-group-list";
 
-// 멤버 ID 리스트로 닉네임을 조회해 ", " 로 결합한다.
 const useGroupMemberNames = (userIds: string[]) => {
   return useQuery({
     queryKey: ["groupMembers", userIds],
@@ -24,12 +22,13 @@ const useGroupMemberNames = (userIds: string[]) => {
 
 interface GroupItemContainerProps {
   group: DecryptedGroupInfo;
-  setIsOpenExitDialog: Dispatch<SetStateAction<boolean>>;
+  /** 휴지통 클릭 시 어떤 그룹을 나가려는지 호출 측에 알려준다. */
+  onRequestExit: (group: { groupId: string; groupName: string }) => void;
 }
 
 export const GroupItemContainer = ({
   group,
-  setIsOpenExitDialog,
+  onRequestExit,
 }: GroupItemContainerProps) => {
   const { data: memberNames } = useGroupMemberNames(group.userIds);
 
@@ -41,7 +40,9 @@ export const GroupItemContainer = ({
       title={group.groupName}
       description={group.explanation ?? "설명 없음"}
       members={memberNames ?? "로딩 중..."}
-      setIsOpen={setIsOpenExitDialog}
+      onRequestExit={() =>
+        onRequestExit({ groupId: group.groupId, groupName: group.groupName })
+      }
     />
   );
 };

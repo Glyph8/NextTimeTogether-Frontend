@@ -4,30 +4,25 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ConditionInputBar from "../components/ConditionInputBar";
 import { useSignupStore } from "@/store/signupStore";
+import { emailSchema } from "@/lib/schemas/signupSchema";
 
 export default function RegisterMailPage() {
   const { updateFormData } = useSignupStore();
   const [email, setEmail] = useState("");
-  const [isEmailValid, setIsEmailValid] = useState(true);
   const router = useRouter();
 
-  const checkEmailValid = (email: string) => {
-    if (email.endsWith(".com")) return true;
-    return false;
-  };
+  const isEmailValid = emailSchema.safeParse(email).success;
+  const showWarning = email.length > 0 && !isEmailValid;
 
   const handleNextStep = () => {
-    if (checkEmailValid(email)) {
-      updateFormData({ email: email });
-      router.push("/register/step6");
-    } else {
-      setIsEmailValid(false);
-    }
+    if (!isEmailValid) return;
+    updateFormData({ email });
+    router.push("/register/step6");
   };
 
   const checkWithWarnEmail = {
-    warnMessage: "올바른 이메일을 입력해주세요",
-    isWarn: !isEmailValid,
+    warnMessage: "올바른 이메일을 입력해주세요.",
+    isWarn: showWarning,
   };
 
   return (
@@ -46,14 +41,12 @@ export default function RegisterMailPage() {
 
         <ConditionInputBar
           data={email}
-          onChange={(value: string) => {
-            setEmail(value);
-          }}
+          onChange={(value: string) => setEmail(value)}
           placeholder="이메일을 입력해주세요"
           checkWithWarn={checkWithWarnEmail}
         />
       </div>
-      <Button text={"다음"} disabled={false} onClick={handleNextStep} />
+      <Button text={"다음"} disabled={!isEmailValid} onClick={handleNextStep} />
     </div>
   );
 }
