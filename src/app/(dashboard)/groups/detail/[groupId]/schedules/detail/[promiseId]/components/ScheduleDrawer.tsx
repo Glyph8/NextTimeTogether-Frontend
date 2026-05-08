@@ -61,11 +61,19 @@ export const ScheduleDrawer = ({
   };
 
   const navigateBackToGroup = () => {
-    queryClient.invalidateQueries({ queryKey: ["promiseIdList"] });
-    queryClient.invalidateQueries({ queryKey: ["promiseInProgressList"] });
-    queryClient.invalidateQueries({ queryKey: ["scheduleIdList"] });
-    queryClient.invalidateQueries({ queryKey: ["fixedScheduleInfo"] });
-    queryClient.invalidateQueries({ queryKey: ["promiseId"] });
+    const targetQueryKeys = new Set([
+      "promiseIdList",
+      "promiseInProgressList",
+      "scheduleIdList",
+      "fixedScheduleInfo",
+      "promiseId",
+    ]);
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const queryKey = query.queryKey[0];
+        return typeof queryKey === "string" && targetQueryKeys.has(queryKey);
+      },
+    });
     router.replace(`/groups/detail/${groupId}`);
   };
 
