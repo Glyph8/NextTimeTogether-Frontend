@@ -68,7 +68,7 @@ export default function AddPlaceAIPage() {
         throw new Error("AccessToken 이 없습니다. 다시 로그인 해주세요.");
       }
 
-      let didRetryAfterRefresh = false;
+      let hasRetriedAfterRefresh = false;
       let response = await requestSearch(accessToken);
       if (response.status === 401) {
         const refreshResult = await refreshAccessToken();
@@ -76,13 +76,13 @@ export default function AddPlaceAIPage() {
           throw new Error(refreshResult.error || "세션이 만료되었습니다. 다시 로그인 해주세요.");
         }
         authStore.setAccessToken(refreshResult.accessToken);
-        didRetryAfterRefresh = true;
+        hasRetriedAfterRefresh = true;
         response = await requestSearch(refreshResult.accessToken);
       }
 
       if (!response.ok) {
         throw new Error(
-          didRetryAfterRefresh
+          hasRetriedAfterRefresh
             ? "장소 검색 요청 실패 (토큰 갱신 후 재시도 포함)"
             : "장소 검색 요청 실패"
         );
