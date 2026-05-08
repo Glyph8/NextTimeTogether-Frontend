@@ -49,7 +49,7 @@ export default function ConditionInputBar({
            }`}
       >
         <input
-          type={`${determineType}`}
+          type={determineType()}
           placeholder={placeholder}
           className="w-full placeholder-gray-2 text-base font-medium leading-11.5"
           onChange={(e) => {

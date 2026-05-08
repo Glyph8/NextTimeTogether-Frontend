@@ -109,6 +109,14 @@ export interface CheckWhereConfirmedResDTO {
   placeAddress: string;
 }
 
+/**
+ * "미확정" 을 의미하는 상태 코드. 백엔드가 명시적 미확정 응답 대신
+ * 404 / 500 으로 응답하므로 둘 다 null 로 정규화한다.
+ * 미확정은 에러가 아니라 정상적인 라이프사이클 단계.
+ */
+const isUnconfirmedStatus = (status?: number): boolean =>
+  status === 404 || status === 500;
+
 export const CheckWhenConfirmed = async (
   promiseId: string
 ): Promise<CheckWhenConfirmedResDTO | null> => {
@@ -120,15 +128,16 @@ export const CheckWhenConfirmed = async (
       return realData.result || null;
     })
     .catch((error: AxiosError) => {
-      // 500 = 약속 미확정 상태 → null 반환
-      if (error.response?.status === 500) {
+      if (isUnconfirmedStatus(error.response?.status)) {
         return null;
       }
       return handleApiError(error);
     });
 };
 
-export const CheckWhereConfirmed = async (promiseId: string) => {
+export const CheckWhereConfirmed = async (
+  promiseId: string
+): Promise<CheckWhereConfirmedResDTO | null> => {
   return clientBaseApi.place
     .confirmedPlaceCheck(promiseId)
     .then((response) => {
@@ -136,7 +145,12 @@ export const CheckWhereConfirmed = async (promiseId: string) => {
         response.data as unknown as BackendResponse<CheckWhereConfirmedResDTO>;
       return realData.result || null;
     })
-    .catch(handleApiError);
+    .catch((error: AxiosError) => {
+      if (isUnconfirmedStatus(error.response?.status)) {
+        return null;
+      }
+      return handleApiError(error);
+    });
 };
 
 export const ratePlace = async (placeId: number, data: UserBoardReqDTO) => {
