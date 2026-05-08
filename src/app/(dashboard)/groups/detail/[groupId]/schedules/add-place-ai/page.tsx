@@ -68,18 +68,26 @@ export default function AddPlaceAIPage() {
         throw new Error("AccessToken 이 없습니다. 다시 로그인 해주세요.");
       }
 
-      let res = await requestSearch(accessToken);
-      if (res.status === 401) {
+      let didRetryAfterRefresh = false;
+      let response = await requestSearch(accessToken);
+      if (response.status === 401) {
         const refreshResult = await refreshAccessToken();
         if (!refreshResult.success || !refreshResult.accessToken) {
           throw new Error(refreshResult.error || "세션이 만료되었습니다. 다시 로그인 해주세요.");
         }
         authStore.setAccessToken(refreshResult.accessToken);
-        res = await requestSearch(refreshResult.accessToken);
+        didRetryAfterRefresh = true;
+        response = await requestSearch(refreshResult.accessToken);
       }
 
-      if (!res.ok) throw new Error("장소 검색 요청 실패");
-      return res.json();
+      if (!response.ok) {
+        throw new Error(
+          didRetryAfterRefresh
+            ? "장소 검색 요청 실패 (토큰 갱신 후 재시도 포함)"
+            : "장소 검색 요청 실패"
+        );
+      }
+      return response.json();
     },
     enabled: debouncedText.length > 0,
   });
