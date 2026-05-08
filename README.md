@@ -488,7 +488,7 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
 | **Zustand (메모리)** | AccessToken | 클라이언트 인증의 단일 소스. 새로고침으로 사라지지만 RT 로 즉시 복원 가능 |
 | **httpOnly 쿠키** | RefreshToken (`refresh_token`) | 세션 유지 단일 소스, JS 접근 불가 → XSS 로 RT 탈취 방지 |
 | **IndexedDB** | 추출불가 CryptoKey (MasterKey) | `extractable:false` 로 import → JS 로 raw bits 추출 불가 |
-| **localStorage** | 암호화된 UserId / 해시 식별자 | 복호화 키(MasterKey) 없이는 무의미한 데이터 |
+| **localStorage** | 암호화된 UserId / `pseudo_id_index_key` | 복호화 키(MasterKey) 없이는 무의미한 데이터 |
 
 **401 자동 refresh 인터셉터 (single-flight)** — `src/api/index.ts`
 

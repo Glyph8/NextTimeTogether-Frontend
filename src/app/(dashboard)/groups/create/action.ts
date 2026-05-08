@@ -52,8 +52,6 @@ export async function createGroupMetadataAction(
 ) {
   try {
     // 1. API 2 호출
-    console.log("!! createGroup2 payload", JSON.stringify(encryptedMetaData, null, 2));
-
     const response = await createGroupRequest2(accessToken, encryptedMetaData);
 
     if (!response || !response.result) {

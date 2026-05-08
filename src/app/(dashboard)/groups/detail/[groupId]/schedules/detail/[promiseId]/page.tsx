@@ -136,7 +136,7 @@ export default function ScheduleDetailPage() {
       }
     },
     // ✅ [수정] groupKey와 필수 데이터가 준비될 때까지 대기
-    enabled: !!groupKey && !!userId && !!userId,
+    enabled: !!groupKey && !!userId,
     staleTime: 1000 * 60 * 5,
     retry: 1,
   });
