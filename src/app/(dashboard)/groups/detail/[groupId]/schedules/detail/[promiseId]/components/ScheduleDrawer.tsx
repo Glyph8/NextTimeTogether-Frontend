@@ -5,6 +5,7 @@ import {
   DrawerDescription,
 } from "@/components/ui/col-drawer";
 import { ParticipantCard } from "./ParticipantCard";
+import { useCurrentUserId } from "@/lib/currentUser";
 
 interface Participant {
   userId: string;
@@ -35,6 +36,7 @@ export const ScheduleDrawer = ({
 }: ScheduleDrawerProps) => {
   const handleDisperse = () => { };
   const handleExit = () => { };
+  const currentUserId = useCurrentUserId();
 
   return (
     <Drawer open={open} onOpenChange={setOpen} direction="right" modal={true}>
@@ -79,6 +81,7 @@ export const ScheduleDrawer = ({
                 key={participant.userId}
                 name={participant.userName}
                 isMaster={participant.userId === managerId}
+                isCurrentUser={participant.userId === currentUserId}
               />
             ))}
           </div>

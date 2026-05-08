@@ -10,6 +10,7 @@ import { GroupScheduleItem } from "./(components)/GroupScheduleItem";
 import { useState } from "react";
 import { GroupInviteDialog } from "./(components)/GroupInviteDialog";
 import { useParams, useRouter } from "next/navigation";
+import { useCurrentUserId } from "@/lib/currentUser";
 import { useViewSchedules } from "./hooks/use-view-schedules";
 import { useGroupDetail } from "./hooks/use-group-detail";
 import DefaultLoading from "@/components/ui/Loading/DefaultLoading";
@@ -27,7 +28,7 @@ export default function DetailGroupPage() {
   // TODO: 추후 url query의 groupId도 암호화-복호화 필요
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const userId = useCurrentUserId();
   const { fixedYetData, fixedPromise, isPending } = useViewSchedules({
     refetchInterval: 3000
   });
@@ -99,8 +100,6 @@ export default function DetailGroupPage() {
                 const { promiseId, type, title, startDate, endDate } =
                   onProgressPromise;
 
-                // TODO: startDate가 시간표로 확정한 시간이 와야되는 거 아닌가?
-                // 장소 데이터가 없는 이유는 장소 확정되면 fixed되서 스케쥴이 되기 떄문?
                 return (
                   <GroupPromiseItem
                     key={promiseId}

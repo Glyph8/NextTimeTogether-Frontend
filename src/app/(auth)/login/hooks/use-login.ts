@@ -24,8 +24,7 @@ export const useLogin = () => {
   const [pw, setPw] = useState("");
 
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
-  const setUserId = useAuthStore((state) => state.setUserId);
-  
+
   // 서버 액션 상태
   const initialState: LoginActionState = {
     error: null,
@@ -51,8 +50,6 @@ export const useLogin = () => {
       // 2. (클라이언트) 서버 인증용 해시 생성
       const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
       const hashedPassword = await hashPassword(pw, masterKey);
-
-      // console.log("###############", hashedUserId, hashedPassword)
 
       // 3. 서버 액션에 전달할 FormData 수정
       formData.set("hashedUserId", hashedUserId);
@@ -80,9 +77,6 @@ export const useLogin = () => {
         try {
           // 1. AccessToken을 Zustand 전역 상태(메모리)에 저장
           setAccessToken(newAccessToken);
-          if (setUserId) {
-             setUserId(id); 
-          }
           // 서버 인증 성공 시, 사용했던 id/pw로 masterKey 재파생
           const masterKey = await deriveMasterKeyPBKDF2(id, pw);
           // IndexedDB에 '추출 불가' 키로 저장
@@ -103,10 +97,10 @@ export const useLogin = () => {
           clearAllGroupLookupCache();
           localStorage.setItem("encrypted_user_id", encryptedLoginId);
 
-          // FIX : USER ID hmacSha256 ONLY VER - 매니저 구분용
-          const hashedUserId = await hmacSha256Truncated(masterKey, id, 256);
-          localStorage.setItem("hashed_user_id_for_manager", hashedUserId);
-
+          // 사용자 식별자(hashedUserId)는 더 이상 localStorage 에 저장하지 않는다.
+          // 백엔드가 JWT 의 sub 클레임으로 같은 값을 박아주므로 AccessToken 이 단일 진실 소스.
+          // → src/lib/currentUser.ts 의 getCurrentUserId() / useCurrentUserId() 로 추출.
+          // pseudo_id_index_key 는 sub 와 다른 hash 라 별도 저장 유지.
           const pseudoIdIndexKey = await hmacSha256Truncated(
             masterKey,
             `${id}:pseudo_id_index`,
@@ -131,7 +125,7 @@ export const useLogin = () => {
         }
       })();
     }
-  }, [state, router, id, pw, setAccessToken, setUserId, returnUrl]); // id, pw 의존성 포함
+  }, [state, router, id, pw, setAccessToken, returnUrl]);
 
   // --- 4. 훅이 반환하는 값들 ---
   return {

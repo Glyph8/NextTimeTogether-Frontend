@@ -22,7 +22,7 @@ import {
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 import { getMasterKey } from "@/utils/client/key-storage";
 import decryptDataWithCryptoKey from "@/utils/client/crypto/decryptClient";
-import { useAuthStore } from "@/store/auth.store";
+import { useCurrentUserId } from "@/lib/currentUser";
 import { useGroupDetail } from "@/app/(dashboard)/groups/detail/[groupId]/hooks/use-group-detail";
 import {
   CheckWhenConfirmed,
@@ -57,9 +57,7 @@ export default function ScheduleDetailPage() {
     isPending: isGroupFetching,
   } = useGroupDetail(groupId);
 
-  const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
-  // const userId = useAuthStore.getState().userId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
+  const userId = useCurrentUserId();
 
   const handlePromiseError = (error: any) => {
     const status = error?.response?.status;
@@ -84,7 +82,7 @@ export default function ScheduleDetailPage() {
     queryKey: ["promiseKey", promiseId],
     queryFn: async () => {
       const masterKey = await getMasterKey();
-      if (!decryptedUserId || !masterKey) {
+      if (!userId || !masterKey) {
         throw new Error("사용자 정보 또는 마스터 키가 없습니다.");
       }
 
@@ -100,7 +98,7 @@ export default function ScheduleDetailPage() {
         const result = await getEncPromiseKeyWithLookupFallback({
           promiseId,
           getLegacyEncUserId: async () =>
-            encryptDataClient(decryptedUserId, groupKey, "group_sharekey"),
+            encryptDataClient(userId, groupKey, "group_sharekey"),
         });
 
         // 2. 성공하면 복호화 진행
@@ -138,7 +136,7 @@ export default function ScheduleDetailPage() {
       }
     },
     // ✅ [수정] groupKey와 필수 데이터가 준비될 때까지 대기
-    enabled: !!groupKey && !!userId && !!decryptedUserId,
+    enabled: !!groupKey && !!userId,
     staleTime: 1000 * 60 * 5,
     retry: 1,
   });
@@ -158,22 +156,16 @@ export default function ScheduleDetailPage() {
           );
           throw new Error("암호화 키가 없습니다.");
         }
-        // [핵심] 배열 내 모든 원소에 대해 비동기 복호화 수행
-        const decryptedUserIds = await Promise.all(
-          targetIds.map(async (id) => {
-            return await decryptDataWithCryptoKey(
-              id,
-              // promiseKey, // 상위 스코프의 promiseKey 사용
-              groupKey, // TODO : 🤦‍♂️🤦‍♂️🤦‍♂️ 아니 이거 왜 groupKey로 암호화 되있냐 - 리얼 이거.. 얼탱..?
-              // "promise_proxy_user",
-              "group_sharekey"
-            );
-          })
+        // 백엔드 스펙상 promiseKey 가 아니라 groupKey 로 암호화되어 내려옴.
+        // 추후 promiseKey 분리 시 이 부분도 함께 변경 필요.
+        const decryptedMemberIds = await Promise.all(
+          targetIds.map(async (id) =>
+            decryptDataWithCryptoKey(id, groupKey, "group_sharekey")
+          )
         );
 
-        // 복호화된 ID 목록(decryptedUserIds)을 상세 조회 함수에 전달 mem s2
         const memberDetails = await getPromiseMemberDetail(promiseId, {
-          userIds: decryptedUserIds,
+          userIds: decryptedMemberIds,
         });
 
         return {
@@ -194,7 +186,7 @@ export default function ScheduleDetailPage() {
     retry: 1,
   });
 
-  const isMaster = data?.managerId === decryptedUserId;
+  const isMaster = data?.managerId === userId;
   const encPromiseMemberList = data?.encMembers;
 
   const { data: confirmedTime, isLoading: isConfirmedTimeLoading } = useQuery({

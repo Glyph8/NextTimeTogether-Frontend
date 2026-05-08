@@ -5,15 +5,16 @@ import MasterMarker from "@/assets/svgs/icons/group-master.svg";
 interface ParticipantCardProps {
   name: string;
   isMaster: boolean;
+  /** 본인 여부. 호출 측에서 useCurrentUserId() 와 participant.userId 를 비교해 전달한다. */
+  isCurrentUser: boolean;
 }
 
-export const ParticipantCard = ({ name, isMaster }: ParticipantCardProps) => {
-
+export const ParticipantCard = ({ name, isMaster, isCurrentUser }: ParticipantCardProps) => {
   return (
     <div className="flex gap-3 justify-start items-center">
       <DefaultProfile />
       <span className="flex gap-1 text-black-1 text-base font-normal leading-tight">
-        {name === localStorage.getItem("encrypted_user_id") && <UserMarker />}
+        {isCurrentUser && <UserMarker />}
         {isMaster && <MasterMarker />}
         {name}
       </span>

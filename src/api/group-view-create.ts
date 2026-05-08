@@ -28,10 +28,10 @@ export interface ViewGroupThirdResponseData {
 }
 
 /** 참여한 그룹들의 암호화 된 groupId, groupMemberId 리스트 요청하기 */
-export const getEncGroupsIdRequest = async (): Promise<
-  ApiResponse<ViewGroupFirstResponseData[]>
-> => {
-  const serverApi = await createServerApi();
+export const getEncGroupsIdRequest = async (
+  accessToken: string
+): Promise<ApiResponse<ViewGroupFirstResponseData[]>> => {
+  const serverApi = createServerApi(accessToken);
 
   return serverApi.api
     .viewGroup1()
@@ -41,9 +41,10 @@ export const getEncGroupsIdRequest = async (): Promise<
 
 /** groupId와 groupMemberKey로 암호화된 groupKey 요청 */
 export const getEncGroupsKeyRequest = async (
+  accessToken: string,
   groupIdAndKeySets: ViewGroup2Request[]
 ): Promise<ApiResponse<ViewGroupSecResponseData[]>> => {
-  const serverApi = await createServerApi();
+  const serverApi = createServerApi(accessToken);
 
   return serverApi.api
     .viewGroup2(groupIdAndKeySets)
@@ -53,9 +54,10 @@ export const getEncGroupsKeyRequest = async (
 
 /** groupId로 실제 그룹 정보 요청 */
 export const getGroupsInfoRequest = async (
+  accessToken: string,
   groupIdSets: ViewGroup3Request[]
 ): Promise<ApiResponse<ViewGroupThirdResponseData[]>> => {
-  const serverApi = await createServerApi();
+  const serverApi = createServerApi(accessToken);
 
   return serverApi.api
     .viewGroup3(groupIdSets)
@@ -65,9 +67,10 @@ export const getGroupsInfoRequest = async (
 
 /** 생성할 그룹 정보 서버로 보내주기 */
 export const createGroupRequest = async (
+  accessToken: string,
   groupInfo: CreateGroup1Request
 ): Promise<BaseResponse> => {
-  const serverApi = await createServerApi();
+  const serverApi = createServerApi(accessToken);
 
   return serverApi.api
     .createGroup1(groupInfo)
@@ -77,9 +80,10 @@ export const createGroupRequest = async (
 
 /** 그룹의 메타 데이터 암호화하여 POST */
 export const createGroupRequest2 = async (
+  accessToken: string,
   encGroupMetaInfo: CreateGroup2Request
 ): Promise<BaseResponse> => {
-  const serverApi = await createServerApi();
+  const serverApi = createServerApi(accessToken);
 
   return serverApi.api
     .createGroup2(encGroupMetaInfo)

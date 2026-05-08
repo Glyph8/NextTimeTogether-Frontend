@@ -3,6 +3,7 @@ import { IS_PRODUCTION } from "@/lib/tokenCookie";
 
 export const clearAuthTokenCookies = async () => {
   const cookieStore = await cookies();
+
   cookieStore.set("refresh_token", "", {
     httpOnly: true,
     secure: IS_PRODUCTION,

@@ -7,6 +7,8 @@ import { useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "@/store/auth.store";
+import { refreshAccessToken } from "@/app/(auth)/login/refresh.action";
 
 // 1. 카테고리 상수 데이터 분리 (유지보수성 및 타입 안정성)
 const FOOD_CATEGORIES = [
@@ -55,8 +57,37 @@ export default function AddPlaceAIPage() {
     queryKey: ["search", debouncedText],
     queryFn: async () => {
       if (!debouncedText) return { documents: [] };
-      const res = await fetch(`/api/search?query=${debouncedText}`);
-      return res.json();
+      const requestSearch = async (token: string) =>
+        fetch(`/api/search?query=${encodeURIComponent(debouncedText)}`, {
+          headers: { Authorization: token },
+        });
+
+      const authStore = useAuthStore.getState();
+      const accessToken = authStore.accessToken;
+      if (!accessToken) {
+        throw new Error("AccessToken 이 없습니다. 다시 로그인 해주세요.");
+      }
+
+      let hasRetriedAfterRefresh = false;
+      let response = await requestSearch(accessToken);
+      if (response.status === 401) {
+        const refreshResult = await refreshAccessToken();
+        if (!refreshResult.success || !refreshResult.accessToken) {
+          throw new Error(refreshResult.error || "세션이 만료되었습니다. 다시 로그인 해주세요.");
+        }
+        authStore.setAccessToken(refreshResult.accessToken);
+        hasRetriedAfterRefresh = true;
+        response = await requestSearch(refreshResult.accessToken);
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          hasRetriedAfterRefresh
+            ? "장소 검색 요청 실패 (토큰 갱신 후 재시도 포함)"
+            : "장소 검색 요청 실패"
+        );
+      }
+      return response.json();
     },
     enabled: debouncedText.length > 0,
   });

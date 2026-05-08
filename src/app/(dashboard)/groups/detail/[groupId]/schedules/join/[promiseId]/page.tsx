@@ -9,14 +9,14 @@ import { joinPromise } from "@/api/promise-invite-join";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { resolveLookupContext } from "@/utils/client/promise-lookup";
 import { getLookupErrorType, getLookupUserMessage } from "@/api/lookup-error";
+import { useCurrentUserId } from "@/lib/currentUser";
 
 export default function JoinPromisePage() {
   const params = useParams<{ groupId: string; promiseId: string }>();
   const router = useRouter();
 
   const groupId = params.groupId;
-  const userId = localStorage.getItem("hashed_user_id_for_manager");
-  const decryptedUserId = localStorage.getItem("hashed_user_id_for_manager");
+  const userId = useCurrentUserId();
 
   // E2EE 키 복구
   const {
@@ -32,7 +32,7 @@ export default function JoinPromisePage() {
   // 1. 초기 진입 시 자격 증명만 체크 (자동 실행 X)
   useEffect(() => {
     // 로그인 체크
-    if (!userId || !decryptedUserId) {
+    if (!userId) {
       const currentPath = `/groups/detail/${groupId}/schedules/join/${params.promiseId}${window.location.search}${window.location.hash}`;
       const encodedReturnUrl = encodeURIComponent(currentPath);
       router.push(`/login?returnUrl=${encodedReturnUrl}`);
@@ -63,7 +63,7 @@ export default function JoinPromisePage() {
       setStatus("ready");
       setMessage("약속에 참여하시겠습니까?");
     }
-  }, [userId, groupId, groupKey, isKeyLoading, keyError, router, params.promiseId, decryptedUserId]);
+  }, [userId, groupId, groupKey, isKeyLoading, keyError, router, params.promiseId]);
 
   // 2. 사용자가 버튼을 눌렀을 때 실행되는 실제 참여 로직
   const handleJoinClick = async () => {
@@ -89,8 +89,8 @@ export default function JoinPromisePage() {
 
       // 클라이언트 암호화 수행
       const encPromiseId = await encryptDataClient(params.promiseId, masterKey, "promise_proxy_user");
-      const encPromiseMemberId = await encryptDataClient(decryptedUserId!, masterKey, "promise_proxy_user");
-      const encUserId = await encryptDataClient(decryptedUserId!, groupKey!, "group_sharekey");
+      const encPromiseMemberId = await encryptDataClient(userId!, masterKey, "promise_proxy_user");
+      const encUserId = await encryptDataClient(userId!, groupKey!, "group_sharekey");
       const encPromiseKey = await encryptDataClient(extractedKeyString, masterKey, "promise_proxy_user");
       const { lookupId, lookupVersion } = await resolveLookupContext();
 

@@ -99,7 +99,7 @@ AI 추천 장소 기능을 통해 모임 준비 과정을 더욱 빠르고 간�
 | **캘린더** | FullCalendar 6 (daygrid, interaction) |
 | **날짜 유틸** | date-fns 4 |
 | **미디어 업로드** | Cloudinary (next-cloudinary) |
-| **보안** | Argon2 (비밀번호 해싱), Upstash Redis (세션), CSP 미들웨어 |
+| **보안** | Web Crypto API (PBKDF2 해싱·AES-GCM 암호화), nonce + strict-dynamic CSP |
 | **API 타입 생성** | swagger-typescript-api |
 | **SVG 처리** | SVGR (@svgr/webpack) |
 | **토스트 알림** | Sonner, react-hot-toast |
@@ -160,10 +160,11 @@ NEXT_PUBLIC_API_BASE_URL=https://your-api-backend.com
 
 # Cloudinary (이미지 업로드)
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
-# Upstash Redis (세션 관리, 선택 사항)
-UPSTASH_REDIS_REST_URL=https://your-upstash-url
-UPSTASH_REDIS_REST_TOKEN=your_upstash_token
+# 카카오 장소 검색 API (장소 추가 기능)
+KAKAO_REST_API_KEY=your_kakao_rest_api_key
 ```
 
 > ⚠️ `.env.local` 파일은 `.gitignore`에 포함되어 있으므로 절대 커밋하지 마세요.
@@ -228,8 +229,10 @@ src/
 │
 ├── lib/
 │   ├── schemas/                  # Zod 유효성 스키마
-│   ├── session.ts                # 세션 유틸리티
-│   ├── redis.ts                  # Upstash Redis 클라이언트
+│   ├── server/                   # 서버 전용 유틸 (쿠키 정리 등)
+│   ├── tokenCookie.ts            # RT 쿠키 메타데이터 / Set-Cookie 파서
+│   ├── clearClientAuthState.ts   # Zustand + localStorage + IndexedDB 일괄 정리
+│   ├── logout.ts                 # 로그아웃 서버 액션
 │   └── utils.ts                  # 공통 유틸리티 (cn 등)
 │
 ├── assets/
@@ -239,7 +242,7 @@ src/
 ├── types/                        # TypeScript 타입 정의
 ├── utils/                        # 유틸리티 함수
 ├── constants.ts                  # 앱 상수
-├── middleware.ts                 # CSP 보안 헤더 미들웨어
+├── proxy.ts                      # CSP·보안 헤더 미들웨어 (Next.js 16 명명)
 └── providers.tsx                 # React Query, Toast 프로바이더
 ```
 
@@ -251,15 +254,17 @@ src/
 
 ```
 로그인 요청
-    → 백엔드에서 Access Token 발급
-    → Zustand auth.store에 메모리 저장 (클라이언트 단일 소스)
-    → 서버 전용 access_token(httpOnly) 쿠키 동기화 (SSR/BFF 전용)
-    → refresh_token은 httpOnly 쿠키 단일 소스 유지
+    → 백엔드에서 Access Token / Refresh Token 발급
+    → AccessToken: Zustand 메모리 단일 소스 (클라이언트만 보유)
+    → RefreshToken: httpOnly 쿠키 단일 소스 (JS 접근 불가)
     → 모든 API 요청에 Authorization 헤더로 자동 첨부
-    → 앱 재마운트 시 useAuthSession 훅으로 토큰 복원 시도
+    → 401 응답 시: 응답 인터셉터가 single-flight refresh 후 원 요청 재시도
+    → 앱 재마운트 시 useAuthSession 훅이 RT 쿠키로 새 AT 발급 → Zustand 복원
 ```
 
-> Access Token은 메모리(Zustand)에만 저장하여 XSS 공격으로부터 보호합니다.
+> AccessToken 은 메모리에만 두어 새로고침 시 사라지고, RefreshToken 의 httpOnly
+> 쿠키만으로 세션을 유지한다. AT 와 RT 가 한 곳에서 같이 새는 구조를 만들지 않기
+> 위해 의도적으로 단일 소스로 분리했다.
 
 ### API 레이어
 
@@ -276,11 +281,13 @@ Swagger/OpenAPI로부터 자동 생성된 타입(`src/apis/generated/Api.ts`)을
 
 | 항목 | 내용 |
 |------|------|
-| **CSP** | `middleware.ts`에서 nonce 기반 Content Security Policy 헤더 설정 |
-| **토큰 저장** | AccessToken: 메모리(Zustand) 중심 + 서버 전용 보조 쿠키, RefreshToken: httpOnly 쿠키 단일 소스 |
-| **비밀번호 해싱** | Argon2 사용 (Node.js / 브라우저 양쪽 지원) |
-| **세션** | Upstash Redis 서버사이드 세션 (선택적 사용) |
-| **보안 헤더** | `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
+| **CSP** | `src/proxy.ts` 미들웨어에서 매 요청마다 nonce 생성 → `script-src 'nonce-...' 'strict-dynamic'` 적용 |
+| **토큰 저장** | AccessToken: Zustand 메모리 단일 소스, RefreshToken: `refresh_token` httpOnly 쿠키 단일 소스 |
+| **자동 토큰 갱신** | Axios 응답 인터셉터에서 401 감지 → single-flight refresh + 재시도 1회 가드 |
+| **비밀번호 해싱** | Web Crypto API PBKDF2 (MasterKey 파생 100k iter, 인증 해시 200k iter) |
+| **클라이언트 암호화** | AES-GCM (12-byte IV) 로 사용자 식별 정보 암호화 후 localStorage 보관 |
+| **MasterKey 보관** | IndexedDB 에 `extractable:false` CryptoKey 로 저장 → JS 로 raw bits 추출 불가 |
+| **보안 헤더** | `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=()/microphone=()/geolocation=(self)` |
 
 ---
 
@@ -396,19 +403,20 @@ export async function encryptStringToBase64(
 
 ### 🔑 2. Silent Token Refresh (BFF 패턴)
 
-**문제 인식**: AccessToken을 localStorage에 저장하면 XSS 공격에 취약합니다. RefreshToken을 클라이언트에 노출하면 토큰 탈취 위험이 있습니다.
+**문제 인식**: AccessToken 을 localStorage 에 두면 XSS 한 번에 토큰이 새고, 같은 토큰을 메모리와 httpOnly 쿠키 양쪽에 두는 흔한 "이중 보관" 패턴은 결국 약한 쪽(메모리) 의 보안 수준이 시스템 전체 수준이 된다.
 
-**해결책**: `AccessToken`은 **Zustand 메모리 중심**으로 사용하고, 서버 컴포넌트/BFF 호출 호환을 위해 **서버 전용 `access_token` httpOnly 쿠키**를 동기화합니다. `RefreshToken`은 **`refresh_token` httpOnly 쿠키 단일 소스**로 유지합니다. 페이지 새로고침 시 Next.js Server Action(BFF)으로 AccessToken을 재발급하고 실패 시 인증 흔적을 일괄 정리합니다.
+**해결책**: AccessToken 은 **Zustand 메모리 단일 소스**로만 보관, RefreshToken 은 **`refresh_token` httpOnly 쿠키 단일 소스**로만 보관. AT 와 RT 가 한 곳에서 같이 새지 않도록 저장 위치를 의도적으로 분리한다. 새로고침 시 Server Action 으로 RT 쿠키를 보내 새 AT 를 받아 Zustand 에 복원한다. 토큰 만료 중 동시 다발 401 이 발생해도 응답 인터셉터의 single-flight 패턴으로 refresh 는 한 번만 일어난다.
 
 **세션 복원 흐름** — `src/hooks/useAuthSession.ts`
 
 ```typescript
 export const useAuthSession = () => {
-  const { accessToken, setAccessToken, userId, setUserId } = useAuthStore();
+  const { accessToken, setAccessToken } = useAuthStore();
 
   useEffect(() => {
-    // 이미 세션이 있거나 공개 라우트면 복원 생략
-    if ((accessToken && userId) || pathname === "/login" || pathname.includes("/register") || pathname === "/") {
+    const isPublicPath =
+      pathname === "/" || pathname === "/login" || pathname.includes("/register");
+    if (accessToken || isPublicPath) {
       setIsRestoring(false);
       return;
     }
@@ -416,22 +424,23 @@ export const useAuthSession = () => {
     const restoreSession = async () => {
       try {
         const masterKey = await getMasterKey();
-        if (!masterKey) throw new Error("MasterKey가 없습니다.");
+        if (!masterKey) throw new Error("MasterKey 없음 — 로그인 필요");
 
         const encryptedUserId = localStorage.getItem("encrypted_user_id");
-        if (!encryptedUserId) throw new Error("encrypted_user_id가 없습니다.");
-        const userId = await decryptStringFromBase64(encryptedUserId!, masterKey);
+        if (!encryptedUserId) throw new Error("암호화된 userId 없음");
+
+        // userId 복호화는 결과를 사용하지 않고 MasterKey 유효성 검증으로만 사용한다.
+        await decryptStringFromBase64(encryptedUserId, masterKey);
 
         const refreshResult = await refreshAccessToken();
         if (!refreshResult.success || !refreshResult.accessToken) {
           throw new Error(refreshResult.error || "AccessToken 갱신 실패");
         }
 
-        setUserId(userId);
-        setAccessToken(refreshResult.accessToken!);
+        setAccessToken(refreshResult.accessToken);
       } catch (err) {
         await clearAuthCookies();
-        clearClientAuthState();
+        await clearClientAuthState();
         if (pathname !== "/login") router.replace("/login");
       } finally {
         setIsRestoring(false);
@@ -439,7 +448,7 @@ export const useAuthSession = () => {
     };
 
     restoreSession();
-  }, [accessToken, setAccessToken, userId, setUserId, router, pathname]);
+  }, [accessToken, setAccessToken, router, pathname]);
 };
 ```
 
@@ -462,7 +471,7 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
   const rotatedRefreshToken = getRefreshTokenFromSetCookie(response.headers["set-cookie"]);
 
   if (response.data.code === 200 && newAccessToken) {
-    cookieStore.set("access_token", newAccessToken, { httpOnly: true, path: "/", sameSite: "lax" });
+    // AccessToken 은 응답으로만 반환 → 클라이언트 Zustand 에 보관 (쿠키에 저장하지 않음).
     if (rotatedRefreshToken) {
       cookieStore.set("refresh_token", rotatedRefreshToken, { httpOnly: true, path: "/", sameSite: "lax" });
     }
@@ -476,11 +485,49 @@ export async function refreshAccessToken(): Promise<RefreshActionState> {
 
 | 저장 위치 | 데이터 | 이유 |
 |-----------|--------|------|
-| **Zustand (메모리)** | AccessToken | 클라이언트 API 인증의 기준 상태 |
-| **httpOnly 쿠키 (서버 전용)** | AccessToken (`access_token`) | SSR/BFF 서버 경로 호환용 |
-| **httpOnly 쿠키** | RefreshToken (`refresh_token`) | 세션 유지 단일 소스, JS 접근 불가 |
-| **IndexedDB** | 추출불가 CryptoKey | JS로 키 값 추출 불가 → XSS 방어 |
-| **localStorage** | 암호화된 UserId | 복호화 키 없이는 무의미한 데이터 |
+| **Zustand (메모리)** | AccessToken | 클라이언트 인증의 단일 소스. 새로고침으로 사라지지만 RT 로 즉시 복원 가능 |
+| **httpOnly 쿠키** | RefreshToken (`refresh_token`) | 세션 유지 단일 소스, JS 접근 불가 → XSS 로 RT 탈취 방지 |
+| **IndexedDB** | 추출불가 CryptoKey (MasterKey) | `extractable:false` 로 import → JS 로 raw bits 추출 불가 |
+| **localStorage** | 암호화된 UserId / `pseudo_id_index_key` | 복호화 키(MasterKey) 없이는 무의미한 데이터 |
+
+**401 자동 refresh 인터셉터 (single-flight)** — `src/api/index.ts`
+
+요청 도중 AccessToken 이 만료되어 401 이 떨어졌을 때 사용자에게 한 번 튕기지 않도록, Axios 응답 인터셉터에서 자동 갱신 후 원 요청을 재시도한다. 동시에 여러 요청이 401 을 받아도 refresh 자체는 한 번만 일어나도록 Promise 를 공유한다.
+
+```typescript
+let inflightRefresh: Promise<string | null> | null = null;
+
+clientBaseApi.instance.interceptors.response.use(
+  (res) => res,
+  async (error: AxiosError) => {
+    const status = error.response?.status;
+    const original = error.config as RetriableConfig | undefined;
+
+    // 401 이 아니거나, 이미 한 번 재시도한 요청이면 그대로 throw (무한루프 방지)
+    if (status !== 401 || !original || original._retried) throw error;
+    original._retried = true;
+
+    // single-flight: 동시 다발 401 → 같은 refresh Promise 공유
+    inflightRefresh ??= performRefresh().finally(() => { inflightRefresh = null; });
+    const newToken = await inflightRefresh;
+
+    if (!newToken) {
+      // refresh 실패 → 인증 상태 정리 + /login
+      await handleAuthFailure();
+      throw error;
+    }
+
+    // 새 토큰으로 원 요청 재시도
+    original.headers.Authorization = newToken;
+    return clientBaseApi.instance.request(original);
+  }
+);
+```
+
+설계 포인트:
+- **single-flight**: `inflightRefresh` 변수 하나로 동시 다발 401 시 refresh 호출이 1회로 수렴
+- **retry-once**: `_retried` 플래그로 재시도 후 또 401 이 오면 무한루프 차단
+- **failure path**: refresh 실패 시 `clearClientAuthState` (Zustand + localStorage + IndexedDB MasterKey 모두 정리) + `/login` 리다이렉트
 
 ---
 
@@ -620,33 +667,48 @@ const getCellStyle = (day: number, time: number) => {
 
 **해결책**: Next.js 미들웨어에서 모든 요청마다 nonce를 생성하고, CSP(Content Security Policy) 및 보안 헤더를 자동으로 적용합니다.
 
-**미들웨어 구현** — `src/middleware.ts`
+**미들웨어 구현** — `src/proxy.ts` (Next.js 16 부터 `middleware.ts` 이름이 `proxy.ts` 로 바뀜)
 
 ```typescript
-export function middleware(request: NextRequest) {
-  // 매 요청마다 고유한 nonce 생성 (인라인 스크립트 허용 제어용)
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+export function proxy(request: NextRequest) {
+  // 매 요청마다 16바이트 random → base64 nonce 생성
+  const nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString("base64");
 
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' ${cloudinaryWidgetDomain};
-    style-src  'self' 'unsafe-inline';
-    img-src    'self' blob: data: ${cloudinaryDomain};
-    connect-src 'self' ${apiBaseUrl};
-    font-src   'self' data:;
-    object-src 'none';
-    base-uri   'self';
-    form-action 'self';
-    frame-ancestors 'none';           // 클릭재킹 방지
-    frame-src  'self' ${cloudinaryWidgetDomain};
-    upgrade-insecure-requests;
-  `;
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const apiOrigin = getApiOrigin(); // env URL 에서 origin 만 안전 추출
 
-  response.headers.set("Content-Security-Policy", ...);
-  response.headers.set("X-Content-Type-Options", "nosniff");          // MIME 스니핑 방지
+  // production: nonce + strict-dynamic → 호스트 출처 자동 무시, nonce 없는 스크립트 일체 차단
+  // development: HMR/eval 호환을 위해 unsafe-inline / unsafe-eval 허용
+  const scriptSrc = isDevelopment
+    ? `'self' 'unsafe-inline' 'unsafe-eval'`
+    : `'nonce-${nonce}' 'strict-dynamic'`;
+
+  const cspDirectives = [
+    `default-src 'self'`,
+    `connect-src 'self' ${apiOrigin}` + (isDevelopment ? ` ws: wss:` : ``),
+    `script-src ${scriptSrc}`,
+    `style-src 'self' 'unsafe-inline'`,           // Next.js critical CSS 인라인 호환
+    `img-src 'self' blob: data: https://res.cloudinary.com`,
+    `font-src 'self' data:`,
+    `object-src 'none'`,
+    `base-uri 'self'`,
+    `form-action 'self'`,
+    `frame-ancestors 'none'`,                     // 클릭재킹 방지
+    `frame-src 'none'`,                           // iframe 미사용 → 명시적 차단
+    `upgrade-insecure-requests`,
+  ];
+
+  // nonce 는 요청 헤더(x-nonce)로만 전달 → 서버 컴포넌트가 headers() 로 읽어
+  // Provider 의 __webpack_nonce__ 에 세팅. **DOM 어트리뷰트로는 절대 노출하지 않음**.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  response.headers.set("Content-Security-Policy", cspDirectives.join("; "));
+  response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(self)");                   // 최소 권한 원칙
+    "camera=(), microphone=(), geolocation=(self)");
 
   return response;
 }

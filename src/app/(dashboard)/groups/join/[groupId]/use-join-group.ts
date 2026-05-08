@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { useAuthStore } from "@/store/auth.store";
+import { useCurrentUserId } from "@/lib/currentUser";
 import { getMasterKey } from "@/utils/client/key-storage";
 import { encryptDataClient } from "@/utils/client/crypto/encryptClient";
 
@@ -23,12 +24,7 @@ export const useJoinGroup = () => {
   const [groupKey, setGroupKey] = useState<string | null>(null);
 
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
-
-  const originalUserId =
-    localStorage.getItem("hashed_user_id_for_manager") || "";
-  // const myUserId = useAuthStore((state) => state.userId);
-
-  const myUserId = originalUserId;
+  const myUserId = useCurrentUserId() ?? "";
 
   // 1. 초기화: URL 해시에서 키 추출 및 로그인/그룹 유효성 체크
   useEffect(() => {
@@ -103,11 +99,6 @@ export const useJoinGroup = () => {
         masterKey,
         "group_proxy_user"
       );
-
-      // 기존 로직 주석 및 흐름 유지
-      // TODO : 암호화할 때 그룹키인지 마스터 키인지..
-      // 초대에서는 개인키를 쓰라고 명시함
-      // TODO : iv도 초대에서는 proxy user 사용
 
       const encUserId = await encryptDataClient(
         myUserId,

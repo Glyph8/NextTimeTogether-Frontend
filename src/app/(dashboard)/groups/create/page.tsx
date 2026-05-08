@@ -62,7 +62,6 @@ export default function CreateGroupPage() {
       },
       {
         onSuccess: () => {
-          // TODO : Toast로 추후 교체
           toast.success("그룹이 성공적으로 생성되었습니다!");
           queryClient.invalidateQueries({ queryKey: ["groupList"] });
           router.push("/groups");

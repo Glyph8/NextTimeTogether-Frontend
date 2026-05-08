@@ -258,14 +258,10 @@ export default function CalendarPage() {
   // ScheduleCreateDrawer가 호출할 함수 (이벤트 생성)
   // const handleEventCreated = (newEvent: NewEventData) => {
   const handleEventCreated = async (newEvent: ExtendedNewEventData) => {
-    console.log("🔵 드로워 원본 데이터:", newEvent);
-
-    // TODO : 백엔드 API에 색상 없음.. 색상 hex값 매핑
+    // 색상 hex 매핑은 백엔드 API에서 색상 필드가 추가되면 적용 예정.
     // const colorHexMap: { [key: string]: string } = {
 
     try {
-      console.log("🚀 일정 생성 프로세스 시작");
-
       // ---------------------------------------------------------
       // 1. [준비] 클라이언트 사이드 ID 생성 (Time Format)
       //    서버 ID를 쓰더라도, encStartTimeAndEndTime 값 생성을 위해 이 로직은 필요합니다.
@@ -315,21 +311,16 @@ export default function CalendarPage() {
         throw new Error("스케줄 ID를 결정할 수 없습니다.");
       }
 
-      // TODO : 아직 암호화 미적용. 추후 암호화 적용
+      // 현재 평문 결합. E2EE 적용 범위 확장 시 groupKey 또는 masterKey 로 암호화 예정.
       const combinedEncStr = `${finalScheduleId}${startLocalDateTime}${endLocalDateTime}`;
 
-      console.log("🔏 생성된 암호화용 문자열:", combinedEncStr);
-      // ---------------------------------------------------------
       // 4. [요청] 2단계: 시간 정보 등록
-      // ---------------------------------------------------------
       const timeInfoBody: CalendarCreateRequest2 = {
         timeStampInfo: newEvent.start,
         encStartTimeAndEndTime: combinedEncStr,
       };
 
       await registerTimeInfo(timeInfoBody);
-
-      console.log("🎉 모든 단계 완료");
       setIsCreateDrawerOpen(false);
     } catch (error) {
       console.error("일정 생성 실패:", error);
@@ -342,7 +333,6 @@ export default function CalendarPage() {
     try {
       // 1. 서버에 수정 요청 (API 함수와 훅이 필요합니다)
       await updateCalendarSchedule(updatedEvent);
-      console.log("수정 요청 보냄:", updatedEvent);
 
       // 2. 데이터 갱신 (성공 시 캘린더 다시 불러오기)
       await queryClient.invalidateQueries({ queryKey: ["calendarIds"] });
@@ -359,10 +349,9 @@ export default function CalendarPage() {
   // ScheduleCreateDrawer가 호출할 함수 (이벤트 삭제)
   const handleEventDeleted = async (eventId: string) => {
     try {
-      // 1) 서버에 삭제 요청 API 호출 (예시)
-      // await deleteSchedule(eventId); TODO : 삭제 api 없는데?
-
-      console.log("삭제 요청 완료:", eventId);
+      // 1) 서버 삭제 API 미정의 상태. 백엔드 스펙 확정 후 호출 추가 예정.
+      // await deleteSchedule(eventId);
+      void eventId;
 
       // 2) 성공 시 'calendarIds' 쿼리 무효화 -> 데이터를 다시 받아와서 UI가 자동 갱신됨
       await queryClient.invalidateQueries({ queryKey: ["calendarIds"] });
