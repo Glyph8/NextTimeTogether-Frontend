@@ -61,7 +61,10 @@ export const ScheduleDrawer = ({
   };
 
   const navigateBackToGroup = () => {
-    queryClient.invalidateQueries({ queryKey: ["promiseList"] });
+    queryClient.invalidateQueries({ queryKey: ["promiseIdList"] });
+    queryClient.invalidateQueries({ queryKey: ["promiseInProgressList"] });
+    queryClient.invalidateQueries({ queryKey: ["scheduleIdList"] });
+    queryClient.invalidateQueries({ queryKey: ["fixedScheduleInfo"] });
     queryClient.invalidateQueries({ queryKey: ["promiseId"] });
     router.replace(`/groups/detail/${groupId}`);
   };

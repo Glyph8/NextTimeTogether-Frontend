@@ -9,18 +9,13 @@ import { emailSchema } from "@/lib/schemas/signupSchema";
 export default function RegisterMailPage() {
   const { updateFormData } = useSignupStore();
   const [email, setEmail] = useState("");
-  const [hasInteracted, setHasInteracted] = useState(false);
   const router = useRouter();
 
   const isEmailValid = emailSchema.safeParse(email).success;
-  // 사용자가 한 번이라도 다음 버튼을 누르거나 입력을 비웠다면 경고 노출.
-  const showWarning = hasInteracted && !isEmailValid;
+  const showWarning = email.length > 0 && !isEmailValid;
 
   const handleNextStep = () => {
-    if (!isEmailValid) {
-      setHasInteracted(true);
-      return;
-    }
+    if (!isEmailValid) return;
     updateFormData({ email });
     router.push("/register/step6");
   };
@@ -46,10 +41,7 @@ export default function RegisterMailPage() {
 
         <ConditionInputBar
           data={email}
-          onChange={(value: string) => {
-            setEmail(value);
-            if (hasInteracted) setHasInteracted(false);
-          }}
+          onChange={(value: string) => setEmail(value)}
           placeholder="이메일을 입력해주세요"
           checkWithWarn={checkWithWarnEmail}
         />

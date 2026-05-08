@@ -63,7 +63,16 @@ export const ExitGroupDialog = ({
   const handleCancel = () => closeDialog();
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          closeDialog();
+          return;
+        }
+        setIsOpen(true);
+      }}
+    >
       <DialogTitle className="sr-only">그룹에서 나가기</DialogTitle>
       <DialogContent
         showCloseButton={false}
