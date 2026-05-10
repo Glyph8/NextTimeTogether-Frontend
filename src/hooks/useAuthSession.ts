@@ -22,7 +22,9 @@ export const useAuthSession = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [isRestoring, setIsRestoring] = useState(true);
-  const { accessToken, setAccessToken } = useAuthStore();
+  // selector로 필요한 슬라이스만 구독 (isLoading 등 다른 필드 변경 시 리렌더 방지)
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const setAccessToken = useAuthStore((s) => s.setAccessToken);
 
   useEffect(() => {
     // 이미 AT 가 메모리에 있거나, 인증이 필요 없는 페이지면 복원 생략
