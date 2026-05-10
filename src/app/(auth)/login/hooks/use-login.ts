@@ -8,7 +8,6 @@ import { hashPassword } from "@/utils/client/crypto/encrypt-password";
 import { deriveMasterKeyPBKDF2 } from "@/utils/crypto/generate-key/derive-masterkey";
 import { login, LoginActionState } from "../action";
 import { getMasterKey, storeMasterKey } from "@/utils/client/key-storage";
-// import { arrayBufferToBase64 } from "@/utils/client/helper";
 import { useAuthStore } from "@/store/auth.store";
 import { encryptStringToBase64 } from "@/utils/client/crypto/crypto-storage";
 import { clearAllGroupLookupCache } from "@/utils/client/group-lookup";

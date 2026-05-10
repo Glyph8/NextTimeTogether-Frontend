@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button/Button";
-// import LinkIcon from "@/assets/svgs/icons/link.svg";
 
 interface SharePromiseProps {
   promiseId: string;

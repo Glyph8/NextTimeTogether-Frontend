@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-// --- 1. useRouter 삭제 ---
-// import { useRouter } from 'next/navigation';
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 

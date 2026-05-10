@@ -1,8 +1,5 @@
 "use client";
 
-// import { hash} from "argon2-browser";
-// SSR 환경과 충돌함.. server인지 스스로 검사하는 과정이 있음
-
 import { arrayBufferToBase64} from "@/utils/client/helper";
 
 export const hashPassword = async (

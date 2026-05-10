@@ -1,7 +1,6 @@
 import { DialogFooter } from "@/components/ui/dialog"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { useEffect, useState } from "react";
-// import Image from "next/image";
 
 interface EnterGroupDialogProps {
     isOpen: boolean;
